@@ -18,7 +18,11 @@ setup(name='xml-forms/',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
+          'lxml',
+      ],
+      test_suite = 'nose.collector',
+      tests_require = [
+          'nose',
       ],
       entry_points="""
       # -*- Entry points: -*-
