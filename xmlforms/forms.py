@@ -1,0 +1,210 @@
+#!/usr/bin/env python
+
+import dtd_parser
+
+
+def clone_obj(obj):
+    newobj = obj.__class__(**vars(obj))
+
+    if hasattr(obj, 'children') and obj.children:
+        children = []
+        for child in obj.children:
+            c = clone_obj(child)
+            c.parent = newobj
+            children += [c]
+        newobj.children = children
+
+    if hasattr(obj, 'possible_children') and obj.possible_children:
+        children = []
+        for child in obj.possible_children:
+            c = clone_obj(child)
+            c.parent = newobj
+            children += [c]
+        newobj.possible_children = children
+
+    if hasattr(obj, 'child') and obj.child:
+        newobj.child = clone_obj(newobj.child)
+        newobj.child.parent = newobj
+
+    return newobj
+
+
+class Field(object):
+    attrs = []
+    html_attrs = []
+
+    def __init__(self, **kwargs):
+        self.key = None
+        self.name = None
+        self.value = None
+        self.parent = None
+        self.required = None
+        self.empty = False
+        for attr in self.html_attrs + self.attrs:
+            setattr(self, attr, None)
+        for k, v in kwargs.iteritems():
+            if type(v) is list:
+                v = list(v)
+            setattr(self, k, v)
+
+    def get_name(self, add_value_str=True):
+        lis = []
+        parent = self
+        while parent:
+            name = getattr(parent, 'name', None)
+            lis += [name]
+            parent = parent.parent
+        lis.reverse()
+        s = ':'.join(filter(bool, lis))
+        if add_value_str:
+            s += ':value'
+        return s
+
+    def set_value(self, value):
+        if value and hasattr(value, 'value'):
+            value = value.value
+        if value == dtd_parser.UNDEFINED:
+            self.empty = True
+            value = None
+        self.value = value
+
+    def get_value(self):
+        return self.value or ''
+
+    def get_attrs(self):
+        attrs = []
+        attrs += [' name="%s"' % self.get_name()]
+        for attr in self.html_attrs:
+            v = getattr(self, attr, None)
+            if v:
+                attrs += ['%s="%s"' % (attr, v)]
+        return ' '.join(attrs)
+
+    def display(self):
+        raise NotImplementedError
+
+
+class TextAreaField(Field):
+    attrs = ['label']
+    html_attrs = ['rows']
+
+    def set_value(self, value):
+        super(TextAreaField, self).set_value(value)
+        num = self.value and self.value.count('\n') or 0
+        self.rows = max(num + 1, 2)
+
+    def display(self):
+        html = []
+        if not self.empty and not self.value and not self.required:
+            # For now, we don't want to add the empty field
+            return ''
+        if self.label:
+            html += ['<label>%s</label>' % self.label]
+        html += ['<textarea%s>%s</textarea>' % (self.get_attrs(), self.get_value())]
+        return '<div>%s</div>' % ''.join(html)
+
+
+class MultipleField(Field):
+
+    def __init__(self, **kwargs):
+        super(MultipleField, self).__init__(**kwargs)
+        self.children = []
+
+    def set_value(self, value):
+        self.value = value
+        for child in self.children:
+            v = value
+            if child.key and hasattr(value, child.key):
+                v = getattr(value, child.key)
+            child.set_value(v)
+
+    def get_value(self):
+        return self.value or []
+
+    def get_children(self):
+        return self.children
+
+
+class Fieldset(MultipleField):
+    attrs = ['legend']
+
+    def display(self):
+        html = []
+        html += ['<fieldset%s>' % self.get_attrs()]
+        if self.legend:
+            html += ['<legend>%s</legend>' % self.legend]
+
+        child_html = []
+        for child in self.get_children():
+            content = child.display()
+            child_html += [content]
+
+        if not filter(bool, child_html):
+            return ''
+
+        html.extend(child_html)
+        html += ['</fieldset>']
+        return '\n'.join(html)
+
+
+class FormField(Fieldset):
+
+    def display(self):
+        children_html = super(FormField, self).display()
+        if not children_html:
+            return ''
+        html = []
+        html += ['<form%s method="POST">' % self.get_attrs()]
+        html += [children_html]
+        html += ['<input type="submit" />']
+        html += ['</form>']
+        return ''.join(html)
+
+
+class ConditionalContainer(Field):
+    def __init__(self, **kwargs):
+        self.possible_children = []
+        super(ConditionalContainer, self).__init__(**kwargs)
+
+    def get_children(self):
+        for c in self.possible_children:
+            if hasattr(self.value, c.key):
+                c.set_value(getattr(self.value, c.key, None))
+                return [c]
+        return []
+
+    def display(self):
+        html = []
+        for child in self.get_children():
+	        html += ['<div>%s</div>' % child.display()]
+        return '\n'.join(html)
+
+
+class GrowingContainer(Fieldset):
+    attrs = ['legend', 'child']
+    repetitions = 0
+
+    def set_value(self, value):
+        Field.set_value(self, value)
+
+    def get_children(self):
+        values = []
+        if self.value:
+            values = self.value
+            repetitions = len(values)
+        else:
+            repetitions = self.repetitions
+
+        children = []
+        for i in range(repetitions):
+            v = None
+            if values and len(values) > i:
+                v = values[i]
+            obj = clone_obj(self.child)
+            obj.name += ':%i' % i
+            obj.set_value(v)
+            children += [obj]
+
+        return children
+
+
