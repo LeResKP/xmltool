@@ -5,7 +5,14 @@ import tw2.core.testbase as tw2test
 
 
 class cls(object):
+    attrs = {}
     pass
+
+
+def display(field):
+    """Since we use xml validation, we need a root element
+    """
+    return '<div>%s</div>' % field.display()
 
 
 class TestFunctions(TestCase):
@@ -84,13 +91,20 @@ class TestField(TestCase):
     def test_get_name(self):
         field = forms.Field(name='test')
         self.assertEqual(field.get_name(), 'test:value')
-        self.assertEqual(field.get_name(add_value_str=False), 'test')
+        field.add_value_str = False
+        self.assertEqual(field.get_name(), 'test')
+        field.add_value_str = True
         field.parent = forms.Field(name='parent1')
         self.assertEqual(field.get_name(), 'parent1:test:value')
-        self.assertEqual(field.get_name(add_value_str=False), 'parent1:test')
+        field.parent.add_value_str = False
+        field.add_value_str = False
+        self.assertEqual(field.get_name(), 'parent1:test')
+        field.add_value_str = True
+        field.parent.add_value_str = True
         field.parent.name = None
         self.assertEqual(field.get_name(), 'test:value')
-        self.assertEqual(field.get_name(add_value_str=False), 'test')
+        field.add_value_str = False
+        self.assertEqual(field.get_name(), 'test')
 
     def test_set_value(self):
         field = forms.Field(name='test')
@@ -132,32 +146,55 @@ class TestTextAreaField(TestCase):
         self.assertEqual(field.rows, 3)
 
     def test_display(self):
-        field = forms.TextAreaField(name='test')
+        field = forms.TextAreaField(name='test', key='test')
         self.assertEqual(field.display(), '')
-        field.value = 'Hello'
-        tw2test.assert_eq_xml(field.display(), """
+        o = cls()
+        o.value = 'Hello'
+        o.attrs = {'id': 1}
+        field = forms.TextAreaField(name='test', key='test')
+        field.set_value(o)
+        tw2test.assert_eq_xml(display(field), """
           <div>
-            <textarea name="test:value">Hello</textarea>
+            <input type="text" value="1" name="test:attrs:id">
+            <div>
+              <textarea name="test:value" rows="2">Hello</textarea>
+            </div>
           </div>
         """)
-        field.set_value('Hello\nWorld\n!')
-        tw2test.assert_eq_xml(field.display(), """
+        o.value = 'Hello\nWorld\n!'
+        field = forms.TextAreaField(name='test', key='test')
+        field.set_value(o)
+        tw2test.assert_eq_xml(display(field), """
           <div>
-            <textarea name="test:value" rows="3">Hello\nWorld\n!</textarea>
+            <input type="text" value="1" name="test:attrs:id">
+            <div>
+              <textarea name="test:value" rows="3">Hello\nWorld\n!</textarea>
+            </div>
           </div>
         """)
+        field = forms.TextAreaField(name='test', key='test')
         field.label = 'my label'
-        tw2test.assert_eq_xml(field.display(), """
+        field.set_value(o)
+        tw2test.assert_eq_xml(display(field), """
           <div>
-            <label>my label</label>
-            <textarea name="test:value" rows="3">Hello\nWorld\n!</textarea>
+            <input type="text" value="1" name="test:attrs:id">
+            <div>
+              <label>my label</label>
+              <textarea name="test:value" rows="3">Hello\nWorld\n!</textarea>
+            </div>
           </div>
         """)
-        field.set_value(dtd_parser.UNDEFINED)
-        tw2test.assert_eq_xml(field.display(), """
+        o.value = dtd_parser.UNDEFINED
+        field = forms.TextAreaField(name='test', key='test')
+        field.label = 'my label'
+        field.set_value(o)
+        tw2test.assert_eq_xml(display(field), """
           <div>
-            <label>my label</label>
-            <textarea name="test:value" rows="2"></textarea>
+            <input type="text" value="1" name="test:attrs:id">
+            <div>
+              <label>my label</label>
+              <textarea name="test:value" rows="2"></textarea>
+            </div>
           </div>
         """)
 
@@ -251,27 +288,46 @@ class TestFieldset(TestCase):
         self.assertEqual(field.legend, 'my legend')
 
     def test_display(self):
-        field = forms.Fieldset(name='test')
+        field = forms.Fieldset(name='test', key='test')
         self.assertEqual(field.display(), '')
         sub1 = forms.TextAreaField(name='sub1', key='sub1', value='textarea 1',
                                   parent=field)
         sub2 = forms.TextAreaField(name='sub2', key='sub2', value='textarea 2',
                                   parent=field)
         field.children = [sub1, sub2]
-        tw2test.assert_eq_xml(field.display(), """
+        o = cls()
+        o.sub1 = cls()
+        o.sub1.value = 'textarea 1'
+        o.sub1.attrs = {'id': '1'}
+        o.sub2 = cls()
+        o.sub2.value = 'textarea 2'
+        o.sub2.attrs = {'id': '2'}
+        o.attrs = {'id': 'idfieldset'}
+        field.set_value(o)
+        tw2test.assert_eq_xml(display(field), """
+        <div>
+          <input type="text" value="idfieldset" name="test:attrs:id">
           <fieldset name="test:value">
-            <div><textarea name="test:sub1:value">textarea 1</textarea></div>
-            <div><textarea name="test:sub2:value">textarea 2</textarea></div>
+            <input type="text" value="1" name="test:sub1:attrs:id">
+            <div><textarea name="test:sub1:value" rows="2">textarea 1</textarea></div>
+            <input type="text" value="2" name="test:sub2:attrs:id">
+            <div><textarea name="test:sub2:value" rows="2">textarea 2</textarea></div>
           </fieldset>
+        </div>
         """)
 
         field.legend = 'my legend'
-        tw2test.assert_eq_xml(field.display(), """
+        tw2test.assert_eq_xml(display(field), """
+        <div>
+          <input type="text" value="idfieldset" name="test:attrs:id">
           <fieldset name="test:value">
             <legend>my legend</legend>
-            <div><textarea name="test:sub1:value">textarea 1</textarea></div>
-            <div><textarea name="test:sub2:value">textarea 2</textarea></div>
+            <input type="text" value="1" name="test:sub1:attrs:id">
+            <div><textarea name="test:sub1:value" rows="2">textarea 1</textarea></div>
+            <input type="text" value="2" name="test:sub2:attrs:id">
+            <div><textarea name="test:sub2:value" rows="2">textarea 2</textarea></div>
           </fieldset>
+        </div>
         """)
 
 

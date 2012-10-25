@@ -40,6 +40,9 @@ class Field(object):
         self.parent = None
         self.required = None
         self.empty = False
+        self.add_value_str = True
+        self.attrs_children = []
+
         for attr in self.html_attrs + self.attrs:
             setattr(self, attr, None)
         for k, v in kwargs.iteritems():
@@ -47,7 +50,7 @@ class Field(object):
                 v = list(v)
             setattr(self, k, v)
 
-    def get_name(self, add_value_str=True):
+    def get_name(self):
         lis = []
         parent = self
         while parent:
@@ -56,11 +59,23 @@ class Field(object):
             parent = parent.parent
         lis.reverse()
         s = ':'.join(filter(bool, lis))
-        if add_value_str:
+        if self.add_value_str:
             s += ':value'
         return s
 
     def set_value(self, value):
+        if value and (self.key or type(self) is FormField):
+            if type(value) != list:
+                for k, v in value.attrs.items():
+                    self.attrs_children += [InputField(
+                        key=k,
+                        name='attrs:%s' % k,
+                        parent=self,
+                        add_value_str=False,
+                        value=v)]
+        self._set_value(value)
+
+    def _set_value(self, value):
         if value and hasattr(value, 'value'):
             value = value.value
         if value == dtd_parser.UNDEFINED:
@@ -81,19 +96,33 @@ class Field(object):
         return ' '.join(attrs)
 
     def display(self):
+        html = []
+        for child in self.attrs_children:
+            html += [child.display()]
+        html += [self._display()]
+        return ''.join(html)
+
+    def _display(self):
         raise NotImplementedError
+
+
+class InputField(Field):
+
+    def _display(self):
+        return '<input type="text" value="%s"%s>' % (self.get_value(),
+                                                    self.get_attrs())
 
 
 class TextAreaField(Field):
     attrs = ['label']
     html_attrs = ['rows']
 
-    def set_value(self, value):
-        super(TextAreaField, self).set_value(value)
+    def _set_value(self, value):
+        super(TextAreaField, self)._set_value(value)
         num = self.value and self.value.count('\n') or 0
         self.rows = max(num + 1, 2)
 
-    def display(self):
+    def _display(self):
         html = []
         if not self.empty and not self.value and not self.required:
             # For now, we don't want to add the empty field
@@ -110,7 +139,7 @@ class MultipleField(Field):
         super(MultipleField, self).__init__(**kwargs)
         self.children = []
 
-    def set_value(self, value):
+    def _set_value(self, value):
         self.value = value
         for child in self.children:
             v = value
@@ -128,7 +157,7 @@ class MultipleField(Field):
 class Fieldset(MultipleField):
     attrs = ['legend']
 
-    def display(self):
+    def _display(self):
         html = []
         html += ['<fieldset%s>' % self.get_attrs()]
         if self.legend:
@@ -155,6 +184,8 @@ class FormField(Fieldset):
             return ''
         html = []
         html += ['<form%s method="POST">' % self.get_attrs()]
+        for child in self.attrs_children:
+            html += [child.display()]
         html += [children_html]
         html += ['<input type="submit" />']
         html += ['</form>']
@@ -173,7 +204,7 @@ class ConditionalContainer(Field):
                 return [c]
         return []
 
-    def display(self):
+    def _display(self):
         html = []
         for child in self.get_children():
 	        html += ['<div>%s</div>' % child.display()]
@@ -184,8 +215,8 @@ class GrowingContainer(Fieldset):
     attrs = ['legend', 'child']
     repetitions = 0
 
-    def set_value(self, value):
-        Field.set_value(self, value)
+    def _set_value(self, value):
+        Field._set_value(self, value)
 
     def get_children(self):
         values = []
