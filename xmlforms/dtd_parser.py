@@ -1,5 +1,6 @@
 import re
 from lxml import etree
+import forms
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -66,7 +67,7 @@ def dtd_to_dict(dtd):
             dtd_attributes.setdefault(name, []).extend(attributes)
         else:
             raise Exception, '%s is not supported' % element
-    
+
     for name, elements in dtd_elements.items():
         for key, value in dtd_entities.items():
             elements = elements.replace('%s;' % key, value)
@@ -113,21 +114,28 @@ class DtdSubElement(object):
         elif text.endswith('?'):
             self.name = text[:-1]
             self.required = False
-        
+
         if '|' in self.name:
             text = self.name.replace('(', '').replace(')', '')
             conditional_names = text.split('|')
             for name in conditional_names:
-                self.conditional_names += [type(self)(name)]
+                elt = type(self)(name)
+                # If the conditional element is a list, the conditionals
+                # are also a list
+                # TODO: add test for islist
+                elt.islist = self.islist
+                self.conditional_names += [elt]
 
     def __repr__(self):
         return '<name=%(name)s required=%(required)s islist=%(islist)s>' % vars(self)
+
 
 class DtdTextElement(object):
     def __init__(self):
         self.value = None
         self.attrs = {}
-        
+
+
 class DtdElement(object):
     _attrs = []
     _elements = []
@@ -137,7 +145,7 @@ class DtdElement(object):
 
 
 class Generator(object):
-    
+
     def __init__(self, dtd_str=None, dtd_dict=None, dtd_file=None):
         if not len(filter(bool, [dtd_str, dtd_dict, dtd_file])) == 1:
             raise ValueError, 'Make sure you only pass one of the following parameters: dtd_str, dtd_dict, dtd_file'
@@ -156,16 +164,19 @@ class Generator(object):
         for name, elements in self.dtd.items():
             attrs = self.dtd_attrs.get(name) or []
             if elements == '#PCDATA':
-                cls = type(name, (DtdTextElement,), {'_attrs': attrs})
+                cls = type(name, (DtdTextElement,), {'_attrs': attrs,
+                                                     'name': name})
                 cls.__name__ = name
                 self.dtd_classes[name] = cls
                 continue
             splitted = elements.split(',')
             lis = [DtdSubElement(element) for element in splitted]
-            cls = type(name, (DtdElement,), {'_elements': lis, '_attrs': attrs})
+            cls = type(name, (DtdElement,), {'_elements': lis,
+                                             '_attrs': attrs,
+                                             'name': name})
             cls.__name__ = name
             self.dtd_classes[name] = cls
-            
+
     def get_key_from_xml(self, element, obj):
         if not element.conditional_names:
             return element.name
@@ -207,7 +218,7 @@ class Generator(object):
                 setattr(obj, key, value)
 
         return obj
-    
+
     def get_key_from_obj(self, element, obj):
         if not element.conditional_names:
             return element.name
@@ -234,7 +245,7 @@ class Generator(object):
         self.set_attrs_to_xml(obj, xml)
 
         if isinstance(obj, DtdTextElement):
-            xml.text = clear_value(obj.value)
+            xml.text = obj.value
             return xml
 
         for element in obj._elements:
@@ -247,12 +258,132 @@ class Generator(object):
                     e = etree.Element(key)
                     self.obj_to_xml(v, e)
                     if len(e) or e.text or element.required:
+                        if e.text:
+                            e.text = clear_value(e.text)
                         xml.append(e)
             else:
                 e = etree.Element(key)
                 self.obj_to_xml(value, e)
                 if len(e) or e.text or element.required:
+                    if e.text:
+                        e.text = clear_value(e.text)
                     xml.append(e)
 
         return xml
+
+    def generate_form_child(self, element, parent):
+        if element.conditional_names:
+            field = forms.ConditionalContainer(parent=parent,
+                                               required=element.required)
+            for elt in element.conditional_names:
+                field.possible_children += [self.generate_form_child(elt,
+                                                                     field)]
+            return field
+
+        key = element.name
+        sub_cls = self.dtd_classes[key]
+        if element.islist:
+            field = forms.GrowingContainer(
+                    key=key,
+                    parent=parent,
+                    required=element.required,
+                    )
+            sub_field = forms.Fieldset(
+                    key=key,
+                    name=key,
+                    parent=field,
+                    legend=key,
+                    required=element.required)
+
+            result = self.generate_form_children(sub_cls, sub_field)
+            if result:
+                if type(result) != list:
+                    field.child = result
+                    result.parent = field
+                    return field
+                sub_field.children = result
+            field.child = sub_field
+        else:
+            if issubclass(sub_cls, DtdTextElement):
+                return self.generate_form_children(sub_cls, parent)
+
+            field = forms.Fieldset(
+                    key=key,
+                    name=key,
+                    legend=key,
+                    parent=parent,
+                    required=element.required)
+            result = self.generate_form_children(sub_cls, field)
+            assert type(result) == list
+            if result:
+                field.children = result
+        return field
+
+    def generate_form_children(self, cls, parent): # , element=None):
+        if issubclass(cls, DtdTextElement):
+            key = cls.name
+            return forms.TextAreaField(
+                key=key,
+                name=key,
+                label=key,
+                parent=parent,
+                )
+        children = []
+        for elt in cls._elements:
+            children += [self.generate_form_child(elt, parent)]
+
+        return children
+
+    def generate_form(self, tag): # , parent=None):
+        cls = self.dtd_classes[tag]
+        parent = forms.FormField(legend=cls.name)
+        parent.children = self.generate_form_children(cls, parent)
+        return parent
+
+    def get_key_from_dict(self, element, dic):
+        if not element.conditional_names:
+            return element.name
+
+        for elt in element.conditional_names:
+            name = elt.name
+            if name in dic:
+                return name
+        return None
+
+    def dict_to_obj(self, root_tag, dic):
+        if not dic:
+            return None
+
+        obj = self.dtd_classes[root_tag]()
+        attrs = dic.get('attrs') or {}
+        for (attr_name, type_, require) in obj._attrs:
+            if attr_name in attrs:
+                obj.attrs[attr_name] = attrs[attr_name]
+
+        if isinstance(obj, DtdTextElement):
+            value = dic.get('value')
+            if value == '':
+                # We want to make sure we will display the tags added by the
+                # user
+                value = UNDEFINED
+            obj.value = value
+            return obj
+
+        for element in obj._elements:
+            key = self.get_key_from_dict(element, dic)
+            if not key:
+                continue
+            value = dic.get(key)
+            if element.islist:
+                value = value or []
+                assert isinstance(value, list)
+                lis = []
+                for v in value:
+                    sub_obj = self.dict_to_obj(key, v)
+                    lis += [sub_obj]
+                setattr(obj, key, lis)
+            else:
+                res = self.dict_to_obj(key, value)
+                setattr(obj, key, res)
+        return obj
 

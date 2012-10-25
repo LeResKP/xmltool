@@ -1,5 +1,6 @@
 from unittest import TestCase
 import xmlforms.dtd_parser as dtd_parser
+import xmlforms.forms as forms
 from lxml import etree
 import __builtin__
 
@@ -331,10 +332,10 @@ class test_DtdSubElement(TestCase):
         qcm, mqm = elt.conditional_names
         self.assertEqual(qcm.name, 'qcm')
         self.assertTrue(qcm.required)
-        self.assertFalse(qcm.islist)
+        self.assertTrue(qcm.islist)
         self.assertEqual(mqm.name, 'mqm')
         self.assertTrue(mqm.required)
-        self.assertFalse(mqm.islist)
+        self.assertTrue(mqm.islist)
 
     def test_repr(self):
         text = 'actor*'
@@ -626,3 +627,133 @@ class TestGenerator3(TestCase):
                 encoding=docinfo.encoding,
                 doctype=docinfo.doctype)
         self.assertEqual(EXERCISE_XML_2, s)
+
+    def test_generate_form_child_conditional(self):
+        text = '(qcm|mqm)*'
+        elt = dtd_parser.DtdSubElement(text)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        field = gen.generate_form_child(elt, parent=None)
+        self.assertTrue(isinstance(field, forms.ConditionalContainer))
+        self.assertEqual(len(field.possible_children), 2)
+        for child in field.possible_children:
+            self.assertTrue(isinstance(child, forms.GrowingContainer))
+
+    def test_generate_form_child_no_list_text(self):
+        text = 'comment'
+        elt = dtd_parser.DtdSubElement(text)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        field = gen.generate_form_child(elt, parent=None)
+        self.assertTrue(isinstance(field, forms.TextAreaField))
+
+    def test_generate_form_child_no_list_no_text(self):
+        text = 'comments'
+        elt = dtd_parser.DtdSubElement(text)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        field = gen.generate_form_child(elt, parent=None)
+        self.assertTrue(isinstance(field, forms.Fieldset))
+        self.assertEqual(field.key, 'comments')
+        self.assertEqual(field.name, 'comments')
+        self.assertEqual(field.legend, 'comments')
+        self.assertEqual(len(field.children), 1)
+
+    def test_generate_form_child_list_text(self):
+        text = 'comment*'
+        elt = dtd_parser.DtdSubElement(text)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        field = gen.generate_form_child(elt, parent=None)
+        self.assertTrue(isinstance(field, forms.GrowingContainer))
+        self.assertTrue(isinstance(field.child, forms.TextAreaField))
+        self.assertEqual(field.key, 'comment')
+        self.assertEqual(field.name, None)
+        self.assertEqual(field.child.key, 'comment')
+        self.assertEqual(field.child.name, 'comment')
+        self.assertEqual(field.child.parent, field)
+
+    def test_generate_form_child_list_no_text(self):
+        text = 'test*'
+        elt = dtd_parser.DtdSubElement(text)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        field = gen.generate_form_child(elt, parent=None)
+        self.assertTrue(isinstance(field, forms.GrowingContainer))
+        self.assertTrue(isinstance(field.child, forms.Fieldset))
+        self.assertEqual(field.key, 'test')
+        self.assertEqual(field.name, None)
+        self.assertEqual(field.child.key, 'test')
+        self.assertEqual(field.child.name, 'test')
+        self.assertEqual(field.child.legend, 'test')
+        self.assertEqual(field.child.parent, field)
+        self.assertEqual(len(field.child.children), 3)
+
+    def test_generate_form_children_text(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        field = gen.generate_form_children(gen.dtd_classes['choice'],
+                                           parent=None)
+
+        self.assertTrue(isinstance(field, forms.TextAreaField))
+        self.assertEqual(field.key, 'choice')
+        self.assertEqual(field.name, 'choice')
+
+    def test_generate_form_children_no_text(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        field = gen.generate_form_children(gen.dtd_classes['qcm'],
+                                           parent=None)
+
+        self.assertEqual(len(field), 1)
+        self.assertTrue(isinstance(field[0], forms.GrowingContainer))
+        self.assertEqual(field[0].key, 'choice')
+        self.assertEqual(field[0].name, None)
+
+    def test_generate_form(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        form = gen.generate_form('Exercise')
+        self.assertTrue(isinstance(form, forms.FormField))
+        self.assertEqual(form.legend, 'Exercise')
+        self.assertEqual(len(form.children), 2)
+
+    def test_dict_to_obj(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        dic = {}
+        obj = gen.dict_to_obj('Exercise', dic)
+        self.assertEqual(obj, None)
+
+        dic = {'empty': 'empty'}
+        obj = gen.dict_to_obj('choice', dic)
+        self.assertTrue(isinstance(obj, gen.dtd_classes['choice']))
+        self.assertEqual(obj.value, None)
+
+        dic = {
+            'value': 'choice value',
+            'attrs': {'id': '1'}
+        }
+        obj = gen.dict_to_obj('choice', dic)
+        self.assertTrue(isinstance(obj, gen.dtd_classes['choice']))
+        self.assertEqual(obj.value, 'choice value')
+        # Bad attribute name
+        self.assertEqual(obj.attrs, {})
+
+        dic = {'choice': [{'value': 'choice1',
+                           'attrs': {'idchoice': '1'}},
+                          {'value': 'choice2',
+                           'attrs': {'idchoice': '2'}},
+                         ],
+               'attrs': {'idmqm': '1'}
+              }
+        obj = gen.dict_to_obj('mqm', dic)
+        self.assertTrue(isinstance(obj, gen.dtd_classes['mqm']))
+        self.assertEqual(obj.attrs, {'idmqm': '1'})
+        self.assertEqual(len(obj.choice), 2)
+        self.assertEqual(obj.choice[0].value, 'choice1')
+        self.assertEqual(obj.choice[0].attrs, {'idchoice': '1'})
+        self.assertEqual(obj.choice[1].value, 'choice2')
+        self.assertEqual(obj.choice[1].attrs, {'idchoice': '2'})
+
+        dic = {'question': {'value': 'test question',
+                            'attrs': {'idquestion': '1'}},
+               'attrs': {'idtest': '1'}
+        }
+        obj = gen.dict_to_obj('test', dic)
+        self.assertTrue(isinstance(obj, gen.dtd_classes['test']))
+        self.assertEqual(obj.attrs, {'idtest': '1'})
+        self.assertEqual(obj.question.value, 'test question')
+        self.assertEqual(obj.question.attrs, {'idquestion': '1'})
+
