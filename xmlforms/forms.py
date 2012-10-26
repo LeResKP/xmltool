@@ -184,8 +184,6 @@ class FormField(Fieldset):
             return ''
         html = []
         html += ['<form%s method="POST">' % self.get_attrs()]
-        for child in self.attrs_children:
-            html += [child.display()]
         html += [children_html]
         html += ['<input type="submit" />']
         html += ['</form>']
