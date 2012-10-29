@@ -42,6 +42,7 @@ class Field(object):
         self.empty = False
         self.add_value_str = True
         self.attrs_children = []
+        self.css_classes = []
 
         for attr in self.html_attrs + self.attrs:
             setattr(self, attr, None)
@@ -49,6 +50,9 @@ class Field(object):
             if type(v) is list:
                 v = list(v)
             setattr(self, k, v)
+
+        if self.key and self.key not in self.css_classes:
+            self.css_classes += [self.key]
 
     def get_name(self):
         lis = []
@@ -72,6 +76,7 @@ class Field(object):
                         name='attrs:%s' % k,
                         parent=self,
                         add_value_str=False,
+                        css_classes=['attr'],
                         value=v)]
         self._set_value(value)
 
@@ -89,6 +94,9 @@ class Field(object):
     def get_attrs(self):
         attrs = []
         attrs += [' name="%s"' % self.get_name()]
+        css_classes = ' '.join(self.css_classes)
+        if css_classes:
+            attrs += [' class="%s"' % css_classes ]
         for attr in self.html_attrs:
             v = getattr(self, attr, None)
             if v:
@@ -177,6 +185,8 @@ class Fieldset(MultipleField):
 
 
 class FormField(Fieldset):
+
+    html_attrs = ['action']
 
     def display(self):
         children_html = super(FormField, self).display()

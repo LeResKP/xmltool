@@ -155,9 +155,9 @@ class TestTextAreaField(TestCase):
         field.set_value(o)
         tw2test.assert_eq_xml(display(field), """
           <div>
-            <input type="text" value="1" name="test:attrs:id">
+            <input type="text" value="1" name="test:attrs:id" class="attr id">
             <div>
-              <textarea name="test:value" rows="2">Hello</textarea>
+              <textarea name="test:value" class="test" rows="2">Hello</textarea>
             </div>
           </div>
         """)
@@ -166,9 +166,9 @@ class TestTextAreaField(TestCase):
         field.set_value(o)
         tw2test.assert_eq_xml(display(field), """
           <div>
-            <input type="text" value="1" name="test:attrs:id">
+            <input type="text" value="1" name="test:attrs:id" class="attr id">
             <div>
-              <textarea name="test:value" rows="3">Hello\nWorld\n!</textarea>
+              <textarea name="test:value" class="test" rows="3">Hello\nWorld\n!</textarea>
             </div>
           </div>
         """)
@@ -177,10 +177,10 @@ class TestTextAreaField(TestCase):
         field.set_value(o)
         tw2test.assert_eq_xml(display(field), """
           <div>
-            <input type="text" value="1" name="test:attrs:id">
+            <input type="text" value="1" name="test:attrs:id" class="attr id">
             <div>
               <label>my label</label>
-              <textarea name="test:value" rows="3">Hello\nWorld\n!</textarea>
+              <textarea name="test:value" class="test" rows="3">Hello\nWorld\n!</textarea>
             </div>
           </div>
         """)
@@ -190,10 +190,10 @@ class TestTextAreaField(TestCase):
         field.set_value(o)
         tw2test.assert_eq_xml(display(field), """
           <div>
-            <input type="text" value="1" name="test:attrs:id">
+            <input type="text" value="1" name="test:attrs:id" class="attr id">
             <div>
               <label>my label</label>
-              <textarea name="test:value" rows="2"></textarea>
+              <textarea name="test:value" class="test" rows="2"></textarea>
             </div>
           </div>
         """)
@@ -306,12 +306,12 @@ class TestFieldset(TestCase):
         field.set_value(o)
         tw2test.assert_eq_xml(display(field), """
         <div>
-          <input type="text" value="idfieldset" name="test:attrs:id">
-          <fieldset name="test:value">
-            <input type="text" value="1" name="test:sub1:attrs:id">
-            <div><textarea name="test:sub1:value" rows="2">textarea 1</textarea></div>
-            <input type="text" value="2" name="test:sub2:attrs:id">
-            <div><textarea name="test:sub2:value" rows="2">textarea 2</textarea></div>
+          <input type="text" value="idfieldset" name="test:attrs:id" class="attr id">
+          <fieldset name="test:value" class="test">
+            <input type="text" value="1" name="test:sub1:attrs:id" class="attr id">
+            <div><textarea name="test:sub1:value" class="sub1" rows="2">textarea 1</textarea></div>
+            <input type="text" value="2" name="test:sub2:attrs:id" class="attr id">
+            <div><textarea name="test:sub2:value" class="sub2" rows="2">textarea 2</textarea></div>
           </fieldset>
         </div>
         """)
@@ -319,13 +319,13 @@ class TestFieldset(TestCase):
         field.legend = 'my legend'
         tw2test.assert_eq_xml(display(field), """
         <div>
-          <input type="text" value="idfieldset" name="test:attrs:id">
-          <fieldset name="test:value">
+          <input type="text" value="idfieldset" name="test:attrs:id" class="attr id">
+          <fieldset name="test:value" class="test">
             <legend>my legend</legend>
-            <input type="text" value="1" name="test:sub1:attrs:id">
-            <div><textarea name="test:sub1:value" rows="2">textarea 1</textarea></div>
-            <input type="text" value="2" name="test:sub2:attrs:id">
-            <div><textarea name="test:sub2:value" rows="2">textarea 2</textarea></div>
+            <input type="text" value="1" name="test:sub1:attrs:id" class="attr id">
+            <div><textarea name="test:sub1:value" class="sub1" rows="2">textarea 1</textarea></div>
+            <input type="text" value="2" name="test:sub2:attrs:id" class="attr id">
+            <div><textarea name="test:sub2:value" class="sub2" rows="2">textarea 2</textarea></div>
           </fieldset>
         </div>
         """)
@@ -345,8 +345,8 @@ class TestFormField(TestCase):
         tw2test.assert_eq_xml(form.display(), """
           <form name="form:value" method="POST">
             <fieldset name="form:value">
-              <div><textarea name="form:sub1:value">textarea 1</textarea></div>
-              <div><textarea name="form:sub2:value">textarea 2</textarea></div>
+              <div><textarea name="form:sub1:value" class="sub1">textarea 1</textarea></div>
+              <div><textarea name="form:sub2:value" class="sub2">textarea 2</textarea></div>
             </fieldset>
             <input type="submit" />
           </form>
@@ -389,7 +389,7 @@ class TestConditionalContainer(TestCase):
         tw2test.assert_eq_xml(field.display(), """
           <div>
             <div>
-              <textarea name="test:sub1:value" rows="2">first textarea</textarea>
+              <textarea name="test:sub1:value" class="sub1" rows="2">first textarea</textarea>
             </div>
           </div>
         """)
