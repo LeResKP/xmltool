@@ -686,8 +686,11 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_children_text(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        element = dtd_parser.DtdElement()
+        element.required = False
         field = gen.generate_form_children(gen.dtd_classes['choice'],
-                                           parent=None)
+                                           parent=None,
+                                           element=element)
 
         self.assertTrue(isinstance(field, forms.TextAreaField))
         self.assertEqual(field.key, 'choice')
@@ -696,7 +699,8 @@ class TestGenerator3(TestCase):
     def test_generate_form_children_no_text(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_children(gen.dtd_classes['qcm'],
-                                           parent=None)
+                                           parent=None,
+                                           element=None)
 
         self.assertEqual(len(field), 1)
         self.assertTrue(isinstance(field[0], forms.GrowingContainer))

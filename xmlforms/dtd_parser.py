@@ -295,7 +295,7 @@ class Generator(object):
                     legend=key,
                     required=element.required)
 
-            result = self.generate_form_children(sub_cls, sub_field)
+            result = self.generate_form_children(sub_cls, sub_field, element)
             if result:
                 if type(result) != list:
                     field.child = result
@@ -305,7 +305,7 @@ class Generator(object):
             field.child = sub_field
         else:
             if issubclass(sub_cls, DtdTextElement):
-                return self.generate_form_children(sub_cls, parent)
+                return self.generate_form_children(sub_cls, parent, element)
 
             field = forms.Fieldset(
                     key=key,
@@ -313,13 +313,13 @@ class Generator(object):
                     legend=key,
                     parent=parent,
                     required=element.required)
-            result = self.generate_form_children(sub_cls, field)
+            result = self.generate_form_children(sub_cls, field, element)
             assert type(result) == list
             if result:
                 field.children = result
         return field
 
-    def generate_form_children(self, cls, parent): # , element=None):
+    def generate_form_children(self, cls, parent, element):
         if issubclass(cls, DtdTextElement):
             key = cls.name
             return forms.TextAreaField(
@@ -327,6 +327,7 @@ class Generator(object):
                 name=key,
                 label=key,
                 parent=parent,
+                required=element.required,
                 )
         children = []
         for elt in cls._elements:
@@ -337,7 +338,7 @@ class Generator(object):
     def generate_form(self, tag): # , parent=None):
         cls = self.dtd_classes[tag]
         parent = forms.FormField(legend=cls.name)
-        parent.children = self.generate_form_children(cls, parent)
+        parent.children = self.generate_form_children(cls, parent, None)
         return parent
 
     def get_key_from_dict(self, element, dic):
