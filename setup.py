@@ -1,6 +1,13 @@
 from setuptools import setup, find_packages
 import sys, os
 
+# Hack to prevent TypeError: 'NoneType' object is not callable error
+# on exit of python setup.py test
+try:
+    import multiprocessing
+except ImportError:
+    pass
+
 version = '0.0'
 
 setup(name='xml-forms/',
