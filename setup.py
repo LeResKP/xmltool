@@ -23,6 +23,11 @@ setup(name='xml-forms/',
       test_suite = 'nose.collector',
       tests_require = [
           'nose',
+          'BeautifulSoup',
+          'strainer',
+          'FormEncode',
+          'tw2.core',
+          'WebTest',
       ],
       entry_points="""
       # -*- Entry points: -*-
