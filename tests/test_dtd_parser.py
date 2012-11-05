@@ -761,3 +761,21 @@ class TestGenerator3(TestCase):
         self.assertEqual(obj.question.value, 'test question')
         self.assertEqual(obj.question.attrs, {'idquestion': '1'})
 
+        dic = {'choice': []}
+        obj = gen.dict_to_obj('mqm', dic)
+        self.assertEqual(obj, None)
+
+        dic = {'question': None}
+        obj = gen.dict_to_obj('test', dic)
+        self.assertEqual(obj.question, None)
+        self.assertEqual(obj.attrs, {})
+
+        dic = {'value': ''}
+        obj = gen.dict_to_obj('question', dic)
+        self.assertEqual(obj.value, dtd_parser.UNDEFINED)
+        self.assertEqual(obj.attrs, {})
+
+        dic = {'value': None}
+        obj = gen.dict_to_obj('question', dic)
+        self.assertEqual(obj.value, None)
+        self.assertEqual(obj.attrs, {})

@@ -351,7 +351,7 @@ class Generator(object):
                 return name
         return None
 
-    def dict_to_obj(self, root_tag, dic):
+    def dict_to_obj(self, root_tag, dic, required=True):
         if not dic:
             return None
 
@@ -370,6 +370,7 @@ class Generator(object):
             obj.value = value
             return obj
 
+        isempty = True
         for element in obj._elements:
             key = self.get_key_from_dict(element, dic)
             if not key:
@@ -380,11 +381,17 @@ class Generator(object):
                 assert isinstance(value, list)
                 lis = []
                 for v in value:
-                    sub_obj = self.dict_to_obj(key, v)
-                    lis += [sub_obj]
-                setattr(obj, key, lis)
+                    sub_obj = self.dict_to_obj(key, v, element.required)
+                    if sub_obj:
+                        lis += [sub_obj]
+                    setattr(obj, key, lis)
+                    isempty=False
             else:
-                res = self.dict_to_obj(key, value)
-                setattr(obj, key, res)
+                res = self.dict_to_obj(key, value, element.required)
+                if (element.required and required) or res:
+                    setattr(obj, key, res)
+                    isempty=False
+        if isempty:
+            return None
         return obj
 
