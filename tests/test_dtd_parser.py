@@ -621,12 +621,48 @@ class TestGenerator3(TestCase):
         s = etree.tostring(xml, pretty_print=True, xml_declaration=True)
         docinfo = root.getroottree().docinfo
         s = etree.tostring(
-                xml, 
+                xml,
                 pretty_print=True,
                 xml_declaration=True,
                 encoding=docinfo.encoding,
                 doctype=docinfo.doctype)
         self.assertEqual(EXERCISE_XML_2, s)
+
+    def test_obj_to_xml_non_existing_list(self):
+        root = etree.fromstring(EXERCISE_XML_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        obj = gen.generate_obj(root)
+        del obj.test[0].mqm[0].choice
+        xml = gen.obj_to_xml(obj)
+        s = etree.tostring(xml, pretty_print=True)
+        expected = '''<Exercise idexercise="1">
+  <number>1</number>
+  <test idtest="1" name="color">
+    <question idquestion="1">What is your favorite color?</question>
+    <mqm idmqm="2">
+      <choice idchoice="4">magenta</choice>
+      <choice idchoice="5">orange</choice>
+      <choice idchoice="6">yellow</choice>
+    </mqm>
+  </test>
+  <test idtest="2">
+    <question idquestion="2">Have you got a pet?</question>
+    <qcm idqcm="1">
+      <choice idchoice="7">yes</choice>
+      <choice idchoice="8">no</choice>
+    </qcm>
+    <qcm idqcm="2">
+      <choice idchoice="9">yes</choice>
+      <choice idchoice="10">no</choice>
+    </qcm>
+    <comments idcomments="1">
+      <comment idcomment="1">My comment 1</comment>
+      <comment idcomment="2">My comment 2</comment>
+    </comments>
+  </test>
+</Exercise>
+'''
+        self.assertEqual(s, expected)
 
     def test_generate_form_child_conditional(self):
         text = '(qcm|mqm)*'

@@ -252,8 +252,8 @@ class Generator(object):
             key = self.get_key_from_obj(element, obj)
             if not key:
                 continue
-            value = getattr(obj, key, None)
             if element.islist:
+                value = getattr(obj, key, [])
                 for v in value:
                     e = etree.Element(key)
                     self.obj_to_xml(v, e)
@@ -262,6 +262,7 @@ class Generator(object):
                             e.text = clear_value(e.text)
                         xml.append(e)
             else:
+                value = getattr(obj, key, None)
                 e = etree.Element(key)
                 self.obj_to_xml(value, e)
                 if len(e) or e.text or element.required:
