@@ -515,7 +515,7 @@ class TestConditionalContainer(TestCase):
         field.set_value(o)
         self.assertEqual(field.get_children(), [sub1])
 
-    def test_display(self):
+    def test_display_textareas(self):
         field = forms.ConditionalContainer(name='test')
         self.assertEqual(field.display(), '')
 
@@ -528,17 +528,99 @@ class TestConditionalContainer(TestCase):
         o.sub1.value = 'first textarea'
         field.set_value(o)
         expected = '''
-        <div>
-          <div class="container">
+        <div class="conditional-container">
+          <select class="hidden conditional">
+            <option value="">Add new</option>
+            <option value="test:sub1:option:0">sub1</option>
+            <option value="test:sub2:option:1">sub2</option>
+          </select>
+          <div class="container conditional-option test:sub1:option:0">
             <input type="button" value="Add sub1" class="add-button hidden">
             <div>
               <label>None</label>
               <input type="button" value="Delete sub1" class="delete-button">
               <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">first textarea</textarea>
-              </div>
             </div>
-        </div>
-        '''
+          </div>
+          <div class="container deleted conditional-option test:sub2:option:1">
+            <input type="button" value="Add sub2" class="add-button">
+            <div class="deleted">
+              <label>None</label>
+              <input type="button" value="Delete sub2" class="delete-button">
+              <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
+            </div>
+          </div>
+        </div>'''
+        tw2test.assert_eq_xml(field.display(), expected)
+
+    def test_display_textareas_no_value(self):
+        field = forms.ConditionalContainer(name='test')
+        self.assertEqual(field.display(), '')
+
+        sub1 = forms.TextAreaField(name='sub1', key='sub1', parent=field)
+        sub2 = forms.TextAreaField(name='sub2', key='sub2', parent=field)
+        field.possible_children = [sub1, sub2]
+
+        expected = '''
+        <div class="conditional-container">
+          <select class="conditional">
+            <option value="">Add new</option>
+            <option value="test:sub1:option:0">sub1</option>
+            <option value="test:sub2:option:1">sub2</option>
+          </select>
+          <div class="container deleted conditional-option test:sub1:option:0">
+            <input type="button" value="Add sub1" class="add-button">
+            <div class="deleted">
+              <label>None</label>
+              <input type="button" value="Delete sub1" class="delete-button">
+              <textarea name="test:sub1:value" id="test:sub1" class="sub1"></textarea>
+            </div>
+          </div>
+          <div class="container deleted conditional-option test:sub2:option:1">
+            <input type="button" value="Add sub2" class="add-button">
+            <div class="deleted">
+              <label>None</label>
+              <input type="button" value="Delete sub2" class="delete-button">
+              <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
+            </div>
+          </div>
+        </div>'''
+        tw2test.assert_eq_xml(field.display(), expected)
+
+    def test_display_growing(self):
+        field = forms.ConditionalContainer(name='test')
+        growing1 = forms.GrowingContainer(key='growing1', name='growing1')
+        child1 = forms.TextAreaField(name='textarea_child1', parent=growing1)
+        growing1.child = child1
+        growing2 = forms.GrowingContainer(key='growing2', name='growing2')
+        child2 = forms.TextAreaField(name='textarea_child2', parent=growing2)
+        growing2.child = child2
+        field.possible_children = [growing1, growing2]
+
+        expected = '''
+        <div class="conditional-container">
+          <select class="conditional">
+            <option value="">Add new</option>
+            <option value="growing1:option:0">growing1</option>
+            <option value="growing2:option:1">growing2</option>
+          </select>
+          <div class="deleted conditional-option growing1:option:0 growing-container">
+            <div class="container growing-source" id="growing1:textarea_child1">
+              <label>None</label>
+              <input type="button" value="Delete None" class="growing-delete-button">
+              <textarea name="growing1:textarea_child1:0:value" id="growing1:textarea_child1:0" rows="2"></textarea>
+              <input type="button" value="New growing1" class="growing-add-button">
+            </div>
+          </div>
+          <div class="deleted conditional-option growing2:option:1 growing-container">
+            <div class="container growing-source" id="growing2:textarea_child2">
+              <label>None</label>
+              <input type="button" value="Delete None" class="growing-delete-button">
+              <textarea name="growing2:textarea_child2:0:value" id="growing2:textarea_child2:0" rows="2"></textarea>
+              <input type="button" value="New growing2" class="growing-add-button">
+            </div>
+          </div>
+        </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
 
 
@@ -598,7 +680,8 @@ class TestGrowingContainer(TestCase):
         '''
         tw2test.assert_eq_xml(field.display(), expected)
 
-        field.required = True
+        field = forms.GrowingContainer(key='test', name='test', required=True,
+                                      child=child)
         values = []
         for index, s in enumerate(['hello', 'world']):
             o = cls()
@@ -629,5 +712,15 @@ class TestGrowingContainer(TestCase):
             <input type="button" value="New test" class="growing-add-button">
           </div>
         </div>'''
+
+        '''
+        <div class="growing-container growing-container required">
+          <div class="container growing-source" id="test:textarea_child">
+          <label>None</label>
+          <input type="button" value="Delete test" class="growing-delete-button"><textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea><input type="button" value="New test" class="growing-add-button"></div>
+<div class="container"><input type="text" value="test0" name="test:textarea_child:1:attrs:idtest" id="test:textarea_child:1:attrs:idtest" class="attr idtest"><label>None</label><input type="button" value="Delete test" class="growing-delete-button"><textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2">hello</textarea><input type="button" value="New test" class="growing-add-button"></div>
+<div class="container"><input type="text" value="test1" name="test:textarea_child:2:attrs:idtest" id="test:textarea_child:2:attrs:idtest" class="attr idtest"><label>None</label><input type="button" value="Delete test" class="growing-delete-button"><textarea name="test:textarea_child:2:value" id="test:textarea_child:2" class="test" rows="2">world</textarea><input type="button" value="New test" class="growing-add-button"></div></div> 
+
+        '''
         tw2test.assert_eq_xml(field.display(), expected)
 

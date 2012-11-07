@@ -306,10 +306,43 @@ class ConditionalContainer(Field):
                 return [c]
         return []
 
+    def get_child(self):
+        for c in self.possible_children:
+            if hasattr(self.value, c.key):
+                c.set_value(getattr(self.value, c.key, None))
+                return c
+        return None
+
     def _display(self):
-        html = []
-        for child in self.get_children():
-	        html += ['<div>%s</div>' % child.display()]
+        if not self.possible_children:
+            return ''
+
+        child = self.get_child()
+        html = ['<div class="conditional-container">']
+        if child:
+            html += ['<select class="hidden conditional">']
+        else:
+            html += ['<select class="conditional">']
+        html += ['<option value="">Add new</option>']
+        children_html = []
+        for index, c in enumerate(self.possible_children):
+            lis = c.css_classes
+            if isinstance(c, TextAreaField):
+                c.required = False
+                lis = c.container_css_classes
+            if child:
+                if c != child:
+                    lis += ['deleted']
+            else:
+                lis += ['deleted']
+            option = '%s:option:%i' % (c._get_name(), index)
+            lis += ['conditional-option']
+            lis += [option]
+            children_html += [c.display()]
+            html += ['<option value="%s">%s</option>' % (option, c.key)]
+        html += ['</select>']
+        html += children_html
+        html += ['</div>']
         return '\n'.join(html)
 
 
@@ -356,9 +389,9 @@ class GrowingContainer(MultipleField):
 
         if not filter(bool, html):
             return ''
-        css_classes = ['growing-container']
+        self.css_classes += ['growing-container']
         if self.required:
-            css_classes += ['required']
-        return '<div class="%s">%s</div>' % (' '.join(css_classes),
+            self.css_classes += ['required']
+        return '<div class="%s">%s</div>' % (' '.join(self.css_classes),
                                              '\n'.join(html))
 
