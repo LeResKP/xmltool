@@ -385,8 +385,8 @@ class Generator(object):
                     sub_obj = self.dict_to_obj(key, v, element.required)
                     if sub_obj:
                         lis += [sub_obj]
-                    setattr(obj, key, lis)
-                    isempty=False
+                setattr(obj, key, lis)
+                isempty=False
             else:
                 res = self.dict_to_obj(key, value, element.required)
                 if (element.required and required) or res:
