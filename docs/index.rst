@@ -20,3 +20,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+
+.. automodule:: xmlforms.dtd_parser

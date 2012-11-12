@@ -11,6 +11,17 @@ entity_regex_compile = re.compile(r'(?P<name>[^"]+?)"(?P<elements>.+)"')
 UNDEFINED = '__undefined__'
 
 def clear_value(value):
+    """Clear the given value
+
+    :param value: string to clean
+
+    >>> clear_value('')
+    ''
+    >>> clear_value([])
+    ''
+    >>> clear_value('__undefined__')
+    ''
+    """
     if value == UNDEFINED:
         return ''
     return value or ''
@@ -137,7 +148,11 @@ class DtdTextElement(object):
 
 
 class DtdElement(object):
+    """After reading a dtd file we construct some DtdElement
+    """
+    #: List of dtd attributes
     _attrs = []
+    #: List of :class:`DtdSubElement`
     _elements = []
 
     def __init__(self):
@@ -145,6 +160,14 @@ class DtdElement(object):
 
 
 class Generator(object):
+    """Helper class to read and write xml files.
+
+    One of the following parameters should be given:
+
+    :param dtd_str: dtd string
+    :param dtd_dict: dtd already parsed in a dict
+    :param dtd_file: dtd file
+    """
 
     def __init__(self, dtd_str=None, dtd_dict=None, dtd_file=None):
         if not len(filter(bool, [dtd_str, dtd_dict, dtd_file])) == 1:
@@ -161,6 +184,10 @@ class Generator(object):
         self._create_classes()
 
     def _create_classes(self):
+        """Populate self.dtd_classes with the classes corresponding to the dtd
+        elements.
+        The generated classes inherit from :class:`DtdElement`
+        """
         for name, elements in self.dtd.items():
             attrs = self.dtd_attrs.get(name) or []
             if elements == '#PCDATA':
