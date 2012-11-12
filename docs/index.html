@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to xmlforms’s documentation! &mdash; xmlforms 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xmlforms 0.0 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">xmlforms 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-xmlforms-s-documentation">
+<h1>Welcome to xmlforms&#8217;s documentation!<a class="headerlink" href="#welcome-to-xmlforms-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+<span class="target" id="module-xmlforms.dtd_parser"></span><dl class="class">
+<dt id="xmlforms.dtd_parser.DtdElement">
+<em class="property">class </em><tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">DtdElement</tt><a class="reference internal" href="modules/xmlforms/dtd_parser.html#DtdElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.DtdElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>After reading a dtd file we construct some DtdElement</p>
+<dl class="attribute">
+<dt id="xmlforms.dtd_parser.DtdElement._attrs">
+<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmlforms.dtd_parser.DtdElement._attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of dtd attributes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="xmlforms.dtd_parser.DtdElement._elements">
+<tt class="descname">_elements</tt><em class="property"> = []</em><a class="headerlink" href="#xmlforms.dtd_parser.DtdElement._elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <a class="reference internal" href="#xmlforms.dtd_parser.DtdSubElement" title="xmlforms.dtd_parser.DtdSubElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdSubElement</span></tt></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="xmlforms.dtd_parser.DtdSubElement">
+<em class="property">class </em><tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">DtdSubElement</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#DtdSubElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.DtdSubElement" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="xmlforms.dtd_parser.DtdSubElement._attrs">
+<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmlforms.dtd_parser.DtdSubElement._attrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="xmlforms.dtd_parser.DtdTextElement">
+<em class="property">class </em><tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">DtdTextElement</tt><a class="reference internal" href="modules/xmlforms/dtd_parser.html#DtdTextElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.DtdTextElement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="xmlforms.dtd_parser.Generator">
+<em class="property">class </em><tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">Generator</tt><big>(</big><em>dtd_str=None</em>, <em>dtd_dict=None</em>, <em>dtd_file=None</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class to read and write xml files.</p>
+<p>One of the following parameters should be given:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dtd_str</strong> &#8211; dtd string</li>
+<li><strong>dtd_dict</strong> &#8211; dtd already parsed in a dict</li>
+<li><strong>dtd_file</strong> &#8211; dtd file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator._create_classes">
+<tt class="descname">_create_classes</tt><big>(</big><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator._create_classes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator._create_classes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populate self.dtd_classes with the classes corresponding to the dtd
+elements.
+The generated classes inherit from <a class="reference internal" href="#xmlforms.dtd_parser.DtdElement" title="xmlforms.dtd_parser.DtdElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdElement</span></tt></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.dict_to_obj">
+<tt class="descname">dict_to_obj</tt><big>(</big><em>root_tag</em>, <em>dic</em>, <em>required=True</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.dict_to_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.dict_to_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.generate_form">
+<tt class="descname">generate_form</tt><big>(</big><em>tag</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.generate_form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.generate_form" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.generate_form_child">
+<tt class="descname">generate_form_child</tt><big>(</big><em>element</em>, <em>parent</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.generate_form_child"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.generate_form_child" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.generate_form_children">
+<tt class="descname">generate_form_children</tt><big>(</big><em>cls</em>, <em>parent</em>, <em>element</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.generate_form_children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.generate_form_children" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.generate_obj">
+<tt class="descname">generate_obj</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.generate_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.generate_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.get_key_from_dict">
+<tt class="descname">get_key_from_dict</tt><big>(</big><em>element</em>, <em>dic</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.get_key_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.get_key_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.get_key_from_obj">
+<tt class="descname">get_key_from_obj</tt><big>(</big><em>element</em>, <em>obj</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.get_key_from_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.get_key_from_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.get_key_from_xml">
+<tt class="descname">get_key_from_xml</tt><big>(</big><em>element</em>, <em>obj</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.get_key_from_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.get_key_from_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.obj_to_xml">
+<tt class="descname">obj_to_xml</tt><big>(</big><em>obj</em>, <em>xml=None</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.obj_to_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.obj_to_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.set_attrs_to_obj">
+<tt class="descname">set_attrs_to_obj</tt><big>(</big><em>obj</em>, <em>xml</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.set_attrs_to_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.set_attrs_to_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="xmlforms.dtd_parser.Generator.set_attrs_to_xml">
+<tt class="descname">set_attrs_to_xml</tt><big>(</big><em>obj</em>, <em>xml</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#Generator.set_attrs_to_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.Generator.set_attrs_to_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.cleanup">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">cleanup</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.clear_value">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">clear_value</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#clear_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.clear_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the given value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; string to clean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">clear_value</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="go">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clear_value</span><span class="p">([])</span>
+<span class="go">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clear_value</span><span class="p">(</span><span class="s">&#39;__undefined__&#39;</span><span class="p">)</span>
+<span class="go">&#39;&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.dtd_file_to_dict">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">dtd_file_to_dict</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#dtd_file_to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.dtd_file_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.dtd_to_dict">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">dtd_to_dict</tt><big>(</big><em>dtd</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#dtd_to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.dtd_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.get_child">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">get_child</tt><big>(</big><em>name</em>, <em>xml</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#get_child"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.get_child" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.get_children">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">get_children</tt><big>(</big><em>name</em>, <em>xml</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#get_children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.get_children" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.parse_attribute">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">parse_attribute</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#parse_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.parse_attribute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.parse_element">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">parse_element</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#parse_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.parse_element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.parse_entity">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">parse_entity</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#parse_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.parse_entity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="xmlforms.dtd_parser.split_list">
+<tt class="descclassname">xmlforms.dtd_parser.</tt><tt class="descname">split_list</tt><big>(</big><em>lis</em>, <em>cols</em><big>)</big><a class="reference internal" href="modules/xmlforms/dtd_parser.html#split_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmlforms.dtd_parser.split_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to xmlforms&#8217;s documentation!</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">xmlforms 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Aurélien Matouillot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

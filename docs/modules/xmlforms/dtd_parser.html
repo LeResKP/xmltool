@@ -1,0 +1,519 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>xmlforms.dtd_parser &mdash; xmlforms 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xmlforms 0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">xmlforms 0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for xmlforms.dtd_parser</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+<span class="kn">import</span> <span class="nn">forms</span>
+
+
+<span class="n">comment_regex_compile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;&lt;!--(.*?)--&gt;&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+<span class="n">tag_regex_compile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;&lt;!(?P&lt;type&gt;[A-Z]+)(.*?)&gt;&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+<span class="n">element_regex_compile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(?P&lt;name&gt;[^(]+?)\((?P&lt;elements&gt;.+)\)&#39;</span><span class="p">)</span>
+<span class="n">entity_regex_compile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(?P&lt;name&gt;[^&quot;]+?)&quot;(?P&lt;elements&gt;.+)&quot;&#39;</span><span class="p">)</span>
+
+<span class="n">UNDEFINED</span> <span class="o">=</span> <span class="s">&#39;__undefined__&#39;</span>
+
+<div class="viewcode-block" id="clear_value"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.clear_value">[docs]</a><span class="k">def</span> <span class="nf">clear_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clear the given value</span>
+
+<span class="sd">    :param value: string to clean</span>
+
+<span class="sd">    &gt;&gt;&gt; clear_value(&#39;&#39;)</span>
+<span class="sd">    &#39;&#39;</span>
+<span class="sd">    &gt;&gt;&gt; clear_value([])</span>
+<span class="sd">    &#39;&#39;</span>
+<span class="sd">    &gt;&gt;&gt; clear_value(&#39;__undefined__&#39;)</span>
+<span class="sd">    &#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">UNDEFINED</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+</div>
+<div class="viewcode-block" id="cleanup"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.cleanup">[docs]</a><span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">]:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+</div>
+<div class="viewcode-block" id="parse_element"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.parse_element">[docs]</a><span class="k">def</span> <span class="nf">parse_element</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="n">matchobj</span> <span class="o">=</span> <span class="n">element_regex_compile</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">matchobj</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Error parsing element </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">matchobj</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="parse_entity"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.parse_entity">[docs]</a><span class="k">def</span> <span class="nf">parse_entity</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="n">matchobj</span> <span class="o">=</span> <span class="n">entity_regex_compile</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">matchobj</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Error parsing entity </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">matchobj</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="split_list"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.split_list">[docs]</a><span class="k">def</span> <span class="nf">split_list</span><span class="p">(</span><span class="n">lis</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">lis</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">cols</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lis</span><span class="p">),</span> <span class="n">cols</span><span class="p">)]</span>
+</div>
+<div class="viewcode-block" id="parse_attribute"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.parse_attribute">[docs]</a><span class="k">def</span> <span class="nf">parse_attribute</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">]:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">lis</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">lis</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">lis</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lis</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">lis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">attributes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">att_name</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">require</span><span class="p">)</span> <span class="ow">in</span> <span class="n">split_list</span><span class="p">(</span><span class="n">lis</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="n">attributes</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">att_name</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">type_</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">require</span><span class="o">.</span><span class="n">strip</span><span class="p">())]</span>
+    <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">attributes</span>
+</div>
+<div class="viewcode-block" id="dtd_to_dict"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.dtd_to_dict">[docs]</a><span class="k">def</span> <span class="nf">dtd_to_dict</span><span class="p">(</span><span class="n">dtd</span><span class="p">):</span>
+    <span class="n">dtd_elements</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dtd_entities</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dtd_attributes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Removed the comments</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">comment_regex_compile</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">dtd</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">tag_regex_compile</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">element</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+        <span class="n">clean_value</span> <span class="o">=</span> <span class="n">cleanup</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="o">==</span> <span class="s">&#39;ELEMENT&#39;</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">elements</span> <span class="o">=</span> <span class="n">parse_element</span><span class="p">(</span><span class="n">clean_value</span><span class="p">)</span>
+            <span class="n">dtd_elements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">elements</span>
+        <span class="k">elif</span> <span class="n">element</span> <span class="o">==</span> <span class="s">&#39;ENTITY&#39;</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">elements</span> <span class="o">=</span> <span class="n">parse_entity</span><span class="p">(</span><span class="n">clean_value</span><span class="p">)</span>
+            <span class="n">dtd_entities</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">elements</span>
+        <span class="k">elif</span> <span class="n">element</span> <span class="o">==</span> <span class="s">&#39;ATTLIST&#39;</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">attributes</span> <span class="o">=</span> <span class="n">parse_attribute</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">dtd_attributes</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">attributes</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not supported&#39;</span> <span class="o">%</span> <span class="n">element</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">elements</span> <span class="ow">in</span> <span class="n">dtd_elements</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dtd_entities</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">;&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">dtd_elements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">elements</span>
+
+    <span class="k">return</span> <span class="n">dtd_elements</span><span class="p">,</span> <span class="n">dtd_attributes</span>
+</div>
+<div class="viewcode-block" id="dtd_file_to_dict"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.dtd_file_to_dict">[docs]</a><span class="k">def</span> <span class="nf">dtd_file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">dtd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">dtd_to_dict</span><span class="p">(</span><span class="n">dtd</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_child"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.get_child">[docs]</a><span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">xml</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">child</span>
+    <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="get_children"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.get_children">[docs]</a><span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+    <span class="n">lis</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">xml</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">lis</span> <span class="o">+=</span> <span class="p">[</span><span class="n">child</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">lis</span>
+
+</div>
+<div class="viewcode-block" id="DtdSubElement"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.DtdSubElement">[docs]</a><span class="k">class</span> <span class="nc">DtdSubElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">islist</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditional_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;+&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">islist</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">islist</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">required</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">elif</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;?&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">required</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="s">&#39;|&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">conditional_names</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">conditional_names</span><span class="p">:</span>
+                <span class="n">elt</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="n">name</span><span class="p">)</span>
+                <span class="c"># If the conditional element is a list, the conditionals</span>
+                <span class="c"># are also a list</span>
+                <span class="c"># TODO: add test for islist</span>
+                <span class="n">elt</span><span class="o">.</span><span class="n">islist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">islist</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conditional_names</span> <span class="o">+=</span> <span class="p">[</span><span class="n">elt</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&lt;name=</span><span class="si">%(name)s</span><span class="s"> required=</span><span class="si">%(required)s</span><span class="s"> islist=</span><span class="si">%(islist)s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DtdTextElement"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.DtdTextElement">[docs]</a><span class="k">class</span> <span class="nc">DtdTextElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
+
+</div>
+<div class="viewcode-block" id="DtdElement"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.DtdElement">[docs]</a><span class="k">class</span> <span class="nc">DtdElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;After reading a dtd file we construct some DtdElement</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#: List of dtd attributes</span>
+    <span class="n">_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#: List of :class:`DtdSubElement`</span>
+    <span class="n">_elements</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
+
+</div>
+<div class="viewcode-block" id="Generator"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator">[docs]</a><span class="k">class</span> <span class="nc">Generator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper class to read and write xml files.</span>
+
+<span class="sd">    One of the following parameters should be given:</span>
+
+<span class="sd">    :param dtd_str: dtd string</span>
+<span class="sd">    :param dtd_dict: dtd already parsed in a dict</span>
+<span class="sd">    :param dtd_file: dtd file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtd_str</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtd_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtd_file</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="p">[</span><span class="n">dtd_str</span><span class="p">,</span> <span class="n">dtd_dict</span><span class="p">,</span> <span class="n">dtd_file</span><span class="p">]))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="s">&#39;Make sure you only pass one of the following parameters: dtd_str, dtd_dict, dtd_file&#39;</span>
+        <span class="n">dtd_attrs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">dtd_file</span><span class="p">:</span>
+            <span class="n">dtd_dict</span><span class="p">,</span> <span class="n">dtd_attrs</span> <span class="o">=</span> <span class="n">dtd_file_to_dict</span><span class="p">(</span><span class="n">dtd_file</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">dtd_str</span><span class="p">:</span>
+            <span class="n">dtd_dict</span><span class="p">,</span> <span class="n">dtd_attrs</span> <span class="o">=</span> <span class="n">dtd_to_dict</span><span class="p">(</span><span class="n">dtd_str</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dtd_dict</span> <span class="c"># We should have a non empty dtd_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span> <span class="o">=</span> <span class="n">dtd_dict</span> <span class="c"># The dtd as dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtd_attrs</span> <span class="o">=</span> <span class="n">dtd_attrs</span> <span class="c"># The dtd attributes as dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_classes</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Generator._create_classes"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator._create_classes">[docs]</a>    <span class="k">def</span> <span class="nf">_create_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Populate self.dtd_classes with the classes corresponding to the dtd</span>
+<span class="sd">        elements.</span>
+<span class="sd">        The generated classes inherit from :class:`DtdElement`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">elements</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">elements</span> <span class="o">==</span> <span class="s">&#39;#PCDATA&#39;</span><span class="p">:</span>
+                <span class="n">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">DtdTextElement</span><span class="p">,),</span> <span class="p">{</span><span class="s">&#39;_attrs&#39;</span><span class="p">:</span> <span class="n">attrs</span><span class="p">,</span>
+                                                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+                <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span>
+                <span class="k">continue</span>
+            <span class="n">splitted</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">lis</span> <span class="o">=</span> <span class="p">[</span><span class="n">DtdSubElement</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">splitted</span><span class="p">]</span>
+            <span class="n">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">DtdElement</span><span class="p">,),</span> <span class="p">{</span><span class="s">&#39;_elements&#39;</span><span class="p">:</span> <span class="n">lis</span><span class="p">,</span>
+                                             <span class="s">&#39;_attrs&#39;</span><span class="p">:</span> <span class="n">attrs</span><span class="p">,</span>
+                                             <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span>
+</div>
+<div class="viewcode-block" id="Generator.get_key_from_xml"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.get_key_from_xml">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">elt</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">get_children</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Generator.set_attrs_to_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.set_attrs_to_obj">[docs]</a>    <span class="k">def</span> <span class="nf">set_attrs_to_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">attr_name</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">require</span><span class="p">)</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_attrs</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attr_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</div>
+<div class="viewcode-block" id="Generator.generate_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_obj">[docs]</a>    <span class="k">def</span> <span class="nf">generate_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">xml</span><span class="o">.</span><span class="n">tag</span><span class="p">]()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_attrs_to_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">DtdTextElement</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="n">xml</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">text</span> <span class="ow">or</span> <span class="n">UNDEFINED</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">text</span>
+            <span class="k">return</span> <span class="n">obj</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_elements</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_key_from_xml</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">islist</span><span class="p">:</span>
+                <span class="n">children</span> <span class="o">=</span> <span class="n">get_children</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+                <span class="n">lis</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_obj</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">children</span><span class="p">]</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">lis</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">child</span> <span class="o">=</span> <span class="n">get_child</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">child</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_obj</span><span class="p">(</span><span class="n">child</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">None</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+</div>
+<div class="viewcode-block" id="Generator.get_key_from_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.get_key_from_obj">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">elt</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Generator.set_attrs_to_xml"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.set_attrs_to_xml">[docs]</a>    <span class="k">def</span> <span class="nf">set_attrs_to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</div>
+<div class="viewcode-block" id="Generator.obj_to_xml"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.obj_to_xml">[docs]</a>    <span class="k">def</span> <span class="nf">obj_to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">xml</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Create the root node</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_attrs_to_xml</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">DtdTextElement</span><span class="p">):</span>
+            <span class="n">xml</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">return</span> <span class="n">xml</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_elements</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_key_from_obj</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">islist</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="p">[])</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">obj_to_xml</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span> <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                            <span class="n">e</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">clear_value</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                        <span class="n">xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">obj_to_xml</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span> <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">clear_value</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    <span class="n">xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">xml</span>
+</div>
+<div class="viewcode-block" id="Generator.generate_form_child"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_form_child">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+            <span class="n">field</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ConditionalContainer</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
+                                               <span class="n">required</span><span class="o">=</span><span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">possible_children</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_form_child</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span>
+                                                                     <span class="n">field</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">field</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">sub_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">islist</span><span class="p">:</span>
+            <span class="n">field</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">GrowingContainer</span><span class="p">(</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="n">sub_field</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">Fieldset</span><span class="p">(</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">parent</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+                    <span class="n">legend</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">)</span>
+
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_form_children</span><span class="p">(</span><span class="n">sub_cls</span><span class="p">,</span> <span class="n">sub_field</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+                    <span class="n">field</span><span class="o">.</span><span class="n">child</span> <span class="o">=</span> <span class="n">result</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">field</span>
+                    <span class="k">return</span> <span class="n">field</span>
+                <span class="n">sub_field</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="n">field</span><span class="o">.</span><span class="n">child</span> <span class="o">=</span> <span class="n">sub_field</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">sub_cls</span><span class="p">,</span> <span class="n">DtdTextElement</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_form_children</span><span class="p">(</span><span class="n">sub_cls</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span>
+
+            <span class="n">field</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">Fieldset</span><span class="p">(</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">legend</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_form_children</span><span class="p">(</span><span class="n">sub_cls</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">return</span> <span class="n">field</span>
+</div>
+<div class="viewcode-block" id="Generator.generate_form_children"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_form_children">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">DtdTextElement</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">return</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextAreaField</span><span class="p">(</span>
+                <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_elements</span><span class="p">:</span>
+            <span class="n">children</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_form_child</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="n">parent</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">children</span>
+</div>
+<div class="viewcode-block" id="Generator.generate_form"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_form">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span> <span class="c"># , parent=None):</span>
+        <span class="n">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">FormField</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="n">cls</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">parent</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_form_children</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parent</span>
+</div>
+<div class="viewcode-block" id="Generator.get_key_from_dict"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.get_key_from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">dic</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">elt</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">dic</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Generator.dict_to_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.dict_to_obj">[docs]</a>    <span class="k">def</span> <span class="nf">dict_to_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_tag</span><span class="p">,</span> <span class="n">dic</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dic</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">root_tag</span><span class="p">]()</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="n">dic</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;attrs&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">attr_name</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">require</span><span class="p">)</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_attrs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">DtdTextElement</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">dic</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;value&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                <span class="c"># We want to make sure we will display the tags added by the</span>
+                <span class="c"># user</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">UNDEFINED</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="n">obj</span>
+
+        <span class="n">isempty</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_elements</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_key_from_dict</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">dic</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">islist</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="ow">or</span> <span class="p">[]</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+                <span class="n">lis</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">sub_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_to_obj</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">sub_obj</span><span class="p">:</span>
+                        <span class="n">lis</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sub_obj</span><span class="p">]</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">lis</span><span class="p">)</span>
+                <span class="n">isempty</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_to_obj</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">required</span> <span class="ow">and</span> <span class="n">required</span><span class="p">)</span> <span class="ow">or</span> <span class="n">res</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+                    <span class="n">isempty</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="n">isempty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">obj</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">xmlforms 0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Aurélien Matouillot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
