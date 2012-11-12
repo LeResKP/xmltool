@@ -3,6 +3,9 @@ import xmlforms.forms as forms
 import xmlforms.dtd_parser as dtd_parser
 import tw2.core.testbase as tw2test
 
+# Set to True to print the html used in the javascript test
+generate_javascript = False
+
 
 class cls(object):
     attrs = {}
@@ -723,4 +726,71 @@ class TestGrowingContainer(TestCase):
 
         '''
         tw2test.assert_eq_xml(field.display(), expected)
+
+
+class JavascriptTestGenerator(TestCase):
+
+    def test_print(self):
+
+        if generate_javascript:
+            # We want to generate the html needed for the javascript tests
+            print 'Delete button'
+            field = forms.TextAreaField(name='test', key='test')
+            o = cls()
+            o.value = 'Hello'
+            o.attrs = {'id': 1}
+            field.set_value(o)
+            print '<div>%s</div>' % field.display()
+
+            print 'Growing delete button'
+            field = forms.GrowingContainer(key='test')
+            child = forms.TextAreaField(name='test', key='test', label='test',
+                                        parent=field)
+            field.child = child
+            print '<div>%s</div>' % field.display()
+
+            print 'Fieldset delete button'
+            field = forms.Fieldset(name='test', key='test', legend='test')
+            sub1 = forms.TextAreaField(name='sub1', key='sub1',
+                                       value='textarea 1', parent=field)
+            field.children = [sub1]
+            o = cls()
+            o.sub1 = cls()
+            o.sub1.value = 'textarea 1'
+            field.set_value(o)
+            print '<div>%s</div>' % field.display()
+
+            print 'Growing fieldset delete button'
+            parent = forms.GrowingContainer(key='test')
+            field = forms.Fieldset(name='test', key='test', legend='test',
+                                   required=True, parent=parent)
+            parent.child = field
+            sub1 = forms.TextAreaField(name='sub1', key='sub1',
+                                       value='textarea 1', parent=field)
+            field.children = [sub1]
+            print '<div>%s</div>' % parent.display()
+
+            print 'Conditional container'
+            field = forms.ConditionalContainer(name='test')
+            sub1 = forms.TextAreaField(name='sub1', key='sub1', parent=field)
+            sub2 = forms.TextAreaField(name='sub2', key='sub2', parent=field)
+            field.possible_children = [sub1, sub2]
+            o = cls()
+            o.sub1 = cls()
+            o.sub1.value = 'first textarea'
+            field.set_value(o)
+            print '<div>%s</div>' % field.display()
+
+            print 'Conditional container with Growing'
+            field = forms.ConditionalContainer(name='test')
+            growing1 = forms.GrowingContainer(key='growing1', name='growing1')
+            child1 = forms.TextAreaField(
+                name='textarea_child1', parent=growing1)
+            growing1.child = child1
+            growing2 = forms.GrowingContainer(key='growing2', name='growing2')
+            child2 = forms.TextAreaField(
+                name='textarea_child2', parent=growing2)
+            growing2.child = child2
+            field.possible_children = [growing1, growing2]
+            print '<div>%s</div>' % field.display()
 
