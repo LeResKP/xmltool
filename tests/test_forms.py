@@ -91,18 +91,24 @@ class TestField(TestCase):
     def test_get_name(self):
         field = forms.Field(name='test')
         self.assertEqual(field.get_name(), 'test:value')
+        field._name = None
         field.add_value_str = False
         self.assertEqual(field.get_name(), 'test')
+        field._name = None
         field.add_value_str = True
         field.parent = forms.Field(name='parent1')
         self.assertEqual(field.get_name(), 'parent1:test:value')
+        field._name = None
         field.parent.add_value_str = False
         field.add_value_str = False
         self.assertEqual(field.get_name(), 'parent1:test')
+        field._name = None
         field.add_value_str = True
         field.parent.add_value_str = True
         field.parent.name = None
+        field.parent._name = None
         self.assertEqual(field.get_name(), 'test:value')
+        field._name = None
         field.add_value_str = False
         self.assertEqual(field.get_name(), 'test')
 

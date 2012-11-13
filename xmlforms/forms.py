@@ -4,25 +4,34 @@ import dtd_parser
 
 
 def clone_obj(obj):
-    newobj = obj.__class__(**vars(obj))
 
-    if hasattr(obj, 'children') and obj.children:
-        children = []
-        for child in obj.children:
+    dic = vars(obj).copy()
+    for key in [
+        'attrs_children',
+        'css_classes',
+        'container_css_classes']:
+        dic.pop(key)
+
+    newobj = obj.__class__(**dic)
+
+    children = getattr(obj, 'children', None)
+    if children:
+        newobj.children = []
+        for child in children:
             c = clone_obj(child)
             c.parent = newobj
-            children += [c]
-        newobj.children = children
+            newobj.children.append(c)
 
-    if hasattr(obj, 'possible_children') and obj.possible_children:
-        children = []
-        for child in obj.possible_children:
+    children = getattr(obj, 'possible_children', None)
+    if children:
+        newobj.possible_children = []
+        for child in children:
             c = clone_obj(child)
             c.parent = newobj
-            children += [c]
-        newobj.possible_children = children
+            newobj.possible_children.append(c)
 
-    if hasattr(obj, 'child') and obj.child:
+    child = getattr(obj, 'child', None)
+    if child:
         newobj.child = clone_obj(newobj.child)
         newobj.child.parent = newobj
 
@@ -35,39 +44,45 @@ class Field(object):
     display_container = False
 
     def __init__(self, **kwargs):
-        self.key = None
-        self.name = None
-        self.value = None
-        self.parent = None
-        self.required = None
-        self.empty = False
-        self.add_value_str = True
-        self.attrs_children = []
-        self.css_classes = []
-        self.container_css_classes = ['container']
-        self.container_id = ''
+
+        dic = {
+            'key': None,
+            'name': None,
+            'value': None,
+            'parent': None,
+            'required': None,
+            'empty': False,
+            'add_value_str': True,
+            'attrs_children': [],
+            'css_classes': [],
+            'container_css_classes': ['container'],
+            'container_id': '',
+            '_name': None,
+        }
 
         for attr in self.html_attrs + self.attrs:
-            setattr(self, attr, None)
-        for k, v in kwargs.iteritems():
-            if type(v) is list:
-                v = list(v)
-            setattr(self, k, v)
+            dic[attr] = None
 
+        dic.update(kwargs)
+        self.__dict__.update(dic)
+        self._init_css_classes()
+
+    def _init_css_classes(self):
         if self.key and not isinstance(self, GrowingContainer):
-            css_class = self.key
-            if css_class not in self.css_classes:
-                self.css_classes += [css_class]
+            if self.key not in self.css_classes:
+                self.css_classes += [self.key]
 
     def _get_name(self):
-        lis = []
-        parent = self
-        while parent:
-            name = getattr(parent, 'name', None)
-            lis += [name]
-            parent = parent.parent
-        lis.reverse()
-        return ':'.join(filter(bool, lis))
+        if not self._name:
+            lis = []
+            if self.parent:
+                name = self.parent._get_name()
+                if name:
+                    lis.append(name)
+            if self.name:
+                lis.append(self.name)
+            self._name = ':'.join(lis)
+        return self._name
 
     def get_id(self):
         return self._get_name()
@@ -175,8 +190,9 @@ class TextAreaField(Field):
             if not self.value and not self.empty:
                 show_container = False
 
+        parent_is_growing = isinstance(self.parent, GrowingContainer)
         if not self.required:
-            if not isinstance(self.parent, GrowingContainer):
+            if not parent_is_growing:
                 add_button_css_classes = ['add-button']
                 if show_container:
                     add_button_css_classes += ['hidden']
@@ -188,17 +204,17 @@ class TextAreaField(Field):
                 else:
                     html += ['<div class="deleted">']
         html += ['<label>%s</label>' % self.label]
-        if not self.required or isinstance(self.parent, GrowingContainer):
+        if not self.required or parent_is_growing:
             css_classes=['delete-button']
-            if isinstance(self.parent, GrowingContainer):
+            if parent_is_growing:
                 css_classes=['growing-delete-button']
             delete_button = ButtonField(value='Delete %s' % self.key,
                                         css_classes=css_classes)
             html += [delete_button.display()]
         html += ['<textarea%s>%s</textarea>' % (self.get_attrs(), self.get_value())]
-        if not self.required and not isinstance(self.parent, GrowingContainer):
+        if not self.required and not parent_is_growing:
             html += ['</div>']
-        if isinstance(self.parent, GrowingContainer):
+        if parent_is_growing:
             add_button = ButtonField(value="New %s" % self.parent.key,
                                      css_classes=['growing-add-button'])
             html += [add_button.display()]
@@ -246,14 +262,15 @@ class Fieldset(MultipleField):
                 show_container = False
 
         legend = self.legend
-        if not self.required or isinstance(self.parent, GrowingContainer):
+        parent_is_growing = isinstance(self.parent, GrowingContainer)
+        if not self.required or parent_is_growing:
             css_classes=['fieldset-delete-button']
-            if isinstance(self.parent, GrowingContainer):
+            if parent_is_growing:
                 css_classes=['growing-fieldset-delete-button']
             delete_button = ButtonField(value='Delete %s' % self.key,
                                         css_classes=css_classes)
             legend += delete_button.display()
-            if not isinstance(self.parent, GrowingContainer):
+            if not parent_is_growing:
                 add_button_css_classes = ['add-button']
                 if show_container:
                     add_button_css_classes += ['hidden']
@@ -269,7 +286,7 @@ class Fieldset(MultipleField):
         html.extend(child_html)
         html += ['</fieldset>']
 
-        if isinstance(self.parent, GrowingContainer):
+        if parent_is_growing:
             add_button = ButtonField(value="New %s" % self.parent.key,
                                     css_classes=['growing-add-button'])
             html += [add_button.display()]
@@ -347,8 +364,11 @@ class ConditionalContainer(Field):
 
 
 class GrowingContainer(MultipleField):
-    attrs = ['legend', 'child']
+    attrs = ['child']
     repetitions = 1
+
+    def _init_css_classes(self):
+        pass
 
     def _set_value(self, value):
         Field._set_value(self, value)
@@ -377,6 +397,9 @@ class GrowingContainer(MultipleField):
             elif i > 1:
                 obj.required = False
             obj.name += ':%i' % i
+            # Removed the cache since we already had called _get_name() for the
+            # container_id
+            obj._name = None
             obj.set_value(v)
             children += [obj]
 
