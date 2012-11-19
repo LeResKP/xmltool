@@ -8,8 +8,9 @@ import tw2.core as twc
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
 tag_regex_compile = re.compile(r'<!(?P<type>[A-Z]+)(.*?)>', re.DOTALL)
-element_regex_compile = re.compile(r'(?P<name>[^(]+?)\((?P<elements>.+)\)')
-entity_regex_compile = re.compile(r'(?P<name>[^"]+?)"(?P<elements>.+)"')
+element_regex_compile = re.compile(r' *(?P<name>[^( ]+) *\((?P<elements>.+)\)')
+empty_element_regex_compile = re.compile(r' *(?P<name>[^( ]+) *(?P<elements>.+)')
+entity_regex_compile = re.compile(r' *(?P<name>% *[^" ]+?) *"(?P<elements>.+)"')
 
 UNDEFINED = '__undefined__'
 
@@ -30,21 +31,27 @@ def clear_value(value):
     return value or ''
 
 def cleanup(value):
-    for c in ['\n', '\r', ' ']:
+    for c in ['\n', '\r']:
         value = value.replace(c, '')
     return value
 
 def parse_element(value):
     matchobj = element_regex_compile.match(value)
     if not matchobj:
+        matchobj = empty_element_regex_compile.match(value)
+    if not matchobj:
         raise Exception, 'Error parsing element %s' % value
-    return matchobj.groups()
+    name, elements = matchobj.groups()
+    if elements.count(')') != elements.count('('):
+        raise Exception, 'Unbalanced parenthesis %s' % value
+    return name, elements.replace(' ', '')
 
 def parse_entity(value):
     matchobj = entity_regex_compile.match(value)
     if not matchobj:
         raise Exception, 'Error parsing entity %s' % value
-    return matchobj.groups()
+    name, elements = matchobj.groups()
+    return name.replace(' ', ''), elements.replace(' ', '')
 
 def split_list(lis, cols):
     return [lis[i:i+cols] for i in range(0, len(lis), cols)]
@@ -219,7 +226,7 @@ class Generator(object):
         """
         for name, elements in self.dtd.items():
             attrs = self.dtd_attrs.get(name) or []
-            if elements == '#PCDATA':
+            if elements in ['#PCDATA', 'EMPTY']:
                 cls = type(name, (DtdTextElement,), {'_attrs': attrs,
                                                      'name': name,
                                                      '_generator': self})

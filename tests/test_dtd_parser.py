@@ -13,13 +13,14 @@ def fake_open(content, *args):
     return Fake()
 
 MOVIE_DTD = '''
-<!ELEMENT Movie (name, year, directors, actors, resume?, critique*)>
+<!ELEMENT Movie (is-publish?, name, year, directors, actors, resume?, critique*)>
 
 <!-- My comment
 that should be removed
 <!ELEMENT fake (skipme+)>
 -->
 <!ENTITY % person "name, firstname" >
+<!ELEMENT is-publish EMPTY>
 <!ELEMENT directors (director+)>
 <!ELEMENT actors (actor+)>
 <!ELEMENT name (#PCDATA)>
@@ -72,6 +73,7 @@ EXERCISE_DTD = '''
 <!ELEMENT mqm (choice+)>
 <!ELEMENT choice (#PCDATA)>
 '''
+
 
 EXERCISE_XML = '''<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Exercise SYSTEM "test.dtd">
@@ -164,7 +166,7 @@ class DtdParser(TestCase):
 
     def test_cleanup(self):
         value = 'Hello\nWorld, my name is John\r'
-        expected = 'HelloWorld,mynameisJohn'
+        expected = 'HelloWorld, my name is John'
         self.assertEqual(dtd_parser.cleanup(value), expected)
 
     def test_parse_element(self):
@@ -172,8 +174,12 @@ class DtdParser(TestCase):
         expected = ('Movie', 'name,year,directors,actors,resume?,critique*')
         self.assertEqual(dtd_parser.parse_element(element), expected)
 
+        element = 'Movie  (   name,   year,directors,actors,resume?,critique*)'
+        expected = ('Movie', 'name,year,directors,actors,resume?,critique*')
+        self.assertEqual(dtd_parser.parse_element(element), expected)
+
     def test_parse_element_exception(self):
-        element = 'Movie(name,year,directors,actors,resume?,critique*'
+        element = 'Movie (name,year,directors,actors,resume?,critique*'
         self.assertRaises(Exception, dtd_parser.parse_element, element)
 
     def test_parse_entity(self):
@@ -202,13 +208,14 @@ class DtdParser(TestCase):
         result = dtd_parser.parse_attribute(attr)
         expected = ('Exercise', [('idexercise', 'ID', '#IMPLIED')])
         self.assertEqual(result, expected)
-    
+
     def test_dtd_to_dict(self):
         expected = {
             'name': '#PCDATA', 
             'firstname': '#PCDATA', 
+            'is-publish': 'EMPTY',
             'resume': '#PCDATA', 
-            'Movie': 'name,year,directors,actors,resume?,critique*', 
+            'Movie': 'is-publish?,name,year,directors,actors,resume?,critique*', 
             'actor': 'name,firstname', 
             'director': 'name,firstname', 
             'directors': 'director+', 
@@ -217,6 +224,32 @@ class DtdParser(TestCase):
             'critique': '#PCDATA'
             }
         dtd, dtd_attrs = dtd_parser.dtd_to_dict(MOVIE_DTD)
+        self.assertEqual(dtd, expected)
+        self.assertEqual(dtd_attrs, {})
+
+    def test_dtd_to_dict_with_spaces(self):
+
+        dtd_str = '''
+            <!ELEMENT   Exercise   (question, test)  >
+            <!ELEMENT empty  EMPTY 
+            >
+            <!ELEMENT question  ( #PCDATA )
+            >
+            <!ELEMENT test ( qcm | mqm)   >
+            <!ELEMENT qcm (choice + ) >
+            <!ELEMENT mqm  (choice + )>
+            <!ELEMENT choice (
+            #PCDATA   )
+            >'''
+        expected = {
+            'Exercise': 'question,test',
+            'choice': '#PCDATA',
+            'empty': 'EMPTY',
+            'mqm': 'choice+',
+            'qcm': 'choice+',
+            'question': '#PCDATA',
+            'test': 'qcm|mqm'}
+        dtd, dtd_attrs = dtd_parser.dtd_to_dict(dtd_str)
         self.assertEqual(dtd, expected)
         self.assertEqual(dtd_attrs, {})
 
@@ -263,28 +296,6 @@ class DtdParser(TestCase):
     def test_parse_dtd_to_dict_exception(self):
         dtd = '<!PLOP Movie (name, year, directors, actors, resume?, critique*)>'
         self.assertRaises(Exception, dtd_parser.dtd_to_dict, dtd)
-
-    def test_dtd_file_to_dict(self):
-        old_open = __builtin__.open
-        try:
-            __builtin__.open = fake_open
-            expected = {
-                'name': '#PCDATA', 
-                'firstname': '#PCDATA', 
-                'resume': '#PCDATA', 
-                'Movie': 'name,year,directors,actors,resume?,critique*', 
-                'actor': 'name,firstname', 
-                'director': 'name,firstname', 
-                'directors': 'director+', 
-                'actors': 'actor+', 
-                'year': '#PCDATA', 
-                'critique': '#PCDATA'
-                }
-            dtd, dtd_attrs = dtd_parser.dtd_to_dict(MOVIE_DTD)
-            self.assertEqual(dtd, expected)
-            self.assertEqual(dtd_attrs, {})
-        finally:
-            __builtin__.open = old_open
 
     def test_get_child(self):
         root = etree.Element('root')
@@ -370,13 +381,13 @@ class TestGenerator1(TestCase):
 
     def test_dtd_classes(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        self.assertEqual(len(gen.dtd_classes), 10)
-        for key in ['name', 'firstname', 'year', 'resume', 'critique']:
+        self.assertEqual(len(gen.dtd_classes), 11)
+        for key in ['is-publish', 'name', 'firstname', 'year', 'resume', 'critique']:
             self.assertTrue(issubclass(gen.dtd_classes[key],
                 dtd_parser.DtdTextElement))
         cls = gen.dtd_classes['Movie']
         self.assertEqual(cls.__name__, 'Movie')
-        self.assertEqual(len(cls._elements), 6)
+        self.assertEqual(len(cls._elements), 7)
         for (key, expected) in [('directors', 1), 
                                 ('actors', 1), 
                                 ('director', 2),
