@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>xmlforms.dtd_parser &mdash; xmlforms 0.0 documentation</title>
+    <title>xmltools.dtd_parser &mdash; xmltools 0.0 documentation</title>
     
     <link rel="stylesheet" href="../../static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../static/underscore.js"></script>
     <script type="text/javascript" src="../../static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="xmlforms 0.0 documentation" href="../../index.html" />
+    <link rel="top" title="xmltools 0.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">xmlforms 0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">xmltools 0.0 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -49,10 +49,13 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <h1>Source code for xmlforms.dtd_parser</h1><div class="highlight"><pre>
+  <h1>Source code for xmltools.dtd_parser</h1><div class="highlight"><pre>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
 <span class="kn">import</span> <span class="nn">forms</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">StringIO</span>
+<span class="kn">import</span> <span class="nn">tw2.core</span> <span class="kn">as</span> <span class="nn">twc</span>
 
 
 <span class="n">comment_regex_compile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;&lt;!--(.*?)--&gt;&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
@@ -62,7 +65,7 @@
 
 <span class="n">UNDEFINED</span> <span class="o">=</span> <span class="s">&#39;__undefined__&#39;</span>
 
-<div class="viewcode-block" id="clear_value"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.clear_value">[docs]</a><span class="k">def</span> <span class="nf">clear_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="clear_value"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.clear_value">[docs]</a><span class="k">def</span> <span class="nf">clear_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Clear the given value</span>
 
 <span class="sd">    :param value: string to clean</span>
@@ -78,27 +81,27 @@
         <span class="k">return</span> <span class="s">&#39;&#39;</span>
     <span class="k">return</span> <span class="n">value</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
 </div>
-<div class="viewcode-block" id="cleanup"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.cleanup">[docs]</a><span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="cleanup"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.cleanup">[docs]</a><span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">]:</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">value</span>
 </div>
-<div class="viewcode-block" id="parse_element"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.parse_element">[docs]</a><span class="k">def</span> <span class="nf">parse_element</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="parse_element"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.parse_element">[docs]</a><span class="k">def</span> <span class="nf">parse_element</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="n">matchobj</span> <span class="o">=</span> <span class="n">element_regex_compile</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">matchobj</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Error parsing element </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">value</span>
     <span class="k">return</span> <span class="n">matchobj</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="parse_entity"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.parse_entity">[docs]</a><span class="k">def</span> <span class="nf">parse_entity</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="parse_entity"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.parse_entity">[docs]</a><span class="k">def</span> <span class="nf">parse_entity</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="n">matchobj</span> <span class="o">=</span> <span class="n">entity_regex_compile</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">matchobj</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Error parsing entity </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">value</span>
     <span class="k">return</span> <span class="n">matchobj</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="split_list"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.split_list">[docs]</a><span class="k">def</span> <span class="nf">split_list</span><span class="p">(</span><span class="n">lis</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span>
+<div class="viewcode-block" id="split_list"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.split_list">[docs]</a><span class="k">def</span> <span class="nf">split_list</span><span class="p">(</span><span class="n">lis</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">lis</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">cols</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lis</span><span class="p">),</span> <span class="n">cols</span><span class="p">)]</span>
 </div>
-<div class="viewcode-block" id="parse_attribute"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.parse_attribute">[docs]</a><span class="k">def</span> <span class="nf">parse_attribute</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="parse_attribute"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.parse_attribute">[docs]</a><span class="k">def</span> <span class="nf">parse_attribute</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">]:</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="n">lis</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
@@ -110,7 +113,7 @@
         <span class="n">attributes</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">att_name</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">type_</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">require</span><span class="o">.</span><span class="n">strip</span><span class="p">())]</span>
     <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">attributes</span>
 </div>
-<div class="viewcode-block" id="dtd_to_dict"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.dtd_to_dict">[docs]</a><span class="k">def</span> <span class="nf">dtd_to_dict</span><span class="p">(</span><span class="n">dtd</span><span class="p">):</span>
+<div class="viewcode-block" id="dtd_to_dict"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.dtd_to_dict">[docs]</a><span class="k">def</span> <span class="nf">dtd_to_dict</span><span class="p">(</span><span class="n">dtd</span><span class="p">):</span>
     <span class="n">dtd_elements</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">dtd_entities</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">dtd_attributes</span> <span class="o">=</span> <span class="p">{}</span>
@@ -137,19 +140,15 @@
         <span class="n">dtd_elements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">elements</span>
 
     <span class="k">return</span> <span class="n">dtd_elements</span><span class="p">,</span> <span class="n">dtd_attributes</span>
-</div>
-<div class="viewcode-block" id="dtd_file_to_dict"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.dtd_file_to_dict">[docs]</a><span class="k">def</span> <span class="nf">dtd_file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-    <span class="n">dtd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">dtd_to_dict</span><span class="p">(</span><span class="n">dtd</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="get_child"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.get_child">[docs]</a><span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+<div class="viewcode-block" id="get_child"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.get_child">[docs]</a><span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">xml</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">child</span>
     <span class="k">return</span> <span class="bp">None</span>
 </div>
-<div class="viewcode-block" id="get_children"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.get_children">[docs]</a><span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+<div class="viewcode-block" id="get_children"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.get_children">[docs]</a><span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
     <span class="n">lis</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">xml</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
@@ -157,7 +156,7 @@
     <span class="k">return</span> <span class="n">lis</span>
 
 </div>
-<div class="viewcode-block" id="DtdSubElement"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.DtdSubElement">[docs]</a><span class="k">class</span> <span class="nc">DtdSubElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="DtdSubElement"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.DtdSubElement">[docs]</a><span class="k">class</span> <span class="nc">DtdSubElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">_attrs</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
@@ -193,15 +192,27 @@
         <span class="k">return</span> <span class="s">&#39;&lt;name=</span><span class="si">%(name)s</span><span class="s"> required=</span><span class="si">%(required)s</span><span class="s"> islist=</span><span class="si">%(islist)s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="DtdTextElement"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.DtdTextElement">[docs]</a><span class="k">class</span> <span class="nc">DtdTextElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="DtdTextElement"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.DtdTextElement">[docs]</a><span class="k">class</span> <span class="nc">DtdTextElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="c">#: The XML tag name corresponding to this class</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c">#: The object :class: `Generator` used to generate the classes</span>
+    <span class="n">_generator</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c">#: List of dtd attributes</span>
+    <span class="n">_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
 
 </div>
-<div class="viewcode-block" id="DtdElement"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.DtdElement">[docs]</a><span class="k">class</span> <span class="nc">DtdElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="DtdElement"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.DtdElement">[docs]</a><span class="k">class</span> <span class="nc">DtdElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;After reading a dtd file we construct some DtdElement</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#: The XML tag name corresponding to this class</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c">#: The object :class: `Generator` used to generate the classess</span>
+    <span class="n">_generator</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="c">#: List of dtd attributes</span>
     <span class="n">_attrs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c">#: List of :class:`DtdSubElement`</span>
@@ -210,32 +221,50 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
 
-</div>
-<div class="viewcode-block" id="Generator"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator">[docs]</a><span class="k">class</span> <span class="nc">Generator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper class to read and write xml files.</span>
+<div class="viewcode-block" id="DtdElement.write"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.DtdElement.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_filename</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the file named xml_filename with obj.</span>
+
+<span class="sd">        :param xml_filename: the XML filename we should update</span>
+<span class="sd">        :param encoding: the encoding to use when writing the XML file.</span>
+<span class="sd">        :param validate_xml: validate the updated XML before writing it.</span>
+<span class="sd">        :type xml_filename: str</span>
+<span class="sd">        :type encoding: str</span>
+<span class="sd">        :type validate_xml: bool</span>
+<span class="sd">        :return: self</span>
+<span class="sd">        :rtype: :class:`DtdElement`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">write_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">validate_xml</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="Generator"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator">[docs]</a><span class="k">class</span> <span class="nc">Generator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper class to manipulate the xml files.</span>
 
 <span class="sd">    One of the following parameters should be given:</span>
-
 <span class="sd">    :param dtd_str: dtd string</span>
 <span class="sd">    :param dtd_dict: dtd already parsed in a dict</span>
 <span class="sd">    :param dtd_file: dtd file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtd_str</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtd_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtd_file</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="p">[</span><span class="n">dtd_str</span><span class="p">,</span> <span class="n">dtd_dict</span><span class="p">,</span> <span class="n">dtd_file</span><span class="p">]))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="s">&#39;Make sure you only pass one of the following parameters: dtd_str, dtd_dict, dtd_file&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtd_str</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtd_url</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">):</span>
         <span class="n">dtd_attrs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">dtd_file</span><span class="p">:</span>
-            <span class="n">dtd_dict</span><span class="p">,</span> <span class="n">dtd_attrs</span> <span class="o">=</span> <span class="n">dtd_file_to_dict</span><span class="p">(</span><span class="n">dtd_file</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">dtd_str</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dtd_url</span> <span class="o">=</span> <span class="n">dtd_url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span> <span class="o">=</span> <span class="n">encoding</span>
+        <span class="k">if</span> <span class="n">dtd_url</span><span class="p">:</span>
+            <span class="n">dtd_str</span> <span class="o">=</span> <span class="n">_get_dtd_content</span><span class="p">(</span><span class="n">dtd_url</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dtd_str</span><span class="p">:</span>
             <span class="n">dtd_dict</span><span class="p">,</span> <span class="n">dtd_attrs</span> <span class="o">=</span> <span class="n">dtd_to_dict</span><span class="p">(</span><span class="n">dtd_str</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;Make sure you only pass one of the following &#39;</span>
+        <span class="s">&#39;parameters: dtd_str, dtd_url&#39;</span><span class="p">)</span>
+
         <span class="k">assert</span> <span class="n">dtd_dict</span> <span class="c"># We should have a non empty dtd_dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span> <span class="o">=</span> <span class="n">dtd_dict</span> <span class="c"># The dtd as dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dtd_attrs</span> <span class="o">=</span> <span class="n">dtd_attrs</span> <span class="c"># The dtd attributes as dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_create_classes</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Generator._create_classes"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator._create_classes">[docs]</a>    <span class="k">def</span> <span class="nf">_create_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator._create_classes"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator._create_classes">[docs]</a>    <span class="k">def</span> <span class="nf">_create_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Populate self.dtd_classes with the classes corresponding to the dtd</span>
 <span class="sd">        elements.</span>
 <span class="sd">        The generated classes inherit from :class:`DtdElement`</span>
@@ -244,7 +273,8 @@
             <span class="n">attrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">elements</span> <span class="o">==</span> <span class="s">&#39;#PCDATA&#39;</span><span class="p">:</span>
                 <span class="n">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">DtdTextElement</span><span class="p">,),</span> <span class="p">{</span><span class="s">&#39;_attrs&#39;</span><span class="p">:</span> <span class="n">attrs</span><span class="p">,</span>
-                                                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+                                                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                                                     <span class="s">&#39;_generator&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">})</span>
                 <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span>
                 <span class="k">continue</span>
@@ -252,11 +282,12 @@
             <span class="n">lis</span> <span class="o">=</span> <span class="p">[</span><span class="n">DtdSubElement</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">splitted</span><span class="p">]</span>
             <span class="n">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">DtdElement</span><span class="p">,),</span> <span class="p">{</span><span class="s">&#39;_elements&#39;</span><span class="p">:</span> <span class="n">lis</span><span class="p">,</span>
                                              <span class="s">&#39;_attrs&#39;</span><span class="p">:</span> <span class="n">attrs</span><span class="p">,</span>
-                                             <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+                                             <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                                             <span class="s">&#39;_generator&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">})</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span>
 </div>
-<div class="viewcode-block" id="Generator.get_key_from_xml"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.get_key_from_xml">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.get_key_from_xml"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.get_key_from_xml">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
 
@@ -266,13 +297,13 @@
                 <span class="k">return</span> <span class="n">name</span>
         <span class="k">return</span> <span class="bp">None</span>
 </div>
-<div class="viewcode-block" id="Generator.set_attrs_to_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.set_attrs_to_obj">[docs]</a>    <span class="k">def</span> <span class="nf">set_attrs_to_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.set_attrs_to_obj"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.set_attrs_to_obj">[docs]</a>    <span class="k">def</span> <span class="nf">set_attrs_to_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">attr_name</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">require</span><span class="p">)</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_attrs</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attr_name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
                 <span class="n">obj</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 </div>
-<div class="viewcode-block" id="Generator.generate_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_obj">[docs]</a>    <span class="k">def</span> <span class="nf">generate_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.generate_obj"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.generate_obj">[docs]</a>    <span class="k">def</span> <span class="nf">generate_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">xml</span><span class="o">.</span><span class="n">tag</span><span class="p">]()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attrs_to_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
 
@@ -298,7 +329,7 @@
 
         <span class="k">return</span> <span class="n">obj</span>
 </div>
-<div class="viewcode-block" id="Generator.get_key_from_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.get_key_from_obj">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.get_key_from_obj"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.get_key_from_obj">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
 
@@ -308,11 +339,11 @@
                 <span class="k">return</span> <span class="n">name</span>
         <span class="k">return</span> <span class="bp">None</span>
 </div>
-<div class="viewcode-block" id="Generator.set_attrs_to_xml"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.set_attrs_to_xml">[docs]</a>    <span class="k">def</span> <span class="nf">set_attrs_to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.set_attrs_to_xml"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.set_attrs_to_xml">[docs]</a>    <span class="k">def</span> <span class="nf">set_attrs_to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 </div>
-<div class="viewcode-block" id="Generator.obj_to_xml"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.obj_to_xml">[docs]</a>    <span class="k">def</span> <span class="nf">obj_to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.obj_to_xml"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.obj_to_xml">[docs]</a>    <span class="k">def</span> <span class="nf">obj_to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">xml</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
 
@@ -351,7 +382,7 @@
 
         <span class="k">return</span> <span class="n">xml</span>
 </div>
-<div class="viewcode-block" id="Generator.generate_form_child"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_form_child">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.generate_form_child"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.generate_form_child">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
             <span class="n">field</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ConditionalContainer</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
                                                <span class="n">required</span><span class="o">=</span><span class="n">element</span><span class="o">.</span><span class="n">required</span><span class="p">)</span>
@@ -399,7 +430,7 @@
                 <span class="n">field</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">result</span>
         <span class="k">return</span> <span class="n">field</span>
 </div>
-<div class="viewcode-block" id="Generator.generate_form_children"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_form_children">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.generate_form_children"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.generate_form_children">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">DtdTextElement</span><span class="p">):</span>
             <span class="n">key</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">name</span>
             <span class="k">return</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextAreaField</span><span class="p">(</span>
@@ -415,13 +446,15 @@
 
         <span class="k">return</span> <span class="n">children</span>
 </div>
-<div class="viewcode-block" id="Generator.generate_form"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.generate_form">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span> <span class="c"># , parent=None):</span>
-        <span class="n">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
-        <span class="n">parent</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">FormField</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="n">cls</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">parent</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_form_children</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+<div class="viewcode-block" id="Generator.generate_form"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.generate_form">[docs]</a>    <span class="k">def</span> <span class="nf">generate_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_tag</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd_classes</span><span class="p">[</span><span class="n">root_tag</span><span class="p">]</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;_dtd_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtd_url</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;_encoding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">FormField</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="n">cls</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">parent</span><span class="o">.</span><span class="n">children</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_form_children</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">parent</span>
 </div>
-<div class="viewcode-block" id="Generator.get_key_from_dict"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.get_key_from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">dic</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.get_key_from_dict"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.get_key_from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">dic</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">conditional_names</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
 
@@ -431,7 +464,7 @@
                 <span class="k">return</span> <span class="n">name</span>
         <span class="k">return</span> <span class="bp">None</span>
 </div>
-<div class="viewcode-block" id="Generator.dict_to_obj"><a class="viewcode-back" href="../../index.html#xmlforms.dtd_parser.Generator.dict_to_obj">[docs]</a>    <span class="k">def</span> <span class="nf">dict_to_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_tag</span><span class="p">,</span> <span class="n">dic</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Generator.dict_to_obj"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.Generator.dict_to_obj">[docs]</a>    <span class="k">def</span> <span class="nf">dict_to_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_tag</span><span class="p">,</span> <span class="n">dic</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dic</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
 
@@ -474,7 +507,158 @@
         <span class="k">if</span> <span class="n">isempty</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">obj</span>
-</pre></div></div></div>
+
+
+</div></div>
+<div class="viewcode-block" id="is_http_url"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.is_http_url">[docs]</a><span class="k">def</span> <span class="nf">is_http_url</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine if the given url is on http(s).</span>
+
+<span class="sd">    :param url: the url to check</span>
+<span class="sd">    :type url: str</span>
+<span class="sd">    :return: True if the given url is on http or https.</span>
+<span class="sd">    :rtype: boolean</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http://&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;https://&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="_get_dtd_content"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser._get_dtd_content">[docs]</a><span class="k">def</span> <span class="nf">_get_dtd_content</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the content of url.</span>
+
+<span class="sd">    :param url: the url of the dtd file.</span>
+<span class="sd">    :type url: str</span>
+<span class="sd">    :return: The content of the given url</span>
+<span class="sd">    :rtype: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_http_url</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">return</span> <span class="nb">open</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="_validate_xml"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser._validate_xml">[docs]</a><span class="k">def</span> <span class="nf">_validate_xml</span><span class="p">(</span><span class="n">xml_obj</span><span class="p">,</span> <span class="n">dtd_str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate an XML object</span>
+
+<span class="sd">    :param xml_obj: The XML object to validate</span>
+<span class="sd">    :type xml_obj: etree.Element</span>
+<span class="sd">    :param dtd_str: The dtd to use for the validation</span>
+<span class="sd">    :type dtd_str: str</span>
+<span class="sd">    :return: True. Raise an exception if the XML is not valid</span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dtd_obj</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">DTD</span><span class="p">(</span><span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">dtd_str</span><span class="p">))</span>
+    <span class="n">dtd_obj</span><span class="o">.</span><span class="n">assertValid</span><span class="p">(</span><span class="n">xml_obj</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="get_obj"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.get_obj">[docs]</a><span class="k">def</span> <span class="nf">get_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a python object</span>
+
+<span class="sd">    :param xml_filename: the XML filename we should load</span>
+<span class="sd">    :param validate_xml: validate the XML before generating the python object.</span>
+<span class="sd">    :type xml_filename: str</span>
+<span class="sd">    :type validate_xml: bool</span>
+<span class="sd">    :return: the generated python object</span>
+<span class="sd">    :rtype: :class:`DtdElement`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
+    <span class="n">dtd_url</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">docinfo</span><span class="o">.</span><span class="n">system_url</span>
+    <span class="n">dtd_str</span> <span class="o">=</span> <span class="n">_get_dtd_content</span><span class="p">(</span><span class="n">dtd_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">validate_xml</span><span class="p">:</span>
+        <span class="n">_validate_xml</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">dtd_str</span><span class="p">)</span>
+
+    <span class="n">gen</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">generate_obj</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">obj</span>
+
+</div>
+<div class="viewcode-block" id="write_obj"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.write_obj">[docs]</a><span class="k">def</span> <span class="nf">write_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update the file named xml_filename with obj.</span>
+
+<span class="sd">    :param xml_filename: the XML filename we should update</span>
+<span class="sd">    :param obj: the object we used to get the XML value</span>
+<span class="sd">    :param encoding: the encoding to use when writing the XML file.</span>
+<span class="sd">    :param validate_xml: validate the updated XML before writing it.</span>
+<span class="sd">    :type xml_filename: str</span>
+<span class="sd">    :type obj: :class:`DtdElement`</span>
+<span class="sd">    :type encoding: str</span>
+<span class="sd">    :type validate_xml: bool</span>
+<span class="sd">    :return: the same object which is passed in parameter.</span>
+<span class="sd">    :rtype: :class:`DtdElement`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gen</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_generator</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">obj_to_xml</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">validate_xml</span><span class="p">:</span>
+        <span class="n">dtd_str</span> <span class="o">=</span> <span class="n">_get_dtd_content</span><span class="p">(</span><span class="n">gen</span><span class="o">.</span><span class="n">_dtd_url</span><span class="p">)</span>
+        <span class="n">_validate_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">dtd_str</span><span class="p">)</span>
+
+    <span class="n">doctype</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;&lt;!DOCTYPE </span><span class="si">%(root_tag)s</span><span class="s"> PUBLIC &#39;</span>
+               <span class="s">&#39;&quot;</span><span class="si">%(dtd_url)s</span><span class="s">&quot; &#39;</span>
+               <span class="s">&#39;&quot;</span><span class="si">%(dtd_url)s</span><span class="s">&quot;&gt;&#39;</span> <span class="o">%</span> <span class="p">{</span>
+                   <span class="s">&#39;root_tag&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                   <span class="s">&#39;dtd_url&#39;</span><span class="p">:</span> <span class="n">gen</span><span class="o">.</span><span class="n">_dtd_url</span><span class="p">,</span>
+               <span class="p">})</span>
+
+    <span class="n">xml_str</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span>
+        <span class="n">xml</span><span class="o">.</span><span class="n">getroottree</span><span class="p">(),</span>
+        <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">xml_declaration</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+        <span class="n">doctype</span><span class="o">=</span><span class="n">doctype</span><span class="p">)</span>
+    <span class="nb">open</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">xml_str</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">obj</span>
+
+</div>
+<div class="viewcode-block" id="generate_form"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.generate_form">[docs]</a><span class="k">def</span> <span class="nf">generate_form</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">form_action</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate the HTML form for the given xml_filename.</span>
+
+<span class="sd">    :param xml_filename: the XML filename we should load</span>
+<span class="sd">    :param form_action: the action to put on the HTML form</span>
+<span class="sd">    :param validate_xml: validate the XML before generating the form.</span>
+<span class="sd">    :type xml_filename: str</span>
+<span class="sd">    :type form_action: str</span>
+<span class="sd">    :type validate_xml: bool</span>
+<span class="sd">    :return: the generated HTML form</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">get_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">validate_xml</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">generate_form</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">form</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">form_action</span><span class="p">:</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="n">form_action</span>
+    <span class="k">return</span> <span class="n">form</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="update_xml_file"><a class="viewcode-back" href="../../index.html#xmltools.dtd_parser.update_xml_file">[docs]</a><span class="k">def</span> <span class="nf">update_xml_file</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update the file named xml_filename with data.</span>
+
+<span class="sd">    :param xml_filename: the XML filename we should update</span>
+<span class="sd">    :param data: the result of the submitted data.</span>
+<span class="sd">    :param validate_xml: validate the updated XML before writing it.</span>
+<span class="sd">    :type xml_filename: str</span>
+<span class="sd">    :type data: dict style like: dict, webob.MultiDict, ...</span>
+<span class="sd">    :type validate_xml: bool</span>
+<span class="sd">    :return: the object generated from the data</span>
+<span class="sd">    :rtype: :class:`DtdElement`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">twc</span><span class="o">.</span><span class="n">validation</span><span class="o">.</span><span class="n">unflatten_params</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">encoding</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;_encoding&#39;</span><span class="p">]</span>
+    <span class="n">dtd_url</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;_dtd_url&#39;</span><span class="p">]</span>
+    <span class="n">root_tag</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;_root_tag&#39;</span><span class="p">]</span>
+
+    <span class="n">gen</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">dict_to_obj</span><span class="p">(</span><span class="n">root_tag</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">write_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">validate_xml</span><span class="p">)</span>
+</pre></div></div>
 
           </div>
         </div>
@@ -507,7 +691,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">xmlforms 0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">xmltools 0.0 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
