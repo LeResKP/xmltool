@@ -26,6 +26,7 @@ setup(name='xml-tools/',
       zip_safe=False,
       install_requires=[
           'lxml',
+          'tw2.core',
       ],
       test_suite = 'nose.collector',
       tests_require = [
