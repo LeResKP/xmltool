@@ -1,6 +1,6 @@
 from unittest import TestCase
-import xmlforms.dtd_parser as dtd_parser
-import xmlforms.forms as forms
+import xmltools.dtd_parser as dtd_parser
+import xmltools.forms as forms
 from lxml import etree
 import __builtin__
 import os

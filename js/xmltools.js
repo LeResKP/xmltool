@@ -110,6 +110,6 @@
     });
 
 }(typeof exports === "undefined"
-        ? (this.xmlforms = {})
+        ? (this.xmltools = {})
         : exports));
 

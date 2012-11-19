@@ -6,6 +6,6 @@ function abspath(p) {
 
 qunit.run({
     deps: ["./tests/env.js"].map(abspath),
-    code: {path: abspath('xmlforms.js'), namespace: 'xmlforms'},
-    tests: ['/tests/test_xmlforms.js'].map(abspath)
+    code: {path: abspath('xmltools.js'), namespace: 'xmltools'},
+    tests: ['/tests/test_xmltools.js'].map(abspath)
 })

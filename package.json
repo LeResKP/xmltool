@@ -1,5 +1,5 @@
 {
-    "name": "xmlforms",
+    "name": "xmltools",
     "version": "0.0.0",
     "scripts": {
         "test" : "node js/tests/testrunner.js"

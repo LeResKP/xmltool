@@ -1,11 +1,11 @@
 QUnit.module('Test functions');
 
-test("xmlforms.replace_id", function() {
+test("xmltools.replace_id", function() {
     expect(3);
     var html = '<div id="test:0:qcm:1">Hello world</div>'
     var expected = '<div id="test:0:qcm:1">Hello world</div>'
     obj = $(html);
-    xmlforms.replace_id(obj, 1, 'test:0:qcm');
+    xmltools.replace_id(obj, 1, 'test:0:qcm');
     equal(obj.html(), $(expected).html(), 'Replacement');
 
     var html = ['<div id="test:0:qcm">',
@@ -32,7 +32,7 @@ test("xmlforms.replace_id", function() {
     ].join('\n')
 
     var obj = $(html);
-    xmlforms.replace_id(obj, 11);
+    xmltools.replace_id(obj, 11);
     equal(obj.html(), $(expected).html(), 'With no container_id given');
 
     var expected = ['<div id="test:0:qcm">',
@@ -47,11 +47,11 @@ test("xmlforms.replace_id", function() {
         '</div>'
     ].join('\n')
     var obj = $(html);
-    xmlforms.replace_id(obj, 11, 'test');
+    xmltools.replace_id(obj, 11, 'test');
     equal(obj.html(), $(expected).html(), 'With container_id given');
 });
 
-test("xmlforms.has_field", function() {
+test("xmltools.has_field", function() {
     expect(4)
     var container = [
     '<div>',
@@ -65,7 +65,7 @@ test("xmlforms.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmlforms.has_field($(container)), true, 'textarea field');
+    equal(xmltools.has_field($(container)), true, 'textarea field');
 
     var container = [
     '<div>',
@@ -79,7 +79,7 @@ test("xmlforms.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmlforms.has_field($(container)), false, 'deleted textarea field');
+    equal(xmltools.has_field($(container)), false, 'deleted textarea field');
 
     var container = [
     '<div>',
@@ -93,7 +93,7 @@ test("xmlforms.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmlforms.has_field($(container)), false, 'growing field (only growing-source)');
+    equal(xmltools.has_field($(container)), false, 'growing field (only growing-source)');
 
     var container = [
     '<div>',
@@ -113,10 +113,10 @@ test("xmlforms.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmlforms.has_field($(container)), true, 'growing field');
+    equal(xmltools.has_field($(container)), true, 'growing field');
 });
 
-test("xmlforms.update_conditional_container", function() {
+test("xmltools.update_conditional_container", function() {
     expect(2);
     var html = [
     '<div>',
@@ -148,7 +148,7 @@ test("xmlforms.update_conditional_container", function() {
 
     var obj = $(html);
     var container = obj.find('.conditional-option:first > div:first');
-    xmlforms.update_conditional_container(container)
+    xmltools.update_conditional_container(container)
     equal(obj.html(), $(html).html(), 'Nothing has changed')
 
     var expected = [
@@ -180,7 +180,7 @@ test("xmlforms.update_conditional_container", function() {
     ].join('\n')
 
     container.addClass('deleted');
-    xmlforms.update_conditional_container(container)
+    xmltools.update_conditional_container(container)
     equal(obj.html(), $(expected).html(), 'Select is displayed')
 })
 

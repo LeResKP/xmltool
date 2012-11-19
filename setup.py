@@ -10,7 +10,7 @@ except ImportError:
 
 version = '0.0'
 
-setup(name='xml-forms/',
+setup(name='xml-tools/',
       version=version,
       description="",
       long_description="""\
@@ -19,7 +19,7 @@ setup(name='xml-forms/',
       keywords='',
       author='Aur\xc3\xa9lien Matouillot',
       author_email='a.matouillot@gmail.com',
-      url='https://github.com/LeResKP/xml-forms',
+      url='https://github.com/LeResKP/xml-tools',
       license='',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,

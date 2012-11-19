@@ -1,6 +1,6 @@
 from unittest import TestCase
-import xmlforms.forms as forms
-import xmlforms.dtd_parser as dtd_parser
+import xmltools.forms as forms
+import xmltools.dtd_parser as dtd_parser
 import tw2.core.testbase as tw2test
 
 # Set to True to print the html used in the javascript test
