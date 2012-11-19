@@ -1,6 +1,9 @@
 xml-tools
 =========
 
+xmltools is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
+`Read the documentation <http://xml-tools.lereskp.fr>`_
+
 
 Build Status
 ------------
