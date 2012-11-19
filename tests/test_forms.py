@@ -479,6 +479,9 @@ class TestFormField(TestCase):
         form.children = [sub1, sub2]
         expected = '''
         <form method="POST">
+          <input type="text" value="" name="form:_dtd_url" id="form:_dtd_url" class="_dtd_url">
+          <input type="text" value="" name="form:_encoding" id="form:_encoding" class="_encoding">
+          <input type="text" value="" name="form:_root_tag" id="form:_root_tag" class="_root_tag">
           <fieldset>
             <legend>None</legend>
             <div class="container">
