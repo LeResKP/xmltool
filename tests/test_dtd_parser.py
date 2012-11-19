@@ -3,6 +3,7 @@ import xmlforms.dtd_parser as dtd_parser
 import xmlforms.forms as forms
 from lxml import etree
 import __builtin__
+import os
 
 
 def fake_open(content, *args):
@@ -81,6 +82,17 @@ EXERCISE_XML = '''<?xml version='1.0' encoding='UTF-8'?>
       <choice>blue</choice>
       <choice>red</choice>
       <choice>black</choice>
+    </mqm>
+  </test>
+</Exercise>
+'''
+
+INVALID_EXERCISE_XML = '''<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Exercise SYSTEM "test.dtd">
+<Exercise>
+  <question>What is your favorite color?</question>
+  <test>
+    <mqm>
     </mqm>
   </test>
 </Exercise>
@@ -349,11 +361,10 @@ class TestGenerator1(TestCase):
         self.assertRaises(ValueError, dtd_parser.Generator)
         self.assertTrue(dtd_parser.Generator(dtd_str=MOVIE_DTD))
         dic, dtd_attrs = dtd_parser.dtd_to_dict(MOVIE_DTD)
-        self.assertTrue(dtd_parser.Generator(dtd_dict=dic))
         old_open = __builtin__.open
         try:
             __builtin__.open = fake_open
-            self.assertTrue(dtd_parser.Generator(dtd_file=MOVIE_DTD))
+            self.assertTrue(dtd_parser.Generator(dtd_url=MOVIE_DTD))
         finally:
             __builtin__.open = old_open
 
@@ -816,3 +827,105 @@ class TestGenerator3(TestCase):
         obj = gen.dict_to_obj('question', dic)
         self.assertEqual(obj.value, None)
         self.assertEqual(obj.attrs, {})
+
+
+class TestHelperFunctions(TestCase):
+
+    def test_is_http_url(self):
+        url = 'file.txt'
+        self.assertFalse(dtd_parser.is_http_url(url))
+        url = 'http://file.txt'
+        self.assertTrue(dtd_parser.is_http_url(url))
+        url = 'https://file.txt'
+        self.assertTrue(dtd_parser.is_http_url(url))
+
+    def test_get_dtd_content(self):
+        # TODO: we should put a valid dtd file on the github website to make
+        # sure we always can fetch it!
+        url = 'http://127.0.0.1:6543/static/exercise.dtd'
+        http_content = dtd_parser._get_dtd_content(url)
+        url = 'tests/exercise.dtd'
+        fs_content = dtd_parser._get_dtd_content(url)
+        self.assertEqual(http_content, fs_content)
+
+    def test_validate_xml(self):
+        root = etree.fromstring(EXERCISE_XML)
+        dtd_parser._validate_xml(root, EXERCISE_DTD)
+        try:
+            root = etree.fromstring(INVALID_EXERCISE_XML)
+            dtd_parser._validate_xml(root, EXERCISE_DTD)
+            assert 0
+        except etree.DocumentInvalid:
+            pass
+
+    def test_get_obj(self):
+        obj = dtd_parser.get_obj('tests/exercise.xml')
+        self.assertEqual(obj.name, 'Exercise')
+        try:
+            obj = dtd_parser.get_obj('tests/exercise-notvalid.xml')
+            assert 0
+        except etree.DocumentInvalid:
+            pass
+
+        obj = dtd_parser.get_obj('tests/exercise-notvalid.xml',
+                                 validate_xml=False)
+        self.assertEqual(obj.name, 'Exercise')
+
+    def test_write_obj(self):
+        def FakeValidate(*args, **kwargs):
+            raise etree.DocumentInvalid('Error')
+
+        filename = 'tests/test.xml'
+        self.assertFalse(os.path.isfile(filename))
+        old_validate = dtd_parser._validate_xml
+        try:
+            obj = dtd_parser.get_obj('tests/exercise.xml')
+            dtd_parser.write_obj(filename, obj)
+            new_content = open(filename, 'r').read()
+            old_content = open('tests/exercise.xml', 'r').read()
+            self.assertEqual(new_content, old_content)
+
+            dtd_parser._validate_xml = FakeValidate
+            try:
+                dtd_parser.write_obj(filename, obj)
+                assert 0
+            except etree.DocumentInvalid:
+                pass
+            dtd_parser.write_obj(filename, obj, validate_xml=False)
+        finally:
+            dtd_parser._validate_xml = old_validate
+            if os.path.isfile(filename):
+                os.remove(filename)
+
+    def test_generate_form(self):
+        html = dtd_parser.generate_form('tests/exercise.xml')
+        self.assertTrue('<form method="POST">' in html)
+
+        html = dtd_parser.generate_form('tests/exercise.xml',
+                                        form_action='/action/submit')
+        self.assertTrue('<form action="/action/submit" method="POST">' in html)
+
+    def test_update_xml_file(self):
+        filename = 'tests/test.xml'
+        self.assertFalse(os.path.isfile(filename))
+        try:
+            data = {
+                '_encoding': 'UTF-8',
+                '_dtd_url': 'http://127.0.0.1:6543/static/exercise.dtd',
+                '_root_tag': 'Exercise',
+                'Exercise.question': 'How are you?',
+            }
+            obj = dtd_parser.update_xml_file(filename, data)
+            self.assertTrue(obj)
+            result = open(filename, 'r').read()
+            expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Exercise PUBLIC "http://127.0.0.1:6543/static/exercise.dtd" "http://127.0.0.1:6543/static/exercise.dtd">
+<Exercise>
+  <number/>
+</Exercise>
+'''
+            self.assertEqual(result, expected)
+        finally:
+            if os.path.isfile(filename):
+                os.remove(filename)
+

@@ -1,0 +1,19 @@
+<!ELEMENT Exercise (number, test*)>
+<!ATTLIST Exercise idexercise ID #IMPLIED>
+<!ELEMENT test (question, (qcm|mqm)+, comments?)>
+<!ELEMENT qcm (choice+)>
+<!ELEMENT mqm (choice+)>
+<!ELEMENT comments (comment+)>
+<!ELEMENT number (#PCDATA)>
+<!ELEMENT comment (#PCDATA)>
+<!ELEMENT question (#PCDATA)>
+<!ELEMENT choice (#PCDATA)>
+
+<!ATTLIST test idtest ID #IMPLIED>
+<!ATTLIST qcm idqcm ID #IMPLIED>
+<!ATTLIST mqm idmqm ID #IMPLIED>
+<!ATTLIST comments idcomments ID #IMPLIED>
+<!ATTLIST comment idcomment ID #IMPLIED>
+<!ATTLIST question idquestion ID #IMPLIED>
+<!ATTLIST choice idchoice ID #IMPLIED>
+

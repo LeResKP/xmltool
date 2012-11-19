@@ -298,13 +298,44 @@ class FormField(Fieldset):
     html_attrs = ['action']
     display_container = False
 
+    def __init__(self, **kwargs):
+        super(FormField, self).__init__(**kwargs)
+        self.extra_children = [
+            InputField(
+                key='_dtd_url',
+                name='_dtd_url',
+                parent=self,
+                add_value_str=False,
+                value=kwargs.get('_dtd_url')
+            ),
+            InputField(
+                key='_encoding',
+                name='_encoding',
+                parent=self,
+                add_value_str=False,
+                value=kwargs.get('_encoding')
+            ),
+            InputField(
+                key='_root_tag',
+                name='_root_tag',
+                parent=self,
+                add_value_str=False,
+                value=self.legend
+            )
+        ]
+
     def display(self):
         self.required = True # No delete nor add button on the form
         children_html = super(FormField, self).display()
         if not children_html:
             return ''
+        extra_children_html = []
+        for child in self.extra_children:
+            extra_children_html.append(child.display())
+
         html = []
         html += ['<form%s method="POST">' % self.get_attrs()]
+        html += [''.join(extra_children_html)]
         html += [children_html]
         html += ['<input type="submit" />']
         html += ['</form>']
