@@ -840,7 +840,7 @@ class TestHelperFunctions(TestCase):
         self.assertTrue(dtd_parser.is_http_url(url))
 
     def test_get_dtd_content(self):
-        url = 'http://xml-forms.lereskp.fr/static/exercise.dtd'
+        url = 'http://xml-tools.lereskp.fr/static/exercise.dtd'
         http_content = dtd_parser._get_dtd_content(url)
         url = 'tests/exercise.dtd'
         fs_content = dtd_parser._get_dtd_content(url)
@@ -909,7 +909,7 @@ class TestHelperFunctions(TestCase):
         try:
             data = {
                 '_encoding': 'UTF-8',
-                '_dtd_url': 'http://xml-forms.lereskp.fr/static/exercise.dtd',
+                '_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
                 '_root_tag': 'Exercise',
                 'Exercise.question': 'How are you?',
             }
@@ -917,7 +917,7 @@ class TestHelperFunctions(TestCase):
             self.assertTrue(obj)
             result = open(filename, 'r').read()
             expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise PUBLIC "http://xml-forms.lereskp.fr/static/exercise.dtd" "http://xml-forms.lereskp.fr/static/exercise.dtd">
+<!DOCTYPE Exercise PUBLIC "http://xml-tools.lereskp.fr/static/exercise.dtd" "http://xml-tools.lereskp.fr/static/exercise.dtd">
 <Exercise>
   <number/>
 </Exercise>
