@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise PUBLIC "http://127.0.0.1:6543/static/exercise.dtd" "http://127.0.0.1:6543/static/exercise.dtd">
+<!DOCTYPE Exercise PUBLIC "http://xml-forms.lereskp.fr/static/exercise.dtd" "http://xml-forms.lereskp.fr/static/exercise.dtd">
 <Exercise idexercise="E1">
   <number>1</number>
   <test idtest="T1">
