@@ -1,0 +1,51 @@
+from setuptools import setup, find_packages
+import sys, os
+
+# Hack to prevent TypeError: 'NoneType' object is not callable error
+# on exit of python setup.py test
+try:
+    import multiprocessing
+except ImportError:
+    pass
+
+version = '0.1'
+
+setup(name='xml_tools',
+      version=version,
+      description="Tools to manipulate XML files",
+      long_description=open('README.rst').read().split('Build Status')[0],
+      classifiers=[
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Intended Audience :: Developers',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: JavaScript',
+        'Topic :: Text Processing :: Markup :: XML',
+      ],
+      keywords='',
+      author='Aur\xc3\xa9lien Matouillot',
+      author_email='a.matouillot@gmail.com',
+      url='http://xml-tools.lereskp.fr/',
+      license='MIT',
+      packages=find_packages(exclude=['ez_setup', 'tests']),
+      include_package_data=True,
+      zip_safe=False,
+      install_requires=[
+          'lxml',
+          'tw2.core',
+      ],
+      test_suite = 'nose.collector',
+      tests_require = [
+          'nose',
+          'BeautifulSoup',
+          'strainer',
+          'FormEncode',
+          'tw2.core',
+          'WebTest',
+      ],
+      entry_points="""
+      # -*- Entry points: -*-
+      """,
+      )

@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Exercise PUBLIC "http://xml-tools.lereskp.fr/static/exercise.dtd" "http://xml-tools.lereskp.fr/static/exercise.dtd">
+<Exercise idexercise="E1">
+  <number>1</number>
+  <test idtest="T1">
+    <question idquestion="Q1">What is your favorite color?</question>
+    <mqm idmqm="MQM1">
+      <choice idchoice="CHOICE1">blue</choice>
+      <choice idchoice="CHOICE2">red</choice>
+      <choice idchoice="CHOICE3">black</choice>
+    </mqm>
+    <mqm idmqm="MQM2">
+      <choice idchoice="CHOICE4">magenta</choice>
+      <choice idchoice="CHOICE5">orange</choice>
+      <choice idchoice="CHOICE6">yellow</choice>
+    </mqm>
+    <comments>
+      <comment></comment>
+    </comments>
+  </test>
+  <test idtest="T2">
+    <question idquestion="Q2">What is your favorite color 2?</question>
+    <qcm idqcm="QCM1">
+      <choice idchoice="CHOICE7">blue</choice>
+      <choice idchoice="CHOICE8">red</choice>
+      <choice idchoice="CHOICE9">black</choice>
+    </qcm>
+    <qcm idqcm="QCM2">
+      <choice idchoice="CHOICE10">magenta</choice>
+      <choice idchoice="CHOICE11">orange</choice>
+      <choice idchoice="CHOICE12">yellow</choice>
+    </qcm>
+    <comments>
+      <comment>My comment 1</comment>
+    </comments>
+  </test>
+</Exercise>
