@@ -10,7 +10,7 @@ except ImportError:
 
 version = '0.0'
 
-setup(name='xml-tools/',
+setup(name='xml_tools',
       version=version,
       description="Tools to manipulate XML files",
       long_description=open('README.rst').read().split('Build Status')[0],
