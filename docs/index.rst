@@ -3,14 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to xmltools's documentation!
-====================================
-
-Contents:
+#########################
+xmltools's documentation!
+#########################
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
+
+Introduction
+============
+
+xmltools is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
+The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
+You can find the `source on github <https://github.com/LeResKP/xml-forms>`_.
+
+
+.. include:: basic.rst.inc
+
+.. include:: form.rst.inc
+
+.. include:: module.rst.inc
 
 
 Indices and tables
@@ -19,6 +32,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-
-.. automodule:: xmltools.dtd_parser
