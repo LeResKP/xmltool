@@ -188,7 +188,7 @@ class DtdElement(object):
         :return: self
         :rtype: :class:`DtdElement`
         """
-        return write_obj(xml_filename, self, encoding, validate_xml)
+        write_obj(xml_filename, self, encoding, validate_xml)
 
 
 class Generator(object):
