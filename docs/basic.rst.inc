@@ -29,7 +29,7 @@ For this example we will load the following XML file:
     >>> print obj.characters.character[0].attrs
     {'idcharacter': 'C1'}
 
-.. note:: For now if you want to access to the property containing a dash '**-**' you should use the **getattr** builtin.
+.. warning:: For now if you want to access to the property containing a dash '**-**' you should use the **getattr** builtin.
 
 
 Writing a XML file
