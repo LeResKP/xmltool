@@ -164,13 +164,13 @@ class Field(object):
 class InputField(Field):
 
     def _display(self):
-        return '<input type="text" value="%s"%s>' % (self.get_value(),
+        return '<input type="text" value="%s"%s />' % (self.get_value(),
                                                     self.get_attrs())
 
 class ButtonField(Field):
 
     def display(self):
-        return '<input type="button" value="%s"%s>' % (self.get_value(),
+        return '<input type="button" value="%s"%s />' % (self.get_value(),
                                                        self.get_attrs())
 
 class TextAreaField(Field):
