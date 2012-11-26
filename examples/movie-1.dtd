@@ -1,0 +1,8 @@
+<!ELEMENT movie (title, realisator, characters, comment)>
+<!ATTLIST movie idmovie ID #IMPLIED>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT realisator (#PCDATA)>
+<!ELEMENT characters (character+)>
+<!ELEMENT character (#PCDATA)>
+<!ATTLIST character idcharacter ID #IMPLIED>
+<!ELEMENT comment (#PCDATA)>
