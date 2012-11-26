@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>xmltools’s documentation! &mdash; xmltools 0.0 documentation</title>
+    <title>xmltools’s documentation! &mdash; xmltools 0.1 documentation</title>
     
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.0',
+        VERSION:     '0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="xmltools 0.0 documentation" href="#" /> 
+    <link rel="top" title="xmltools 0.1 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -38,7 +38,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltools 0.0 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltools 0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -65,7 +65,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <h3>Loading a XML file<a class="headerlink" href="#loading-a-xml-file" title="Permalink to this headline">¶</a></h3>
 <p>For this example we will load the following XML file:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://127.0.0.1:6543/static/movie.dtd" "http://127.0.0.1:6543/static/movie.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
  &lt;title&gt;Full Metal Jacket&lt;/title&gt;
  &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -89,8 +89,8 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <span class="go">{&#39;idcharacter&#39;: &#39;C1&#39;}</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
 <p class="last">For now if you want to access to the property containing a dash &#8216;<strong>-</strong>&#8216; you should use the <strong>getattr</strong> builtin.</p>
 </div>
 </div>
@@ -104,7 +104,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>See the content of the new XML file:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://127.0.0.1:6543/static/movie.dtd" "http://127.0.0.1:6543/static/movie.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
   &lt;title&gt;Full Metal Jacket updated&lt;/title&gt;
   &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -138,7 +138,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>Use the new DTD file in our XML file. You don&#8217;t need to create a new DTD file when you want to update it, it&#8217;s just needed to write this example easily.</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://127.0.0.1:6543/static/movie-1.dtd" "http://127.0.0.1:6543/static/movie-1.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie-1.dtd" "http://xml-tools.lereskp.fr/examples/movie-1.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
  &lt;title&gt;Full Metal Jacket&lt;/title&gt;
  &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -156,7 +156,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>You can see that the comment tag is added automatically:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://127.0.0.1:6543/static/movie-1.dtd" "http://127.0.0.1:6543/static/movie-1.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie-1.dtd" "http://xml-tools.lereskp.fr/examples/movie-1.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
   &lt;title&gt;Full Metal Jacket&lt;/title&gt;
   &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -175,7 +175,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <h3>Generating a HTML form<a class="headerlink" href="#generating-a-html-form" title="Permalink to this headline">¶</a></h3>
 <p>We will make this example with the same XML file:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://127.0.0.1:6543/static/movie.dtd" "http://127.0.0.1:6543/static/movie.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
  &lt;title&gt;Full Metal Jacket&lt;/title&gt;
  &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -199,7 +199,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </dl>
 <p>See the generated HTML:</p>
 <div class="code html highlight-python"><pre>&lt;form method="POST"&gt;
-&lt;input type="text" value="http://127.0.0.1:6543/static/movie.dtd" name="_dtd_url" id="_dtd_url" class="_dtd_url"&gt;&lt;input type="text" value="UTF-8" name="_encoding" id="_encoding" class="_encoding"&gt;&lt;input type="text" value="movie" name="_root_tag" id="_root_tag" class="_root_tag"&gt;&lt;input type="text" value="M1" name="attrs:idmovie" id="attrs:idmovie" class="attr idmovie"&gt;&lt;fieldset&gt;
+&lt;input type="text" value="http://xml-tools.lereskp.fr/examples/movie.dtd" name="_dtd_url" id="_dtd_url" class="_dtd_url"&gt;&lt;input type="text" value="UTF-8" name="_encoding" id="_encoding" class="_encoding"&gt;&lt;input type="text" value="movie" name="_root_tag" id="_root_tag" class="_root_tag"&gt;&lt;input type="text" value="M1" name="attrs:idmovie" id="attrs:idmovie" class="attr idmovie"&gt;&lt;fieldset&gt;
 &lt;legend&gt;movie&lt;/legend&gt;
 &lt;div class="container"&gt;
 &lt;label&gt;title&lt;/label&gt;&lt;textarea name="title:value" id="title" class="title" rows="2"&gt;Full Metal Jacket&lt;/textarea&gt;
@@ -227,7 +227,43 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"><a class="reference external" href="examples/movie.html">Click here</a> to see the rendering.</p>
+<p class="last"><a class="reference external" href="examples/movie-full.html">Click here</a> to see the rendering with the javascript included.</p>
+</div>
+</div>
+<div class="section" id="submitting-a-html-form">
+<h3>Submitting a HTML form<a class="headerlink" href="#submitting-a-html-form" title="Permalink to this headline">¶</a></h3>
+<p>XML tools support you submit WebOb request or dict. We will use a dict for this example.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/my-movie.xml&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;_dtd_url&#39;</span><span class="p">:</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;_encoding&#39;</span><span class="p">:</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;_root_tag&#39;</span><span class="p">:</span> <span class="s">&#39;movie&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;title:value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie title&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;realisator:value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie realisator&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;characters:character:1:value&#39;</span><span class="p">:</span> <span class="s">&#39;My first character&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;characters:character:2:value&#39;</span><span class="p">:</span> <span class="s">&#39;My second character&#39;</span><span class="p">,</span>
+<span class="gp">... </span>      <span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">update_xml_file</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">value</span>
+<span class="go">My movie title</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="go">My first character</span>
+</pre></div>
+</div>
+<p>The generated XML looks like:</p>
+<div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
+&lt;movie&gt;
+  &lt;title&gt;My movie title&lt;/title&gt;
+  &lt;realisator&gt;My movie realisator&lt;/realisator&gt;
+  &lt;characters&gt;
+    &lt;character&gt;My first character&lt;/character&gt;
+    &lt;character&gt;My second character&lt;/character&gt;
+  &lt;/characters&gt;
+&lt;/movie&gt;</pre>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Before writing the XML file, it is validated according to the DTD file</p>
 </div>
 </div>
 </div>
@@ -891,6 +927,7 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
 </li>
 <li><a class="reference internal" href="#form">Form</a><ul>
 <li><a class="reference internal" href="#generating-a-html-form">Generating a HTML form</a></li>
+<li><a class="reference internal" href="#submitting-a-html-form">Submitting a HTML form</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#source">Source</a><ul>
@@ -934,7 +971,7 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltools 0.0 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltools 0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
