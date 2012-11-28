@@ -6,7 +6,7 @@ from dtd_parser import Generator
 import utils
 
 
-def get_obj(xml_filename, validate_xml=True):
+def load(xml_filename, validate_xml=True):
     """Generate a python object
 
     :param xml_filename: the XML filename we should load
@@ -39,7 +39,7 @@ def generate_form(xml_filename, form_action=None, validate_xml=True):
     :return: the generated HTML form
     :rtype: str
     """
-    obj = get_obj(xml_filename, validate_xml)
+    obj = load(xml_filename, validate_xml)
     form = obj._generator.generate_form(obj.name)
     form.set_value(obj)
 

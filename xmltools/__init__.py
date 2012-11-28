@@ -1,1 +1,1 @@
-from factory import get_obj, generate_form, update_xml_file
+from factory import load, generate_form, update_xml_file

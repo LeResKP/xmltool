@@ -8,16 +8,16 @@ from xmltools import factory
 
 class TestFactory(TestCase):
 
-    def test_get_obj(self):
-        obj = factory.get_obj('tests/exercise.xml')
+    def test_load(self):
+        obj = factory.load('tests/exercise.xml')
         self.assertEqual(obj.name, 'Exercise')
         try:
-            obj = factory.get_obj('tests/exercise-notvalid.xml')
+            obj = factory.load('tests/exercise-notvalid.xml')
             assert 0
         except etree.DocumentInvalid:
             pass
 
-        obj = factory.get_obj('tests/exercise-notvalid.xml',
+        obj = factory.load('tests/exercise-notvalid.xml',
                                  validate_xml=False)
         self.assertEqual(obj.name, 'Exercise')
 

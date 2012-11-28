@@ -195,7 +195,7 @@ class test_DtdElement(TestCase):
         self.assertFalse(os.path.isfile(filename))
         old_validate = utils.validate_xml
         try:
-            obj = factory.get_obj('tests/exercise.xml')
+            obj = factory.load('tests/exercise.xml')
             obj.write(filename)
             new_content = open(filename, 'r').read()
             old_content = open('tests/exercise.xml', 'r').read()
