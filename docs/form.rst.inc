@@ -8,6 +8,7 @@ Generating a HTML form
 .. testsetup:: *
 
     from lxml import etree
+    import xmltools
 
 
 We will make this example with the same XML file:
@@ -18,7 +19,7 @@ We will make this example with the same XML file:
 
 Now we will genererate the HTML form:
     >>> xml_filename = 'examples/movie.xml'
-    >>> html = dtd_parser.generate_form(xml_filename)
+    >>> html = xmltools.generate_form(xml_filename)
     >>> # Use etree to have a nicer HTML. In other case we don't need to use it directly.
     >>> xml = etree.fromstring(html)
     >>> html = etree.tostring(xml.getroottree(), pretty_print=True, encoding='UTF-8', method="html")
@@ -46,7 +47,7 @@ XML tools support you submit WebOb request or dict. We will use a dict for this 
     ...        'characters:character:1:value': 'My first character',
     ...        'characters:character:2:value': 'My second character',
     ...       }
-    >>> obj = dtd_parser.update_xml_file(xml_filename, dic)
+    >>> obj = xmltools.update_xml_file(xml_filename, dic)
     >>> print obj.title.value
     My movie title
     >>> print obj.characters.character[0].value

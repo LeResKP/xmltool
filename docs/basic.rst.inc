@@ -12,12 +12,12 @@ For this example we will load the following XML file:
 
 .. testsetup:: *
 
-    from xmltools import dtd_parser
+    import xmltools
 
 .. doctest::
 
     >>> xml_filename = 'examples/movie.xml'
-    >>> obj = dtd_parser.get_obj(xml_filename)
+    >>> obj = xmltools.load(xml_filename)
     >>> print obj.attrs
     {'idmovie': 'M1'}
     >>> print obj #doctest: +ELLIPSIS
@@ -38,7 +38,7 @@ Writing a XML file
 .. doctest::
 
     >>> xml_filename = 'examples/movie.xml'
-    >>> obj = dtd_parser.get_obj(xml_filename)
+    >>> obj = xmltools.load(xml_filename)
     >>> obj.title.value += ' updated'
     >>> obj.write('examples/movie-updated.xml')
 
@@ -70,7 +70,7 @@ Use the new DTD file in our XML file. You don't need to create a new DTD file wh
 To update the file according to the DTD change, we just need to load it without validating the XML and write it.  Xmltools detects the missing tags and add it!
 
     >>> xml_filename = 'examples/movie-1.xml'
-    >>> obj = dtd_parser.get_obj(xml_filename, validate_xml=False)
+    >>> obj = xmltools.load(xml_filename, validate_xml=False)
     >>> obj.write('examples/movie-1-updated.xml')
 
 You can see that the comment tag is added automatically:
