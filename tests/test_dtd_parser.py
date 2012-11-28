@@ -503,6 +503,69 @@ class test_DtdElement(TestCase):
         except Exception, e:
             self.assertEqual(str(e), 'Invalid child invalid')
 
+    def test_create(self):
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        cls = gen.dtd_classes['Book']
+        book = cls()
+        book.create('ISBN', 'ISBN_VALUE')
+        xml = gen.obj_to_xml(book)
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding='UTF-8')
+        expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<Book>
+  <ISBN>ISBN_VALUE</ISBN>
+  <book-title/>
+  <book-resume/>
+  <comments/>
+</Book>
+'''
+        self.assertEqual(xml_str, expected)
+        try:
+            book.create('ISBN', 'ISBN_VALUE')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'ISBN already defined')
+
+        book.create('book-title', 'The title of the book')
+        book.create('book-resume', 'The resume of the book')
+
+        try:
+            book.create('comments', 'The resume of the book')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "Can't set value to non DtdTextElement")
+
+        comments = book.create('comments')
+        comment = comments.create('comment')
+        self.assertEqual(comment, [])
+
+        # TODO: Add custom class to manage the list to create easily new
+        # element
+        cls = gen.dtd_classes['comment']
+        comment += [cls('comment 1')]
+        comment += [cls('comment 2')]
+
+        xml = gen.obj_to_xml(book)
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding='UTF-8')
+        expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<Book>
+  <ISBN>ISBN_VALUE</ISBN>
+  <book-title>The title of the book</book-title>
+  <book-resume>The resume of the book</book-resume>
+  <comments>
+    <comment>comment 1</comment>
+    <comment>comment 2</comment>
+  </comments>
+</Book>
+'''
+        self.assertEqual(xml_str, expected)
 
 class TestGenerator1(TestCase):
 

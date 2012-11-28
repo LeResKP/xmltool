@@ -156,8 +156,8 @@ class DtdTextElement(object):
     #: List of dtd attributes
     _attrs = []
 
-    def __init__(self):
-        self.value = None
+    def __init__(self, value=None):
+        self.value = value
         self.attrs = {}
 
 
@@ -177,6 +177,13 @@ class DtdElement(object):
         self.attrs = {}
 
     def _get_element(self, name):
+        """Get DtdSubElement corresponding to the given name
+
+        :param name: the name to find
+        :type name: str
+        :return: The matching DtdSubElement or None
+        :rtype: DtdSubElement
+        """
         for elt in self._elements:
             names = [elt.name]
             if elt.conditional_names:
@@ -190,6 +197,7 @@ class DtdElement(object):
         """Be able to get the property as a dict.
 
         :param item: the property name to get
+        :type item: str
         :return: the value of the property named item
         :rtype: :class: `DtdElement`, :class: `DtdTextElement` or list
         """
@@ -199,7 +207,9 @@ class DtdElement(object):
         """Set the value for the given property item as a dict
 
         :param item: the property name to set
+        :type item: str
         :param value: the value to set
+        :type value; str
         """
         setattr(self, item, value)
 
@@ -207,7 +217,9 @@ class DtdElement(object):
         """Set the value for the given property item
 
         :param item: the property name to set
+        :type item: str
         :param value: the value to set
+        :type value: str
         """
         if item != 'attrs':
             elt = self._get_element(item)
@@ -222,6 +234,34 @@ class DtdElement(object):
             if value is not None and not isinstance(value, cls):
                 raise Exception('Wrong type for %s' % item)
         super(DtdElement, self).__setattr__(item, value)
+
+    def create(self, tagname, text=None):
+        """Create an element
+
+        :param tagname: the tag name to create
+        :type tagname: str
+        :param text: if element is a :class: `DtdTextElement` we set the value
+        :type text: str
+        """
+        if getattr(self, tagname, None) is not None:
+            raise Exception('%s already defined' % tagname)
+
+        elt = self._get_element(tagname)
+        if elt.islist:
+            cls = list
+        else:
+            cls = self._generator.dtd_classes.get(tagname)
+            if not cls:
+                raise Exception('Invalid child %s' % tagname)
+
+        obj = cls()
+        if text:
+            if isinstance(obj, DtdTextElement):
+                obj.value = text
+            else:
+                raise Exception("Can't set value to non DtdTextElement")
+        setattr(self, tagname, obj)
+        return obj
 
     def write(self, xml_filename, encoding='UTF-8', validate_xml=True):
         """Update the file named xml_filename with obj.
