@@ -389,6 +389,22 @@ class test_DtdSubElement(TestCase):
 
 class test_DtdElement(TestCase):
 
+    def test__get_element(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        result = obj._get_element('unexisting')
+        self.assertEqual(result, None)
+        result = obj._get_element('ISBN')
+        self.assertEqual(result.name, 'ISBN')
+
+    def test__get_element_conditional(self):
+        root = etree.fromstring(EXERCISE_XML_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        obj = gen.generate_obj(root)
+        result = obj.test[0]._get_element('qcm')
+        self.assertEqual(result.name, '(qcm|mqm)')
+
     def test_getitem(self):
         root = etree.fromstring(BOOK_XML)
         gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
@@ -463,6 +479,26 @@ class test_DtdElement(TestCase):
         obj = gen.generate_obj(root)
         try:
             obj['invalid'] = 'invalid value'
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Invalid child invalid')
+
+    def test_setattr_wrong_type(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        try:
+            obj.ISBN = 'isbn'
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Wrong type for ISBN')
+
+    def test_setattr_invalid_child(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        try:
+            obj.invalid = 'invalid value'
             assert 0
         except Exception, e:
             self.assertEqual(str(e), 'Invalid child invalid')
@@ -846,8 +882,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_children_text(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        element = dtd_parser.DtdElement()
-        element.required = False
+        element = dtd_parser.DtdSubElement('text')
         field = gen.generate_form_children(gen.dtd_classes['choice'],
                                            parent=None,
                                            element=element)

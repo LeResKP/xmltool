@@ -176,10 +176,14 @@ class DtdElement(object):
     def __init__(self):
         self.attrs = {}
 
-    def _get_elements(self, name):
+    def _get_element(self, name):
         for elt in self._elements:
-            if elt.name == name:
-                return elt
+            names = [elt.name]
+            if elt.conditional_names:
+                names = [n.name for n in elt.conditional_names]
+            for n in names:
+                if n == name:
+                    return elt
         return None
 
     def __getitem__(self, item):
@@ -192,23 +196,32 @@ class DtdElement(object):
         return getattr(self, item)
 
     def __setitem__(self, item, value):
+        """Set the value for the given property item as a dict
+
+        :param item: the property name to set
+        :param value: the value to set
+        """
+        setattr(self, item, value)
+
+    def __setattr__(self, item, value):
         """Set the value for the given property item
 
         :param item: the property name to set
         :param value: the value to set
         """
-        elt = self._get_elements(item)
-        if not elt:
-            raise Exception('Invalid child %s' % item)
-        if elt.islist:
-            cls = list
-        else:
-            cls = self._generator.dtd_classes.get(item)
-        if not cls:
-            raise Exception('Invalid child %s' % item)
-        if value is not None and not isinstance(value, cls):
-            raise Exception('Wrong type for %s' % item)
-        setattr(self, item, value)
+        if item != 'attrs':
+            elt = self._get_element(item)
+            if not elt:
+                raise Exception('Invalid child %s' % item)
+            if elt.islist:
+                cls = list
+            else:
+                cls = self._generator.dtd_classes.get(item)
+            if not cls:
+                raise Exception('Invalid child %s' % item)
+            if value is not None and not isinstance(value, cls):
+                raise Exception('Wrong type for %s' % item)
+        super(DtdElement, self).__setattr__(item, value)
 
     def write(self, xml_filename, encoding='UTF-8', validate_xml=True):
         """Update the file named xml_filename with obj.
