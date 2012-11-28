@@ -1,9 +1,8 @@
 import re
 from lxml import etree
 import forms
-import urllib2
-import StringIO
-import tw2.core as twc
+import utils
+from elements import DtdElement, DtdSubElement, DtdTextElement
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -30,10 +29,12 @@ def clear_value(value):
         return ''
     return value or ''
 
+
 def cleanup(value):
     for c in ['\n', '\r']:
         value = value.replace(c, '')
     return value
+
 
 def parse_element(value):
     matchobj = element_regex_compile.match(value)
@@ -46,6 +47,7 @@ def parse_element(value):
         raise Exception, 'Unbalanced parenthesis %s' % value
     return name, elements.replace(' ', '')
 
+
 def parse_entity(value):
     matchobj = entity_regex_compile.match(value)
     if not matchobj:
@@ -53,8 +55,10 @@ def parse_entity(value):
     name, elements = matchobj.groups()
     return name.replace(' ', ''), elements.replace(' ', '')
 
+
 def split_list(lis, cols):
     return [lis[i:i+cols] for i in range(0, len(lis), cols)]
+
 
 def parse_attribute(value):
     for c in ['\n', '\r']:
@@ -67,6 +71,7 @@ def parse_attribute(value):
     for (att_name, type_, require) in split_list(lis[1:], 3):
         attributes += [(att_name.strip(), type_.strip(), require.strip())]
     return name, attributes
+
 
 def dtd_to_dict(dtd):
     dtd_elements = {}
@@ -103,179 +108,13 @@ def get_child(name, xml):
             return child
     return None
 
+
 def get_children(name, xml):
     lis = []
     for child in xml:
         if child.tag == name:
             lis += [child]
     return lis
-
-
-class DtdSubElement(object):
-    _attrs = []
-
-    def __init__(self, text):
-        self.name = text
-        self.required = True
-        self.islist = False
-        self.conditional_names = []
-        self.attrs = {}
-
-        if text.endswith('+'):
-            self.name = text[:-1]
-            self.islist = True
-        elif text.endswith('*'):
-            self.name = text[:-1]
-            self.islist = True
-            self.required = False
-        elif text.endswith('?'):
-            self.name = text[:-1]
-            self.required = False
-
-        if '|' in self.name:
-            text = self.name.replace('(', '').replace(')', '')
-            conditional_names = text.split('|')
-            for name in conditional_names:
-                elt = type(self)(name)
-                # If the conditional element is a list, the conditionals
-                # are also a list
-                # TODO: add test for islist
-                elt.islist = self.islist
-                self.conditional_names += [elt]
-
-    def __repr__(self):
-        return '<name=%(name)s required=%(required)s islist=%(islist)s>' % vars(self)
-
-
-class DtdTextElement(object):
-
-    #: The XML tag name corresponding to this class
-    name = None
-    #: The object :class: `Generator` used to generate the classes
-    _generator = None
-    #: List of dtd attributes
-    _attrs = []
-
-    def __init__(self, value=None):
-        self.value = value
-        self.attrs = {}
-
-
-class DtdElement(object):
-    """After reading a dtd file we construct some DtdElement
-    """
-    #: The XML tag name corresponding to this class
-    name = None
-    #: The object :class: `Generator` used to generate the classess
-    _generator = None
-    #: List of dtd attributes
-    _attrs = []
-    #: List of :class:`DtdSubElement`
-    _elements = []
-
-    def __init__(self):
-        self.attrs = {}
-
-    def _get_element(self, name):
-        """Get DtdSubElement corresponding to the given name
-
-        :param name: the name to find
-        :type name: str
-        :return: The matching DtdSubElement or None
-        :rtype: DtdSubElement
-        """
-        for elt in self._elements:
-            names = [elt.name]
-            if elt.conditional_names:
-                names = [n.name for n in elt.conditional_names]
-            for n in names:
-                if n == name:
-                    return elt
-        return None
-
-    def __getitem__(self, item):
-        """Be able to get the property as a dict.
-
-        :param item: the property name to get
-        :type item: str
-        :return: the value of the property named item
-        :rtype: :class: `DtdElement`, :class: `DtdTextElement` or list
-        """
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        """Set the value for the given property item as a dict
-
-        :param item: the property name to set
-        :type item: str
-        :param value: the value to set
-        :type value; str
-        """
-        setattr(self, item, value)
-
-    def __setattr__(self, item, value):
-        """Set the value for the given property item
-
-        :param item: the property name to set
-        :type item: str
-        :param value: the value to set
-        :type value: str
-        """
-        if item != 'attrs':
-            elt = self._get_element(item)
-            if not elt:
-                raise Exception('Invalid child %s' % item)
-            if elt.islist:
-                cls = list
-            else:
-                cls = self._generator.dtd_classes.get(item)
-            if not cls:
-                raise Exception('Invalid child %s' % item)
-            if value is not None and not isinstance(value, cls):
-                raise Exception('Wrong type for %s' % item)
-        super(DtdElement, self).__setattr__(item, value)
-
-    def create(self, tagname, text=None):
-        """Create an element
-
-        :param tagname: the tag name to create
-        :type tagname: str
-        :param text: if element is a :class: `DtdTextElement` we set the value
-        :type text: str
-        """
-        if getattr(self, tagname, None) is not None:
-            raise Exception('%s already defined' % tagname)
-
-        elt = self._get_element(tagname)
-        if elt.islist:
-            cls = list
-        else:
-            cls = self._generator.dtd_classes.get(tagname)
-            if not cls:
-                raise Exception('Invalid child %s' % tagname)
-
-        obj = cls()
-        if text:
-            if isinstance(obj, DtdTextElement):
-                obj.value = text
-            else:
-                raise Exception("Can't set value to non DtdTextElement")
-        setattr(self, tagname, obj)
-        return obj
-
-    def write(self, xml_filename, encoding='UTF-8', validate_xml=True):
-        """Update the file named xml_filename with obj.
-
-        :param xml_filename: the XML filename we should update
-        :param encoding: the encoding to use when writing the XML file.
-        :param validate_xml: validate the updated XML before writing it.
-        :type xml_filename: str
-        :type encoding: str
-        :type validate_xml: bool
-        :return: self
-        :rtype: :class:`DtdElement`
-        """
-        write_obj(xml_filename, self, encoding, validate_xml)
 
 
 class Generator(object):
@@ -292,7 +131,7 @@ class Generator(object):
         self._dtd_url = dtd_url
         self._encoding = encoding
         if dtd_url:
-            dtd_str = _get_dtd_content(dtd_url)
+            dtd_str = utils.get_dtd_content(dtd_url)
 
         if dtd_str:
             dtd_dict, dtd_attrs = dtd_to_dict(dtd_str)
@@ -549,155 +388,4 @@ class Generator(object):
         if isempty:
             return None
         return obj
-
-
-
-def is_http_url(url):
-    """Determine if the given url is on http(s).
-
-    :param url: the url to check
-    :type url: str
-    :return: True if the given url is on http or https.
-    :rtype: boolean
-    """
-    if url.startswith('http://') or url.startswith('https://'):
-        return True
-    return False
-
-
-def _get_dtd_content(url):
-    """Get the content of url.
-
-    :param url: the url of the dtd file.
-    :type url: str
-    :return: The content of the given url
-    :rtype: string
-    """
-    if is_http_url(url):
-        req = urllib2.Request(url)
-        response = urllib2.urlopen(req)
-        s = response.read()
-        response.close()
-        return s
-
-    return open(url, 'r').read()
-
-
-def _validate_xml(xml_obj, dtd_str):
-    """Validate an XML object
-
-    :param xml_obj: The XML object to validate
-    :type xml_obj: etree.Element
-    :param dtd_str: The dtd to use for the validation
-    :type dtd_str: str
-    :return: True. Raise an exception if the XML is not valid
-    :rtype: bool
-    """
-    dtd_obj = etree.DTD(StringIO.StringIO(dtd_str))
-    dtd_obj.assertValid(xml_obj)
-    return True
-
-
-def get_obj(xml_filename, validate_xml=True):
-    """Generate a python object
-
-    :param xml_filename: the XML filename we should load
-    :param validate_xml: validate the XML before generating the python object.
-    :type xml_filename: str
-    :type validate_xml: bool
-    :return: the generated python object
-    :rtype: :class:`DtdElement`
-    """
-    tree = etree.parse(xml_filename)
-    dtd_url = tree.docinfo.system_url
-    dtd_str = _get_dtd_content(dtd_url)
-    if validate_xml:
-        _validate_xml(tree, dtd_str)
-
-    gen = Generator(dtd_url=dtd_url)
-    obj = gen.generate_obj(tree.getroot())
-    return obj
-
-
-def write_obj(xml_filename, obj, encoding='UTF-8', validate_xml=True):
-    """Update the file named xml_filename with obj.
-
-    :param xml_filename: the XML filename we should update
-    :param obj: the object we used to get the XML value
-    :param encoding: the encoding to use when writing the XML file.
-    :param validate_xml: validate the updated XML before writing it.
-    :type xml_filename: str
-    :type obj: :class:`DtdElement`
-    :type encoding: str
-    :type validate_xml: bool
-    :return: the same object which is passed in parameter.
-    :rtype: :class:`DtdElement`
-    """
-    gen = obj._generator
-    xml = gen.obj_to_xml(obj)
-
-    if validate_xml:
-        dtd_str = _get_dtd_content(gen._dtd_url)
-        _validate_xml(xml, dtd_str)
-
-    doctype = ('<!DOCTYPE %(root_tag)s PUBLIC '
-               '"%(dtd_url)s" '
-               '"%(dtd_url)s">' % {
-                   'root_tag': obj.name,
-                   'dtd_url': gen._dtd_url,
-               })
-
-    xml_str = etree.tostring(
-        xml.getroottree(),
-        pretty_print=True,
-        xml_declaration=True,
-        encoding=encoding,
-        doctype=doctype)
-    open(xml_filename, 'w').write(xml_str)
-    return obj
-
-
-def generate_form(xml_filename, form_action=None, validate_xml=True):
-    """Generate the HTML form for the given xml_filename.
-
-    :param xml_filename: the XML filename we should load
-    :param form_action: the action to put on the HTML form
-    :param validate_xml: validate the XML before generating the form.
-    :type xml_filename: str
-    :type form_action: str
-    :type validate_xml: bool
-    :return: the generated HTML form
-    :rtype: str
-    """
-    obj = get_obj(xml_filename, validate_xml)
-    form = obj._generator.generate_form(obj.name)
-    form.set_value(obj)
-
-    if form_action:
-        form.action = form_action
-    return form.display()
-
-
-def update_xml_file(xml_filename, data, validate_xml=True):
-    """Update the file named xml_filename with data.
-
-    :param xml_filename: the XML filename we should update
-    :param data: the result of the submitted data.
-    :param validate_xml: validate the updated XML before writing it.
-    :type xml_filename: str
-    :type data: dict style like: dict, webob.MultiDict, ...
-    :type validate_xml: bool
-    :return: the object generated from the data
-    :rtype: :class:`DtdElement`
-    """
-    data = twc.validation.unflatten_params(data)
-
-    encoding = data['_encoding']
-    dtd_url = data['_dtd_url']
-    root_tag = data['_root_tag']
-
-    gen = Generator(dtd_url=dtd_url)
-    obj = gen.dict_to_obj(root_tag, data)
-
-    return write_obj(xml_filename, obj, encoding, validate_xml)
 
