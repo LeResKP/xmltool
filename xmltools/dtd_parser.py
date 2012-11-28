@@ -176,6 +176,40 @@ class DtdElement(object):
     def __init__(self):
         self.attrs = {}
 
+    def _get_elements(self, name):
+        for elt in self._elements:
+            if elt.name == name:
+                return elt
+        return None
+
+    def __getitem__(self, item):
+        """Be able to get the property as a dict.
+
+        :param item: the property name to get
+        :return: the value of the property named item
+        :rtype: :class: `DtdElement`, :class: `DtdTextElement` or list
+        """
+        return getattr(self, item)
+
+    def __setitem__(self, item, value):
+        """Set the value for the given property item
+
+        :param item: the property name to set
+        :param value: the value to set
+        """
+        elt = self._get_elements(item)
+        if not elt:
+            raise Exception('Invalid child %s' % item)
+        if elt.islist:
+            cls = list
+        else:
+            cls = self._generator.dtd_classes.get(item)
+        if not cls:
+            raise Exception('Invalid child %s' % item)
+        if value is not None and not isinstance(value, cls):
+            raise Exception('Wrong type for %s' % item)
+        setattr(self, item, value)
+
     def write(self, xml_filename, encoding='UTF-8', validate_xml=True):
         """Update the file named xml_filename with obj.
 

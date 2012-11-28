@@ -157,6 +157,27 @@ EXERCISE_XML_2 = '''<?xml version='1.0' encoding='UTF-8'?>
 </Exercise>
 '''
 
+BOOK_DTD = '''
+<!ELEMENT Book (ISBN, book-title, book-resume, comments)>
+<!ELEMENT ISBN (#PCDATA)>
+<!ELEMENT book-title (#PCDATA)>
+<!ELEMENT book-resume (#PCDATA)>
+<!ELEMENT comments (comment*)>
+<!ELEMENT comment (#PCDATA)>
+'''
+
+BOOK_XML = '''<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Book SYSTEM "test.dtd">
+<Book>
+  <ISBN>JFJEFBQN</ISBN>
+  <book-title>How to use XML tools?</book-title>
+  <book-resume>This is the resume of the book</book-resume>
+  <comments>
+    <comment>First comment</comment>
+    <comment>Second comment</comment>
+  </comments>
+</Book>'''
+
 class DtdParser(TestCase):
 
     def test_clear_value(self):
@@ -364,6 +385,87 @@ class test_DtdSubElement(TestCase):
         text = 'actor*'
         elt = dtd_parser.DtdSubElement(text)
         self.assertTrue(repr(elt))
+
+
+class test_DtdElement(TestCase):
+
+    def test_getitem(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        self.assertTrue(obj['ISBN'].value, 'JFJEFBQN')
+        self.assertTrue(obj['ISBN'].value, obj.ISBN)
+        self.assertTrue(obj['book-title'].value, 'How to use XML tools?')
+        self.assertTrue(obj['book-resume'].value, 'This is the resume of the book')
+        self.assertTrue(obj['comments']['comment'][0].value, 'First comment')
+        self.assertTrue(obj['comments']['comment'][1].value, 'Second comment')
+
+    def test_setitem(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        obj['comments'] = None
+        xml = gen.obj_to_xml(obj)
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding='UTF-8')
+        expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<Book>
+  <ISBN>JFJEFBQN</ISBN>
+  <book-title>How to use XML tools?</book-title>
+  <book-resume>This is the resume of the book</book-resume>
+  <comments/>
+</Book>
+'''
+        self.assertEqual(xml_str, expected)
+
+    def test_setitem_good_type(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        o = gen.dtd_classes['ISBN']()
+        o.value = 'NEW_ISBN'
+        obj['ISBN'] = o
+
+    def test_setitem_wrong_list(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        try:
+            obj['comments']['comment'] = 'my comment'
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Wrong type for comment')
+
+    def test_setitem_list(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        # TODO: we should check the type in the list
+        obj['comments']['comment'] = ['my comment']
+
+
+    def test_setitem_wrong_type(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        try:
+            obj['ISBN'] = 'isbn'
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Wrong type for ISBN')
+
+    def test_setitem_invalid_child(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        try:
+            obj['invalid'] = 'invalid value'
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Invalid child invalid')
 
 
 class TestGenerator1(TestCase):
