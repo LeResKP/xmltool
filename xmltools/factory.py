@@ -14,7 +14,7 @@ def load(xml_filename, validate_xml=True):
     :type xml_filename: str
     :type validate_xml: bool
     :return: the generated python object
-    :rtype: :class:`DtdElement`
+    :rtype: :class:`Element`
     """
     tree = etree.parse(xml_filename)
     dtd_url = tree.docinfo.system_url
@@ -58,7 +58,7 @@ def update_xml_file(xml_filename, data, validate_xml=True):
     :type data: dict style like: dict, webob.MultiDict, ...
     :type validate_xml: bool
     :return: the object generated from the data
-    :rtype: :class:`DtdElement`
+    :rtype: :class:`Element`
     """
     data = twc.validation.unflatten_params(data)
 

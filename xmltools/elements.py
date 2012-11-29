@@ -4,7 +4,7 @@ from lxml import etree
 import utils
 
 
-class DtdSubElement(object):
+class SubElement(object):
     _attrs = []
 
     def __init__(self, text):
@@ -40,7 +40,7 @@ class DtdSubElement(object):
         return '<name=%(name)s required=%(required)s islist=%(islist)s>' % vars(self)
 
 
-class DtdTextElement(object):
+class TextElement(object):
 
     #: The XML tag name corresponding to this class
     name = None
@@ -54,8 +54,8 @@ class DtdTextElement(object):
         self.attrs = {}
 
 
-class DtdElement(object):
-    """After reading a dtd file we construct some DtdElement
+class Element(object):
+    """After reading a dtd file we construct some Element
     """
     #: The XML tag name corresponding to this class
     name = None
@@ -63,19 +63,19 @@ class DtdElement(object):
     _generator = None
     #: List of dtd attributes
     _attrs = []
-    #: List of :class:`DtdSubElement`
+    #: List of :class:`SubElement`
     _elements = []
 
     def __init__(self):
         self.attrs = {}
 
     def _get_element(self, name):
-        """Get DtdSubElement corresponding to the given name
+        """Get SubElement corresponding to the given name
 
         :param name: the name to find
         :type name: str
-        :return: The matching DtdSubElement or None
-        :rtype: DtdSubElement
+        :return: The matching SubElement or None
+        :rtype: SubElement
         """
         for elt in self._elements:
             names = [elt.name]
@@ -92,7 +92,7 @@ class DtdElement(object):
         :param item: the property name to get
         :type item: str
         :return: the value of the property named item
-        :rtype: :class: `DtdElement`, :class: `DtdTextElement` or list
+        :rtype: :class: `Element`, :class: `TextElement` or list
         """
         return getattr(self, item)
 
@@ -126,14 +126,14 @@ class DtdElement(object):
                 raise Exception('Invalid child %s' % item)
             if value is not None and not isinstance(value, cls):
                 raise Exception('Wrong type for %s' % item)
-        super(DtdElement, self).__setattr__(item, value)
+        super(Element, self).__setattr__(item, value)
 
     def create(self, tagname, text=None):
         """Create an element
 
         :param tagname: the tag name to create
         :type tagname: str
-        :param text: if element is a :class: `DtdTextElement` we set the value
+        :param text: if element is a :class: `TextElement` we set the value
         :type text: str
         """
         if getattr(self, tagname, None) is not None:
@@ -149,10 +149,10 @@ class DtdElement(object):
 
         obj = cls()
         if text:
-            if isinstance(obj, DtdTextElement):
+            if isinstance(obj, TextElement):
                 obj.value = text
             else:
-                raise Exception("Can't set value to non DtdTextElement")
+                raise Exception("Can't set value to non TextElement")
         setattr(self, tagname, obj)
         return obj
 
@@ -166,7 +166,7 @@ class DtdElement(object):
         :type encoding: str
         :type validate_xml: bool
         :return: self
-        :rtype: :class:`DtdElement`
+        :rtype: :class:`Element`
         """
         gen = self._generator
         xml = gen.obj_to_xml(self)

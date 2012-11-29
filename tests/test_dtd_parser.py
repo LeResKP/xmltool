@@ -338,39 +338,39 @@ class DtdParser(TestCase):
         self.assertTrue(results, [sub1.text, sub2.text])
 
 
-class test_DtdSubElement(TestCase):
+class test_SubElement(TestCase):
 
     def test_init(self):
         text = 'actor'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertTrue(elt.required)
         self.assertFalse(elt.islist)
 
     def test_init_no_required(self):
         text = 'actor?'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertFalse(elt.required)
         self.assertFalse(elt.islist)
 
     def test_init_list(self):
         text = 'actor*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertFalse(elt.required)
         self.assertTrue(elt.islist)
 
     def test_init_list_required(self):
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertTrue(elt.required)
         self.assertTrue(elt.islist)
 
     def test_init_conditional(self):
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, '(qcm|mqm)')
         self.assertFalse(elt.required)
         self.assertTrue(elt.islist)
@@ -384,7 +384,7 @@ class test_DtdSubElement(TestCase):
 
     def test_repr(self):
         text = 'actor*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertTrue(repr(elt))
 
 
@@ -406,7 +406,7 @@ class TestGenerator1(TestCase):
         self.assertEqual(len(gen.dtd_classes), 11)
         for key in ['is-publish', 'name', 'firstname', 'year', 'resume', 'critique']:
             self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.DtdTextElement))
+                dtd_parser.TextElement))
         cls = gen.dtd_classes['Movie']
         self.assertEqual(cls.__name__, 'Movie')
         self.assertEqual(len(cls._elements), 7)
@@ -420,12 +420,12 @@ class TestGenerator1(TestCase):
     def test_get_key_from_xml(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         key = gen.get_key_from_xml(elt, None)
         self.assertEqual(key, 'actor')
 
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         root = etree.Element('root')
         etree.SubElement(root, 'qcm')
         key = gen.get_key_from_xml(elt, root)
@@ -438,7 +438,7 @@ class TestGenerator1(TestCase):
     def test_set_attrs_to_obj(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         root = etree.Element('root')
         root.attrib['id'] = '1'
         gen.set_attrs_to_obj(elt, root)
@@ -472,12 +472,12 @@ class TestGenerator1(TestCase):
     def test_get_key_from_obj(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         key = gen.get_key_from_obj(elt, None)
         self.assertEqual(key, 'actor')
 
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         class FakeObject(object): pass
         o = FakeObject()
         key = gen.get_key_from_obj(elt, o)
@@ -489,7 +489,7 @@ class TestGenerator1(TestCase):
     def test_set_attrs_to_xml(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         root = etree.Element('root')
         gen.set_attrs_to_xml(elt, root)
         self.assertEqual(root.attrib, {})
@@ -522,7 +522,7 @@ class TestGenerator2(TestCase):
         self.assertEqual(len(gen.dtd_classes), 6)
         for key in ['question', 'choice']:
             self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.DtdTextElement))
+                dtd_parser.TextElement))
         for (key, nb_elements) in [('Exercise', 2),
                                 ('test', 1), 
                                 ('qcm', 1), 
@@ -567,7 +567,7 @@ class TestGenerator3(TestCase):
         self.assertEqual(len(gen.dtd_classes), 9)
         for key in ['question', 'choice', 'comment', 'number']:
             self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.DtdTextElement))
+                dtd_parser.TextElement))
         for (key, nb_elements) in [('Exercise', 2),
                                    ('test', 3), 
                                    ('qcm', 1), 
@@ -710,7 +710,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_conditional(self):
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.ConditionalContainer))
@@ -720,14 +720,14 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_no_list_text(self):
         text = 'comment'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.TextAreaField))
 
     def test_generate_form_child_no_list_no_text(self):
         text = 'comments'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.Fieldset))
@@ -738,7 +738,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_list_text(self):
         text = 'comment*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.GrowingContainer))
@@ -751,7 +751,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_list_no_text(self):
         text = 'test*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.GrowingContainer))
@@ -766,7 +766,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_children_text(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        element = dtd_parser.DtdSubElement('text')
+        element = dtd_parser.SubElement('text')
         field = gen.generate_form_children(gen.dtd_classes['choice'],
                                            parent=None,
                                            element=element)

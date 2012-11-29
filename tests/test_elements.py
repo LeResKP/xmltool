@@ -7,7 +7,7 @@ from xmltools import dtd_parser, utils, factory
 from test_dtd_parser import BOOK_XML, BOOK_DTD, EXERCISE_XML_2, EXERCISE_DTD_2
 
 
-class test_DtdElement(TestCase):
+class test_Element(TestCase):
 
     def test__get_element(self):
         root = etree.fromstring(BOOK_XML)
@@ -156,7 +156,7 @@ class test_DtdElement(TestCase):
             book.create('comments', 'The resume of the book')
             assert 0
         except Exception, e:
-            self.assertEqual(str(e), "Can't set value to non DtdTextElement")
+            self.assertEqual(str(e), "Can't set value to non TextElement")
 
         comments = book.create('comments')
         comment = comments.create('comment')

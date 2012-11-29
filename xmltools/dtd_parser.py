@@ -2,7 +2,7 @@ import re
 from lxml import etree
 import forms
 import utils
-from elements import DtdElement, DtdSubElement, DtdTextElement
+from elements import Element, SubElement, TextElement
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -148,20 +148,20 @@ class Generator(object):
     def _create_classes(self):
         """Populate self.dtd_classes with the classes corresponding to the dtd
         elements.
-        The generated classes inherit from :class:`DtdElement`
+        The generated classes inherit from :class:`Element`
         """
         for name, elements in self.dtd.items():
             attrs = self.dtd_attrs.get(name) or []
             if elements in ['#PCDATA', 'EMPTY']:
-                cls = type(name, (DtdTextElement,), {'_attrs': attrs,
+                cls = type(name, (TextElement,), {'_attrs': attrs,
                                                      'name': name,
                                                      '_generator': self})
                 cls.__name__ = name
                 self.dtd_classes[name] = cls
                 continue
             splitted = elements.split(',')
-            lis = [DtdSubElement(element) for element in splitted]
-            cls = type(name, (DtdElement,), {'_elements': lis,
+            lis = [SubElement(element) for element in splitted]
+            cls = type(name, (Element,), {'_elements': lis,
                                              '_attrs': attrs,
                                              'name': name,
                                              '_generator': self})
@@ -188,7 +188,7 @@ class Generator(object):
         obj = self.dtd_classes[xml.tag]()
         self.set_attrs_to_obj(obj, xml)
 
-        if isinstance(obj, DtdTextElement):
+        if isinstance(obj, TextElement):
             text = None
             if xml is not None:
                 text = xml.text or UNDEFINED
@@ -235,7 +235,7 @@ class Generator(object):
 
         self.set_attrs_to_xml(obj, xml)
 
-        if isinstance(obj, DtdTextElement):
+        if isinstance(obj, TextElement):
             xml.text = obj.value
             return xml
 
@@ -296,7 +296,7 @@ class Generator(object):
                 sub_field.children = result
             field.child = sub_field
         else:
-            if issubclass(sub_cls, DtdTextElement):
+            if issubclass(sub_cls, TextElement):
                 return self.generate_form_children(sub_cls, parent, element)
 
             field = forms.Fieldset(
@@ -312,7 +312,7 @@ class Generator(object):
         return field
 
     def generate_form_children(self, cls, parent, element):
-        if issubclass(cls, DtdTextElement):
+        if issubclass(cls, TextElement):
             key = cls.name
             return forms.TextAreaField(
                 key=key,
@@ -355,7 +355,7 @@ class Generator(object):
             if attr_name in attrs:
                 obj.attrs[attr_name] = attrs[attr_name]
 
-        if isinstance(obj, DtdTextElement):
+        if isinstance(obj, TextElement):
             value = dic.get('value')
             if value == '':
                 # We want to make sure we will display the tags added by the
