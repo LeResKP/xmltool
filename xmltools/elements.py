@@ -106,6 +106,19 @@ class Element(object):
         """
         setattr(self, item, value)
 
+    def __contains__(self, item):
+        """Check item if defined
+
+        :param item: the property name to check
+        :type item: str
+        :return: True of item is defined in self
+        :rtype: bool
+        """
+        res = getattr(self, item, None)
+        if res is None:
+            return False
+        return True
+
     def __setattr__(self, item, value):
         """Set the value for the given property item
 
@@ -135,19 +148,34 @@ class Element(object):
         :type tagname: str
         :param text: if element is a :class: `TextElement` we set the value
         :type text: str
+        :return: the create object
+        :rtype: instance of TextElement or Element
         """
         if getattr(self, tagname, None) is not None:
             raise Exception('%s already defined' % tagname)
 
+        if tagname not in self._generator.dtd_classes:
+            raise Exception('Unexisting tagname %s' % tagname)
+
+        cls = self._generator.dtd_classes[tagname]
         elt = self._get_element(tagname)
         if elt.islist:
-            cls = list
+            if elt.conditional_names:
+                other_names = [n.name for n in elt.conditional_names if
+                         n.name != tagname]
+                for name in other_names:
+                    if name in self:
+                        raise Exception("You can't add a %s since it "
+                                        "already contains a %s" % (
+                                            tagname,
+                                            name))
+            obj = ElementList(cls)
         else:
             cls = self._generator.dtd_classes.get(tagname)
             if not cls:
                 raise Exception('Invalid child %s' % tagname)
+            obj = cls()
 
-        obj = cls()
         if text:
             if isinstance(obj, TextElement):
                 obj.value = text
@@ -155,6 +183,19 @@ class Element(object):
                 raise Exception("Can't set value to non TextElement")
         setattr(self, tagname, obj)
         return obj
+
+    def to_xml(self):
+        """Generate the XML string for this object
+
+        :return: The XML as string
+        :rtype: str
+        """
+        gen = self._generator
+        xml = gen.obj_to_xml(self)
+
+        return etree.tostring(
+            xml.getroottree(),
+            pretty_print=True)
 
     def write(self, xml_filename, encoding='UTF-8', validate_xml=True):
         """Update the file named xml_filename with obj.
@@ -190,4 +231,31 @@ class Element(object):
             doctype=doctype)
         open(xml_filename, 'w').write(xml_str)
 
+
+class ElementList(list):
+
+    def __init__(self, cls):
+        super(ElementList, self).__init__()
+        self.cls = cls
+
+    def add(self, text=None, position=None):
+        """Add element in this list object
+
+        :param text: if element is a :class: `TextElement` we set the value
+        :type text: str
+        :param position: the position in the list we want to insert the object
+        :type position: int
+        :rtype: instance of TextElement or Element
+        """
+        obj = self.cls()
+        if text:
+            if isinstance(obj, TextElement):
+                obj.value = text
+            else:
+                raise Exception("Can't set value to non TextElement")
+        if position is not None:
+            self.insert(position, obj)
+        else:
+            self.append(obj)
+        return obj
 

@@ -103,6 +103,13 @@ class test_Element(TestCase):
         except Exception, e:
             self.assertEqual(str(e), 'Invalid child invalid')
 
+    def test_contains(self):
+        root = etree.fromstring(BOOK_XML)
+        gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
+        obj = gen.generate_obj(root)
+        self.assertFalse('unexisting' in obj)
+        self.assertTrue('ISBN' in obj)
+
     def test_setattr_wrong_type(self):
         root = etree.fromstring(BOOK_XML)
         gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
@@ -149,6 +156,12 @@ class test_Element(TestCase):
         except Exception, e:
             self.assertEqual(str(e), 'ISBN already defined')
 
+        try:
+            book.create('unexisting')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Unexisting tagname unexisting')
+
         book.create('book-title', 'The title of the book')
         book.create('book-resume', 'The resume of the book')
 
@@ -162,12 +175,9 @@ class test_Element(TestCase):
         comment = comments.create('comment')
         self.assertEqual(comment, [])
 
-        # TODO: Add custom class to manage the list to create easily new
-        # element
-        cls = gen.dtd_classes['comment']
-        comment += [cls('comment 1')]
-        comment += [cls('comment 2')]
-
+        comment.add('comment 1')
+        comment.add('comment 2')
+        comment.add('comment 3', 1)
         xml = gen.obj_to_xml(book)
         xml_str = etree.tostring(
             xml.getroottree(),
@@ -181,11 +191,50 @@ class test_Element(TestCase):
   <book-resume>The resume of the book</book-resume>
   <comments>
     <comment>comment 1</comment>
+    <comment>comment 3</comment>
     <comment>comment 2</comment>
   </comments>
 </Book>
 '''
         self.assertEqual(xml_str, expected)
+
+    def test_create_exercise(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        exercise = gen.create_obj('Exercise')
+        test_list = exercise.create('test')
+        test1 = test_list.add()
+        test1.create('question', 'my question')
+        qcm_list = test1.create('qcm')
+        qcm1 = qcm_list.add()
+        choice_list = qcm1.create('choice')
+        choice_list.add('choice 1')
+        choice_list.add('choice 2')
+        expected = '''<Exercise>
+  <number/>
+  <test>
+    <question>my question</question>
+    <qcm>
+      <choice>choice 1</choice>
+      <choice>choice 2</choice>
+    </qcm>
+  </test>
+</Exercise>
+'''
+        self.assertEqual(exercise.to_xml(), expected)
+
+    def test_create_exercise_conditional(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        exercise = gen.create_obj('Exercise')
+        test_list = exercise.create('test')
+        test1 = test_list.add()
+        test1.create('question', 'my question')
+        qcm_list = test1.create('qcm')
+
+        try:
+            mqm_list = test1.create('mqm')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "You can't add a mqm since it already contains a qcm")
 
     def test_write(self):
         def FakeValidate(*args, **kwargs):
@@ -212,3 +261,134 @@ class test_Element(TestCase):
             utils.validate_xml = old_validate
             if os.path.isfile(filename):
                 os.remove(filename)
+
+
+class TestElementList(TestCase):
+
+    def test_add(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        cls = gen.dtd_classes['Exercise']
+        exercise = cls()
+        test = exercise.create('test')
+
+        test1 = test.add()
+        test1.create('question', 'question 1')
+        qcms = test1.create('qcm')
+        qcm1 = qcms.add()
+        choices1 = qcm1.create('choice')
+        choices1.add(text='choice1')
+        choices1.add(text='choice2')
+        choices1.add(text='choice3', position=1)
+        qcm2 = qcms.add()
+        choices2 = qcm2.create('choice')
+        choices2.add(text='choice4')
+        choices2.add(text='choice5')
+        choices2.add(text='choice6', position=1)
+
+        test2 = test.add()
+        test2.create('question', 'question 2')
+        mqms = test2.create('mqm')
+        mqm1 = mqms.add()
+        mqm1.attrs['idmqm'] = '1'
+        choices1 = mqm1.create('choice')
+        choices1.add(text='choice1')
+
+        expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<Exercise>
+  <number/>
+  <test>
+    <question>question 1</question>
+    <qcm>
+      <choice>choice1</choice>
+      <choice>choice3</choice>
+      <choice>choice2</choice>
+    </qcm>
+    <qcm>
+      <choice>choice4</choice>
+      <choice>choice6</choice>
+      <choice>choice5</choice>
+    </qcm>
+  </test>
+  <test>
+    <question>question 2</question>
+    <mqm idmqm="1">
+      <choice>choice1</choice>
+    </mqm>
+  </test>
+</Exercise>
+'''
+        xml = gen.obj_to_xml(exercise)
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding='UTF-8')
+        self.assertEqual(xml_str, expected)
+
+    def test_add_on_existing_obj(self):
+        root = etree.fromstring(EXERCISE_XML_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        obj = gen.generate_obj(root)
+
+        mqm3 = obj.test[0].mqm.add(position=0)
+        choices = mqm3.create('choice')
+        choices.add(text='choice 3').attrs['idchoice'] = '11'
+
+        choices1 = obj.test[0].mqm[1].choice
+        choices1.add(text='choice 4', position=0)
+
+        expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<Exercise idexercise="1">
+  <number>1</number>
+  <test idtest="1" name="color">
+    <question idquestion="1">What is your favorite color?</question>
+    <mqm>
+      <choice idchoice="11">choice 3</choice>
+    </mqm>
+    <mqm idmqm="1">
+      <choice>choice 4</choice>
+      <choice idchoice="1">blue</choice>
+      <choice idchoice="2">red</choice>
+      <choice idchoice="3">black</choice>
+    </mqm>
+    <mqm idmqm="2">
+      <choice idchoice="4">magenta</choice>
+      <choice idchoice="5">orange</choice>
+      <choice idchoice="6">yellow</choice>
+    </mqm>
+  </test>
+  <test idtest="2">
+    <question idquestion="2">Have you got a pet?</question>
+    <qcm idqcm="1">
+      <choice idchoice="7">yes</choice>
+      <choice idchoice="8">no</choice>
+    </qcm>
+    <qcm idqcm="2">
+      <choice idchoice="9">yes</choice>
+      <choice idchoice="10">no</choice>
+    </qcm>
+    <comments idcomments="1">
+      <comment idcomment="1">My comment 1</comment>
+      <comment idcomment="2">My comment 2</comment>
+    </comments>
+  </test>
+</Exercise>
+'''
+        xml = gen.obj_to_xml(obj)
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding='UTF-8')
+        self.assertEqual(xml_str, expected)
+
+    def test_add_text_not_allowed(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        cls = gen.dtd_classes['Exercise']
+        exercise = cls()
+        test = exercise.create('test')
+        try:
+            test.add(text='text')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e),"Can't set value to non TextElement")

@@ -2,7 +2,7 @@ import re
 from lxml import etree
 import forms
 import utils
-from elements import Element, SubElement, TextElement
+from elements import Element, SubElement, TextElement, ElementList
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -168,6 +168,11 @@ class Generator(object):
             cls.__name__ = name
             self.dtd_classes[name] = cls
 
+    def create_obj(self, tagname):
+        if tagname not in self.dtd_classes:
+            raise Exception("Tagname %s doesn't exist" % tagname)
+        return self.dtd_classes[tagname]()
+
     def get_key_from_xml(self, element, obj):
         if not element.conditional_names:
             return element.name
@@ -201,8 +206,11 @@ class Generator(object):
                 continue
             if element.islist:
                 children = get_children(key, xml)
-                lis = [self.generate_obj(c) for c in children]
-                setattr(obj, key, lis)
+                lis = ElementList(None)
+                lis.extend([self.generate_obj(c) for c in children])
+                if lis:
+                    lis.cls = lis[0].__class__
+                    setattr(obj, key, lis)
             else:
                 child = get_child(key, xml)
                 value = (child is not None) and self.generate_obj(child) or None
@@ -373,12 +381,14 @@ class Generator(object):
             if element.islist:
                 value = value or []
                 assert isinstance(value, list)
-                lis = []
+                lis = ElementList(None)
                 for v in value:
                     sub_obj = self.dict_to_obj(key, v, element.required)
                     if sub_obj:
                         lis += [sub_obj]
-                setattr(obj, key, lis)
+                if lis:
+                    lis.cls = lis[0].__class__
+                    setattr(obj, key, lis)
                 isempty=False
             else:
                 res = self.dict_to_obj(key, value, element.required)

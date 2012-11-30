@@ -417,6 +417,17 @@ class TestGenerator1(TestCase):
             cls = gen.dtd_classes[key]
             self.assertEqual(len(cls._elements), expected)
 
+    def test_create_obj(self):
+        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
+        actor = gen.create_obj('actor')
+        self.assertTrue(actor)
+
+        try:
+            gen.create_obj('unexisting')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "Tagname unexisting doesn't exist")
+
     def test_get_key_from_xml(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
@@ -843,7 +854,7 @@ class TestGenerator3(TestCase):
         dic = {'choice': []}
         obj = gen.dict_to_obj('mqm', dic)
         self.assertTrue(isinstance(obj, gen.dtd_classes['mqm']))
-        self.assertEqual(obj.choice, [])
+        self.assertEqual(hasattr(obj, 'choice'), False)
 
         dic = {'question': None}
         obj = gen.dict_to_obj('test', dic)
