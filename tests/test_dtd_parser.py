@@ -1,9 +1,9 @@
+#!/usr/bin/env python
+
 from unittest import TestCase
-import xmltools.dtd_parser as dtd_parser
-import xmltools.forms as forms
 from lxml import etree
 import __builtin__
-import os
+from xmltools import dtd_parser, forms
 
 
 def fake_open(content, *args):
@@ -156,6 +156,28 @@ EXERCISE_XML_2 = '''<?xml version='1.0' encoding='UTF-8'?>
   </test>
 </Exercise>
 '''
+
+BOOK_DTD = '''
+<!ELEMENT Book (ISBN, book-title, book-resume, comments)>
+<!ELEMENT ISBN (#PCDATA)>
+<!ELEMENT book-title (#PCDATA)>
+<!ELEMENT book-resume (#PCDATA)>
+<!ELEMENT comments (comment*)>
+<!ELEMENT comment (#PCDATA)>
+'''
+
+BOOK_XML = '''<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Book SYSTEM "test.dtd">
+<Book>
+  <ISBN>JFJEFBQN</ISBN>
+  <book-title>How to use XML tools?</book-title>
+  <book-resume>This is the resume of the book</book-resume>
+  <comments>
+    <comment>First comment</comment>
+    <comment>Second comment</comment>
+  </comments>
+</Book>'''
+
 
 class DtdParser(TestCase):
 
@@ -316,39 +338,39 @@ class DtdParser(TestCase):
         self.assertTrue(results, [sub1.text, sub2.text])
 
 
-class test_DtdSubElement(TestCase):
+class test_SubElement(TestCase):
 
     def test_init(self):
         text = 'actor'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertTrue(elt.required)
         self.assertFalse(elt.islist)
 
     def test_init_no_required(self):
         text = 'actor?'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertFalse(elt.required)
         self.assertFalse(elt.islist)
 
     def test_init_list(self):
         text = 'actor*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertFalse(elt.required)
         self.assertTrue(elt.islist)
 
     def test_init_list_required(self):
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, 'actor')
         self.assertTrue(elt.required)
         self.assertTrue(elt.islist)
 
     def test_init_conditional(self):
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertEqual(elt.name, '(qcm|mqm)')
         self.assertFalse(elt.required)
         self.assertTrue(elt.islist)
@@ -362,7 +384,7 @@ class test_DtdSubElement(TestCase):
 
     def test_repr(self):
         text = 'actor*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         self.assertTrue(repr(elt))
 
 
@@ -384,7 +406,7 @@ class TestGenerator1(TestCase):
         self.assertEqual(len(gen.dtd_classes), 11)
         for key in ['is-publish', 'name', 'firstname', 'year', 'resume', 'critique']:
             self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.DtdTextElement))
+                dtd_parser.TextElement))
         cls = gen.dtd_classes['Movie']
         self.assertEqual(cls.__name__, 'Movie')
         self.assertEqual(len(cls._elements), 7)
@@ -395,15 +417,26 @@ class TestGenerator1(TestCase):
             cls = gen.dtd_classes[key]
             self.assertEqual(len(cls._elements), expected)
 
+    def test_create_obj(self):
+        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
+        actor = gen.create_obj('actor')
+        self.assertTrue(actor)
+
+        try:
+            gen.create_obj('unexisting')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "Tagname unexisting doesn't exist")
+
     def test_get_key_from_xml(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         key = gen.get_key_from_xml(elt, None)
         self.assertEqual(key, 'actor')
 
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         root = etree.Element('root')
         etree.SubElement(root, 'qcm')
         key = gen.get_key_from_xml(elt, root)
@@ -416,7 +449,7 @@ class TestGenerator1(TestCase):
     def test_set_attrs_to_obj(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         root = etree.Element('root')
         root.attrib['id'] = '1'
         gen.set_attrs_to_obj(elt, root)
@@ -450,12 +483,12 @@ class TestGenerator1(TestCase):
     def test_get_key_from_obj(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         key = gen.get_key_from_obj(elt, None)
         self.assertEqual(key, 'actor')
 
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         class FakeObject(object): pass
         o = FakeObject()
         key = gen.get_key_from_obj(elt, o)
@@ -467,7 +500,7 @@ class TestGenerator1(TestCase):
     def test_set_attrs_to_xml(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         text = 'actor+'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         root = etree.Element('root')
         gen.set_attrs_to_xml(elt, root)
         self.assertEqual(root.attrib, {})
@@ -500,7 +533,7 @@ class TestGenerator2(TestCase):
         self.assertEqual(len(gen.dtd_classes), 6)
         for key in ['question', 'choice']:
             self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.DtdTextElement))
+                dtd_parser.TextElement))
         for (key, nb_elements) in [('Exercise', 2),
                                 ('test', 1), 
                                 ('qcm', 1), 
@@ -545,7 +578,7 @@ class TestGenerator3(TestCase):
         self.assertEqual(len(gen.dtd_classes), 9)
         for key in ['question', 'choice', 'comment', 'number']:
             self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.DtdTextElement))
+                dtd_parser.TextElement))
         for (key, nb_elements) in [('Exercise', 2),
                                    ('test', 3), 
                                    ('qcm', 1), 
@@ -688,7 +721,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_conditional(self):
         text = '(qcm|mqm)*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.ConditionalContainer))
@@ -698,14 +731,14 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_no_list_text(self):
         text = 'comment'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.TextAreaField))
 
     def test_generate_form_child_no_list_no_text(self):
         text = 'comments'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.Fieldset))
@@ -716,7 +749,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_list_text(self):
         text = 'comment*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.GrowingContainer))
@@ -729,7 +762,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_child_list_no_text(self):
         text = 'test*'
-        elt = dtd_parser.DtdSubElement(text)
+        elt = dtd_parser.SubElement(text)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         field = gen.generate_form_child(elt, parent=None)
         self.assertTrue(isinstance(field, forms.GrowingContainer))
@@ -744,8 +777,7 @@ class TestGenerator3(TestCase):
 
     def test_generate_form_children_text(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        element = dtd_parser.DtdElement()
-        element.required = False
+        element = dtd_parser.SubElement('text')
         field = gen.generate_form_children(gen.dtd_classes['choice'],
                                            parent=None,
                                            element=element)
@@ -822,7 +854,7 @@ class TestGenerator3(TestCase):
         dic = {'choice': []}
         obj = gen.dict_to_obj('mqm', dic)
         self.assertTrue(isinstance(obj, gen.dtd_classes['mqm']))
-        self.assertEqual(obj.choice, [])
+        self.assertEqual(hasattr(obj, 'choice'), False)
 
         dic = {'question': None}
         obj = gen.dict_to_obj('test', dic)
@@ -838,103 +870,4 @@ class TestGenerator3(TestCase):
         obj = gen.dict_to_obj('question', dic)
         self.assertEqual(obj.value, None)
         self.assertEqual(obj.attrs, {})
-
-
-class TestHelperFunctions(TestCase):
-
-    def test_is_http_url(self):
-        url = 'file.txt'
-        self.assertFalse(dtd_parser.is_http_url(url))
-        url = 'http://file.txt'
-        self.assertTrue(dtd_parser.is_http_url(url))
-        url = 'https://file.txt'
-        self.assertTrue(dtd_parser.is_http_url(url))
-
-    def test_get_dtd_content(self):
-        url = 'http://xml-tools.lereskp.fr/static/exercise.dtd'
-        http_content = dtd_parser._get_dtd_content(url)
-        url = 'tests/exercise.dtd'
-        fs_content = dtd_parser._get_dtd_content(url)
-        self.assertEqual(http_content, fs_content)
-
-    def test_validate_xml(self):
-        root = etree.fromstring(EXERCISE_XML)
-        dtd_parser._validate_xml(root, EXERCISE_DTD)
-        try:
-            root = etree.fromstring(INVALID_EXERCISE_XML)
-            dtd_parser._validate_xml(root, EXERCISE_DTD)
-            assert 0
-        except etree.DocumentInvalid:
-            pass
-
-    def test_get_obj(self):
-        obj = dtd_parser.get_obj('tests/exercise.xml')
-        self.assertEqual(obj.name, 'Exercise')
-        try:
-            obj = dtd_parser.get_obj('tests/exercise-notvalid.xml')
-            assert 0
-        except etree.DocumentInvalid:
-            pass
-
-        obj = dtd_parser.get_obj('tests/exercise-notvalid.xml',
-                                 validate_xml=False)
-        self.assertEqual(obj.name, 'Exercise')
-
-    def test_write_obj(self):
-        def FakeValidate(*args, **kwargs):
-            raise etree.DocumentInvalid('Error')
-
-        filename = 'tests/test.xml'
-        self.assertFalse(os.path.isfile(filename))
-        old_validate = dtd_parser._validate_xml
-        try:
-            obj = dtd_parser.get_obj('tests/exercise.xml')
-            dtd_parser.write_obj(filename, obj)
-            new_content = open(filename, 'r').read()
-            old_content = open('tests/exercise.xml', 'r').read()
-            self.assertEqual(new_content, old_content)
-
-            dtd_parser._validate_xml = FakeValidate
-            try:
-                dtd_parser.write_obj(filename, obj)
-                assert 0
-            except etree.DocumentInvalid:
-                pass
-            dtd_parser.write_obj(filename, obj, validate_xml=False)
-        finally:
-            dtd_parser._validate_xml = old_validate
-            if os.path.isfile(filename):
-                os.remove(filename)
-
-    def test_generate_form(self):
-        html = dtd_parser.generate_form('tests/exercise.xml')
-        self.assertTrue('<form method="POST">' in html)
-
-        html = dtd_parser.generate_form('tests/exercise.xml',
-                                        form_action='/action/submit')
-        self.assertTrue('<form action="/action/submit" method="POST">' in html)
-
-    def test_update_xml_file(self):
-        filename = 'tests/test.xml'
-        self.assertFalse(os.path.isfile(filename))
-        try:
-            data = {
-                '_encoding': 'UTF-8',
-                '_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
-                '_root_tag': 'Exercise',
-                'Exercise.question': 'How are you?',
-            }
-            obj = dtd_parser.update_xml_file(filename, data)
-            self.assertTrue(obj)
-            result = open(filename, 'r').read()
-            expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise PUBLIC "http://xml-tools.lereskp.fr/static/exercise.dtd" "http://xml-tools.lereskp.fr/static/exercise.dtd">
-<Exercise>
-  <number/>
-</Exercise>
-'''
-            self.assertEqual(result, expected)
-        finally:
-            if os.path.isfile(filename):
-                os.remove(filename)
 

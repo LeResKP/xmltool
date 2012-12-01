@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-version = '0.1'
+version = '0.2'
 
 setup(name='xml_tools',
       version=version,
@@ -23,6 +23,7 @@ setup(name='xml_tools',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: JavaScript',
         'Topic :: Text Processing :: Markup :: XML',
+        'Topic :: Text Processing :: Markup :: HTML',
       ],
       keywords='',
       author='Aur\xc3\xa9lien Matouillot',

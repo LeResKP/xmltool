@@ -8,6 +8,7 @@ Generating a HTML form
 .. testsetup:: *
 
     from lxml import etree
+    import xmltools
 
 
 We will make this example with the same XML file:
@@ -18,7 +19,7 @@ We will make this example with the same XML file:
 
 Now we will genererate the HTML form:
     >>> xml_filename = 'examples/movie.xml'
-    >>> html = dtd_parser.generate_form(xml_filename)
+    >>> html = xmltools.generate_form(xml_filename)
     >>> # Use etree to have a nicer HTML. In other case we don't need to use it directly.
     >>> xml = etree.fromstring(html)
     >>> html = etree.tostring(xml.getroottree(), pretty_print=True, encoding='UTF-8', method="html")
@@ -29,4 +30,32 @@ See the generated HTML:
 .. include:: examples/movie.html
     :code: html
 
-.. note:: `Click here <examples/movie.html>`_ to see the rendering.
+.. note:: `Click here <examples/movie-full.html>`_ to see the rendering with the javascript included.
+
+
+Submitting a HTML form
+----------------------
+
+XML tools support you submit WebOb request or dict. We will use a dict for this example.
+
+    >>> xml_filename = 'examples/my-movie.xml'
+    >>> dic = {'_dtd_url': 'http://xml-tools.lereskp.fr/examples/movie.dtd',
+    ...        '_encoding': 'UTF-8',
+    ...        '_root_tag': 'movie',
+    ...        'title:value': 'My movie title',
+    ...        'realisator:value': 'My movie realisator',
+    ...        'characters:character:1:value': 'My first character',
+    ...        'characters:character:2:value': 'My second character',
+    ...       }
+    >>> obj = xmltools.update_xml_file(xml_filename, dic)
+    >>> print obj.title.value
+    My movie title
+    >>> print obj.characters.character[0].value
+    My first character
+
+The generated XML looks like:
+
+.. include:: examples/my-movie.xml
+    :code: xml
+
+.. note:: Before writing the XML file, it is validated according to the DTD file

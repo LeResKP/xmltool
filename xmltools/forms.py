@@ -97,7 +97,7 @@ class Field(object):
 
     def set_value(self, value):
         if value and (self.key or type(self) is FormField):
-            if type(value) != list:
+            if not isinstance(value, list) :
                 for k, v in value.attrs.items():
                     self.attrs_children += [InputField(
                         key=k,
