@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>xmltools’s documentation! &mdash; xmltools 0.1 documentation</title>
+    <title>xmltools’s documentation! &mdash; xmltools 0.2 documentation</title>
     
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1',
+        VERSION:     '0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="xmltools 0.1 documentation" href="#" /> 
+    <link rel="top" title="xmltools 0.2 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -38,7 +38,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltools 0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltools 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -59,8 +59,125 @@
 The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
 You can find the <a class="reference external" href="https://github.com/LeResKP/xml-forms">source on github</a>.</p>
 </div>
+<div class="section" id="changelog">
+<h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>O.2:</dt>
+<dd><ul class="first last simple">
+<li>Update the project architecture</li>
+<li>Be able to access to the element properties like a dict</li>
+<li>Add functions to easily update or create XML file.</li>
+<li>Fix missing README file in the package</li>
+</ul>
+</dd>
+<dt>O.1:</dt>
+<dd><ul class="first last simple">
+<li>Initial version: package to manipulate XML file and create HTML forms.</li>
+</ul>
+</dd>
+</dl>
+</div>
 <div class="section" id="basic">
 <h2>Basic<a class="headerlink" href="#basic" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="creating-a-xml">
+<h3>Creating a XML<a class="headerlink" href="#creating-a-xml" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="general-case">
+<h4>General case<a class="headerlink" href="#general-case" title="Permalink to this headline">¶</a></h4>
+<p>You will see in this example how it&#8217;s easy to create an XML file according to the following DTD file:</p>
+<div class="code dtd highlight-python"><pre>&lt;!ELEMENT movie (title, realisator, characters)&gt;
+&lt;!ATTLIST movie idmovie ID #IMPLIED&gt;
+&lt;!ELEMENT title (#PCDATA)&gt;
+&lt;!ELEMENT realisator (#PCDATA)&gt;
+&lt;!ELEMENT characters (character+)&gt;
+&lt;!ELEMENT character (#PCDATA)&gt;
+&lt;!ATTLIST character idcharacter ID #IMPLIED&gt;</pre>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">movie</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">create_obj</span><span class="p">(</span><span class="s">&#39;movie&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="s">&#39;Movie title&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">title</span><span class="o">.</span><span class="n">value</span>
+<span class="go">Movie title</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">realisator</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;realisator&#39;</span><span class="p">,</span> <span class="s">&#39;realisator name&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">characters</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;characters&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">character_list</span> <span class="o">=</span> <span class="n">characters</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;character&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">character_list</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">character_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;character 1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c2</span> <span class="o">=</span> <span class="n">character_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;character 2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">movie</span><span class="o">.</span><span class="n">to_xml</span><span class="p">()</span>
+<span class="go">&lt;movie&gt;</span>
+<span class="go">  &lt;title&gt;Movie title&lt;/title&gt;</span>
+<span class="go">  &lt;realisator&gt;realisator name&lt;/realisator&gt;</span>
+<span class="go">  &lt;characters&gt;</span>
+<span class="go">    &lt;character&gt;character 1&lt;/character&gt;</span>
+<span class="go">    &lt;character&gt;character 2&lt;/character&gt;</span>
+<span class="go">  &lt;/characters&gt;</span>
+<span class="go">&lt;/movie&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="case-with-conditional-elements">
+<h4>Case with conditional elements<a class="headerlink" href="#case-with-conditional-elements" title="Permalink to this headline">¶</a></h4>
+<p>Now we will see how to handle case with some conditional elements. It&#8217;s &#8216;(qcm|mqm)*&#8217; in the following DTD files:</p>
+<div class="code dtd highlight-python"><pre>&lt;!ELEMENT Exercise (question, (qcm|mqm)*)&gt;
+&lt;!ELEMENT question (#PCDATA)&gt;
+&lt;!ELEMENT qcm (good-choice, bad-choice*)&gt;
+&lt;!ELEMENT mqm (good-choice, bad-choice*)&gt;
+&lt;!ELEMENT good-choice (#PCDATA)&gt;
+&lt;!ELEMENT bad-choice (#PCDATA)&gt;</pre>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">create_obj</span><span class="p">(</span><span class="s">&#39;Exercise&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm_list</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;qcm&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">qcm_list</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Now we can&#39;t add a mqm since a qcm exists</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;mqm&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="gr">Exception</span>: <span class="n">You can&#39;t add a mqm since it already contains a qcm</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm1</span> <span class="o">=</span> <span class="n">qcm_list</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">qcm1</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;good-choice&#39;</span><span class="p">,</span> <span class="s">&#39;choice 1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">exercise</span><span class="o">.</span><span class="n">to_xml</span><span class="p">()</span>
+<span class="go">&lt;Exercise&gt;</span>
+<span class="go">  &lt;question&gt;the question&lt;/question&gt;</span>
+<span class="go">  &lt;qcm&gt;</span>
+<span class="go">    &lt;good-choice&gt;choice 1&lt;/good-choice&gt;</span>
+<span class="go">  &lt;/qcm&gt;</span>
+<span class="go">&lt;/Exercise&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="accessing-to-the-property">
+<h3>Accessing to the property<a class="headerlink" href="#accessing-to-the-property" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>There is two ways to access to a property:</dt>
+<dd><ul class="first last simple">
+<li>object style: obj.my_prop</li>
+<li>dict style: obj[&#8216;my_prop&#8217;]. The dict style is very useful to access to the properties containing a dash.</li>
+</ul>
+</dd>
+</dl>
+<p>See the example below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">create_obj</span><span class="p">(</span><span class="s">&#39;Exercise&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm_list</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;qcm&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm1</span> <span class="o">=</span> <span class="n">qcm_list</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">qcm1</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;good-choice&#39;</span><span class="p">,</span> <span class="s">&#39;choice 1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">exercise</span><span class="o">.</span><span class="n">question</span><span class="o">.</span><span class="n">value</span>
+<span class="go">the question</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="o">.</span><span class="n">qcm</span> <span class="o">==</span> <span class="n">exercise</span><span class="p">[</span><span class="s">&#39;qcm&#39;</span><span class="p">]</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="p">[</span><span class="s">&#39;qcm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;good-choice&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="go">&#39;choice 1&#39;</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="loading-a-xml-file">
 <h3>Loading a XML file<a class="headerlink" href="#loading-a-xml-file" title="Permalink to this headline">¶</a></h3>
 <p>For this example we will load the following XML file:</p>
@@ -76,7 +193,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 &lt;/movie&gt;</pre>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/movie.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">attrs</span>
 <span class="go">{&#39;idmovie&#39;: &#39;M1&#39;}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span> 
@@ -89,16 +206,12 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <span class="go">{&#39;idcharacter&#39;: &#39;C1&#39;}</span>
 </pre></div>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For now if you want to access to the property containing a dash &#8216;<strong>-</strong>&#8216; you should use the <strong>getattr</strong> builtin.</p>
-</div>
 </div>
 <div class="section" id="writing-a-xml-file">
 <h3>Writing a XML file<a class="headerlink" href="#writing-a-xml-file" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/movie.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="s">&#39; updated&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s">&#39;My new title&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;examples/movie-updated.xml&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -106,7 +219,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
 &lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
-  &lt;title&gt;Full Metal Jacket updated&lt;/title&gt;
+  &lt;title&gt;My new title&lt;/title&gt;
   &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
   &lt;characters&gt;
     &lt;character idcharacter="C1"&gt;Matthew Modine&lt;/character&gt;
@@ -150,7 +263,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>To update the file according to the DTD change, we just need to load it without validating the XML and write it.  Xmltools detects the missing tags and add it!</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/movie-1.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;examples/movie-1-updated.xml&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -188,7 +301,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <dl class="docutils">
 <dt>Now we will genererate the HTML form:</dt>
 <dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/movie.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">generate_form</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">generate_form</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Use etree to have a nicer HTML. In other case we don&#39;t need to use it directly.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">xml</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">xml</span><span class="o">.</span><span class="n">getroottree</span><span class="p">(),</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&quot;html&quot;</span><span class="p">)</span>
@@ -242,7 +355,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <span class="gp">... </span>       <span class="s">&#39;characters:character:1:value&#39;</span><span class="p">:</span> <span class="s">&#39;My first character&#39;</span><span class="p">,</span>
 <span class="gp">... </span>       <span class="s">&#39;characters:character:2:value&#39;</span><span class="p">:</span> <span class="s">&#39;My second character&#39;</span><span class="p">,</span>
 <span class="gp">... </span>      <span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">update_xml_file</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">update_xml_file</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">value</span>
 <span class="go">My movie title</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
@@ -269,39 +382,174 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <div class="section" id="source">
 <h2>Source<a class="headerlink" href="#source" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-xmltools.dtd_parser">
-<span id="xmltools-dtd-parser"></span><h3>xmltools.dtd_parser<a class="headerlink" href="#module-xmltools.dtd_parser" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="module-xmltools.factory">
+<span id="xmltools-factory"></span><h3>xmltools.factory<a class="headerlink" href="#module-xmltools.factory" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="xmltools.factory.generate_form">
+<tt class="descclassname">xmltools.factory.</tt><tt class="descname">generate_form</tt><big>(</big><em>xml_filename</em>, <em>form_action=None</em>, <em>validate_xml=True</em><big>)</big><a class="reference internal" href="modules/xmltools/factory.html#generate_form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.factory.generate_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the HTML form for the given xml_filename.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xml_filename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the XML filename we should load</li>
+<li><strong>form_action</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the action to put on the HTML form</li>
+<li><strong>validate_xml</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; validate the XML before generating the form.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the generated HTML form</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="xmltools.factory.load">
+<tt class="descclassname">xmltools.factory.</tt><tt class="descname">load</tt><big>(</big><em>xml_filename</em>, <em>validate_xml=True</em><big>)</big><a class="headerlink" href="#xmltools.factory.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a python object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xml_filename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the XML filename we should load</li>
+<li><strong>validate_xml</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; validate the XML before generating the python object.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the generated python object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="xmltools.factory.update_xml_file">
+<tt class="descclassname">xmltools.factory.</tt><tt class="descname">update_xml_file</tt><big>(</big><em>xml_filename</em>, <em>data</em>, <em>validate_xml=True</em><big>)</big><a class="reference internal" href="modules/xmltools/factory.html#update_xml_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.factory.update_xml_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the file named xml_filename with data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xml_filename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the XML filename we should update</li>
+<li><strong>data</strong> (<em>dict style like: dict, webob.MultiDict, ...</em>) &#8211; the result of the submitted data.</li>
+<li><strong>validate_xml</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; validate the updated XML before writing it.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the object generated from the data</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-xmltools.elements">
+<span id="xmltools-elements"></span><h3>xmltools.elements<a class="headerlink" href="#module-xmltools.elements" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
-<dt id="xmltools.dtd_parser.DtdElement">
-<em class="property">class </em><tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">DtdElement</tt><a class="reference internal" href="modules/xmltools/dtd_parser.html#DtdElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.DtdElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>After reading a dtd file we construct some DtdElement</p>
+<dt id="xmltools.elements.Element">
+<em class="property">class </em><tt class="descclassname">xmltools.elements.</tt><tt class="descname">Element</tt><a class="headerlink" href="#xmltools.elements.Element" title="Permalink to this definition">¶</a></dt>
+<dd><p>After reading a dtd file we construct some Element</p>
 <dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdElement._attrs">
-<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.dtd_parser.DtdElement._attrs" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.Element._attrs">
+<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.elements.Element._attrs" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of dtd attributes</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdElement._elements">
-<tt class="descname">_elements</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.dtd_parser.DtdElement._elements" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of <a class="reference internal" href="#xmltools.dtd_parser.DtdSubElement" title="xmltools.dtd_parser.DtdSubElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdSubElement</span></tt></a></p>
+<dt id="xmltools.elements.Element._elements">
+<tt class="descname">_elements</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.elements.Element._elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <a class="reference internal" href="#xmltools.elements.SubElement" title="xmltools.elements.SubElement"><tt class="xref py py-class docutils literal"><span class="pre">SubElement</span></tt></a></p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdElement._generator">
-<tt class="descname">_generator</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.dtd_parser.DtdElement._generator" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.Element._generator">
+<tt class="descname">_generator</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.elements.Element._generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>The object :class: <cite>Generator</cite> used to generate the classess</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="xmltools.elements.Element._get_element">
+<tt class="descname">_get_element</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#xmltools.elements.Element._get_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get SubElement corresponding to the given name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name to find</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The matching SubElement or None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">SubElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="xmltools.elements.Element.create">
+<tt class="descname">create</tt><big>(</big><em>tagname</em>, <em>text=None</em><big>)</big><a class="headerlink" href="#xmltools.elements.Element.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an element</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tagname</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the tag name to create</li>
+<li><strong>text</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; if element is a :class: <cite>TextElement</cite> we set the value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the create object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">instance of TextElement or Element</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdElement.name">
-<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.dtd_parser.DtdElement.name" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.Element.name">
+<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.elements.Element.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>The XML tag name corresponding to this class</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="xmltools.dtd_parser.DtdElement.write">
-<tt class="descname">write</tt><big>(</big><em>xml_filename</em>, <em>encoding='UTF-8'</em>, <em>validate_xml=True</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#DtdElement.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.DtdElement.write" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.Element.to_xml">
+<tt class="descname">to_xml</tt><big>(</big><big>)</big><a class="headerlink" href="#xmltools.elements.Element.to_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the XML string for this object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The XML as string</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="xmltools.elements.Element.write">
+<tt class="descname">write</tt><big>(</big><em>xml_filename</em>, <em>encoding='UTF-8'</em>, <em>validate_xml=True</em><big>)</big><a class="headerlink" href="#xmltools.elements.Element.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the file named xml_filename with obj.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -317,7 +565,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">self</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#xmltools.dtd_parser.DtdElement" title="xmltools.dtd_parser.DtdElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdElement</span></tt></a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#xmltools.elements.Element" title="xmltools.elements.Element"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a></p>
 </td>
 </tr>
 </tbody>
@@ -327,38 +575,67 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </dd></dl>
 
 <dl class="class">
-<dt id="xmltools.dtd_parser.DtdSubElement">
-<em class="property">class </em><tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">DtdSubElement</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#DtdSubElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.DtdSubElement" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.ElementList">
+<em class="property">class </em><tt class="descclassname">xmltools.elements.</tt><tt class="descname">ElementList</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#xmltools.elements.ElementList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="xmltools.elements.ElementList.add">
+<tt class="descname">add</tt><big>(</big><em>text=None</em>, <em>position=None</em><big>)</big><a class="headerlink" href="#xmltools.elements.ElementList.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add element in this list object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>text</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; if element is a :class: <cite>TextElement</cite> we set the value</li>
+<li><strong>position</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the position in the list we want to insert the object</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">instance of TextElement or Element</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="xmltools.elements.SubElement">
+<em class="property">class </em><tt class="descclassname">xmltools.elements.</tt><tt class="descname">SubElement</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#xmltools.elements.SubElement" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdSubElement._attrs">
-<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.dtd_parser.DtdSubElement._attrs" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.SubElement._attrs">
+<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.elements.SubElement._attrs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="xmltools.dtd_parser.DtdTextElement">
-<em class="property">class </em><tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">DtdTextElement</tt><a class="reference internal" href="modules/xmltools/dtd_parser.html#DtdTextElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.DtdTextElement" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.TextElement">
+<em class="property">class </em><tt class="descclassname">xmltools.elements.</tt><tt class="descname">TextElement</tt><big>(</big><em>value=None</em><big>)</big><a class="headerlink" href="#xmltools.elements.TextElement" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdTextElement._attrs">
-<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.dtd_parser.DtdTextElement._attrs" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.TextElement._attrs">
+<tt class="descname">_attrs</tt><em class="property"> = []</em><a class="headerlink" href="#xmltools.elements.TextElement._attrs" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of dtd attributes</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdTextElement._generator">
-<tt class="descname">_generator</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.dtd_parser.DtdTextElement._generator" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.TextElement._generator">
+<tt class="descname">_generator</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.elements.TextElement._generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>The object :class: <cite>Generator</cite> used to generate the classes</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="xmltools.dtd_parser.DtdTextElement.name">
-<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.dtd_parser.DtdTextElement.name" title="Permalink to this definition">¶</a></dt>
+<dt id="xmltools.elements.TextElement.name">
+<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#xmltools.elements.TextElement.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>The XML tag name corresponding to this class</p>
 </dd></dl>
 
 </dd></dl>
 
+</div>
+<div class="section" id="module-xmltools.dtd_parser">
+<span id="xmltools-dtd-parser"></span><h3>xmltools.dtd_parser<a class="headerlink" href="#module-xmltools.dtd_parser" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="xmltools.dtd_parser.Generator">
 <em class="property">class </em><tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">Generator</tt><big>(</big><em>dtd_str=None</em>, <em>dtd_url=None</em>, <em>encoding='UTF-8'</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#Generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.Generator" title="Permalink to this definition">¶</a></dt>
@@ -372,8 +649,13 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <tt class="descname">_create_classes</tt><big>(</big><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#Generator._create_classes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.Generator._create_classes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populate self.dtd_classes with the classes corresponding to the dtd
 elements.
-The generated classes inherit from <a class="reference internal" href="#xmltools.dtd_parser.DtdElement" title="xmltools.dtd_parser.DtdElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdElement</span></tt></a></p>
+The generated classes inherit from <tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></p>
 </dd></dl>
+
+<dl class="method">
+<dt id="xmltools.dtd_parser.Generator.create_obj">
+<tt class="descname">create_obj</tt><big>(</big><em>tagname</em><big>)</big><a class="headerlink" href="#xmltools.dtd_parser.Generator.create_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="xmltools.dtd_parser.Generator.dict_to_obj">
@@ -433,48 +715,6 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
 </dd></dl>
 
 <dl class="function">
-<dt id="xmltools.dtd_parser._get_dtd_content">
-<tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">_get_dtd_content</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#_get_dtd_content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser._get_dtd_content" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the content of url.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the url of the dtd file.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The content of the given url</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">string</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="xmltools.dtd_parser._validate_xml">
-<tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">_validate_xml</tt><big>(</big><em>xml_obj</em>, <em>dtd_str</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#_validate_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser._validate_xml" title="Permalink to this definition">¶</a></dt>
-<dd><p>Validate an XML object</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>xml_obj</strong> (<em>etree.Element</em>) &#8211; The XML object to validate</li>
-<li><strong>dtd_str</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The dtd to use for the validation</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True. Raise an exception if the XML is not valid</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="xmltools.dtd_parser.cleanup">
 <tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">cleanup</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.cleanup" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -507,31 +747,6 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="xmltools.dtd_parser.generate_form">
-<tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">generate_form</tt><big>(</big><em>xml_filename</em>, <em>form_action=None</em>, <em>validate_xml=True</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#generate_form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.generate_form" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate the HTML form for the given xml_filename.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>xml_filename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the XML filename we should load</li>
-<li><strong>form_action</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the action to put on the HTML form</li>
-<li><strong>validate_xml</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; validate the XML before generating the form.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the generated HTML form</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="xmltools.dtd_parser.get_child">
 <tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">get_child</tt><big>(</big><em>name</em>, <em>xml</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#get_child"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.get_child" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -540,48 +755,6 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
 <dt id="xmltools.dtd_parser.get_children">
 <tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">get_children</tt><big>(</big><em>name</em>, <em>xml</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#get_children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.get_children" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="xmltools.dtd_parser.get_obj">
-<tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">get_obj</tt><big>(</big><em>xml_filename</em>, <em>validate_xml=True</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#get_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.get_obj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a python object</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>xml_filename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the XML filename we should load</li>
-<li><strong>validate_xml</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; validate the XML before generating the python object.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the generated python object</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#xmltools.dtd_parser.DtdElement" title="xmltools.dtd_parser.DtdElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdElement</span></tt></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="xmltools.dtd_parser.is_http_url">
-<tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">is_http_url</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#is_http_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.is_http_url" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine if the given url is on http(s).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the url to check</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the given url is on http or https.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">boolean</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
 
 <dl class="function">
 <dt id="xmltools.dtd_parser.parse_attribute">
@@ -602,57 +775,6 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
 <dt id="xmltools.dtd_parser.split_list">
 <tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">split_list</tt><big>(</big><em>lis</em>, <em>cols</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#split_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.split_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="xmltools.dtd_parser.update_xml_file">
-<tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">update_xml_file</tt><big>(</big><em>xml_filename</em>, <em>data</em>, <em>validate_xml=True</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#update_xml_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.update_xml_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the file named xml_filename with data.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>xml_filename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the XML filename we should update</li>
-<li><strong>data</strong> (<em>dict style like: dict, webob.MultiDict, ...</em>) &#8211; the result of the submitted data.</li>
-<li><strong>validate_xml</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; validate the updated XML before writing it.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the object generated from the data</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#xmltools.dtd_parser.DtdElement" title="xmltools.dtd_parser.DtdElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdElement</span></tt></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="xmltools.dtd_parser.write_obj">
-<tt class="descclassname">xmltools.dtd_parser.</tt><tt class="descname">write_obj</tt><big>(</big><em>xml_filename</em>, <em>obj</em>, <em>encoding='UTF-8'</em>, <em>validate_xml=True</em><big>)</big><a class="reference internal" href="modules/xmltools/dtd_parser.html#write_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.dtd_parser.write_obj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the file named xml_filename with obj.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>xml_filename</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the XML filename we should update</li>
-<li><strong>obj</strong> (<a class="reference internal" href="#xmltools.dtd_parser.DtdElement" title="xmltools.dtd_parser.DtdElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdElement</span></tt></a>) &#8211; the object we used to get the XML value</li>
-<li><strong>encoding</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the encoding to use when writing the XML file.</li>
-<li><strong>validate_xml</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; validate the updated XML before writing it.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the same object which is passed in parameter.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#xmltools.dtd_parser.DtdElement" title="xmltools.dtd_parser.DtdElement"><tt class="xref py py-class docutils literal"><span class="pre">DtdElement</span></tt></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
 
 </div>
 <div class="section" id="module-xmltools.forms">
@@ -898,6 +1020,69 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
 <dd></dd></dl>
 
 </div>
+<div class="section" id="module-xmltools.utils">
+<span id="xmltools-utils"></span><h3>xmltools.utils<a class="headerlink" href="#module-xmltools.utils" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="xmltools.utils.get_dtd_content">
+<tt class="descclassname">xmltools.utils.</tt><tt class="descname">get_dtd_content</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="modules/xmltools/utils.html#get_dtd_content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.utils.get_dtd_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the content of url.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the url of the dtd file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The content of the given url</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="xmltools.utils.is_http_url">
+<tt class="descclassname">xmltools.utils.</tt><tt class="descname">is_http_url</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="modules/xmltools/utils.html#is_http_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.utils.is_http_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the given url is on http(s).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the url to check</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the given url is on http or https.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">boolean</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="xmltools.utils.validate_xml">
+<tt class="descclassname">xmltools.utils.</tt><tt class="descname">validate_xml</tt><big>(</big><em>xml_obj</em>, <em>dtd_str</em><big>)</big><a class="reference internal" href="modules/xmltools/utils.html#validate_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltools.utils.validate_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate an XML object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xml_obj</strong> (<em>etree.Element</em>) &#8211; The XML object to validate</li>
+<li><strong>dtd_str</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The dtd to use for the validation</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True. Raise an exception if the XML is not valid</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 </div>
 <div class="section" id="indices-and-tables">
 <h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
@@ -919,7 +1104,14 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
   <ul>
 <li><a class="reference internal" href="#">xmltools&#8217;s documentation!</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#changelog">Changelog</a></li>
 <li><a class="reference internal" href="#basic">Basic</a><ul>
+<li><a class="reference internal" href="#creating-a-xml">Creating a XML</a><ul>
+<li><a class="reference internal" href="#general-case">General case</a></li>
+<li><a class="reference internal" href="#case-with-conditional-elements">Case with conditional elements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#accessing-to-the-property">Accessing to the property</a></li>
 <li><a class="reference internal" href="#loading-a-xml-file">Loading a XML file</a></li>
 <li><a class="reference internal" href="#writing-a-xml-file">Writing a XML file</a></li>
 <li><a class="reference internal" href="#updating-a-xml-file-after-a-dtd-change">Updating a XML file after a dtd change</a></li>
@@ -931,8 +1123,11 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
 </ul>
 </li>
 <li><a class="reference internal" href="#source">Source</a><ul>
+<li><a class="reference internal" href="#module-xmltools.factory">xmltools.factory</a></li>
+<li><a class="reference internal" href="#module-xmltools.elements">xmltools.elements</a></li>
 <li><a class="reference internal" href="#module-xmltools.dtd_parser">xmltools.dtd_parser</a></li>
 <li><a class="reference internal" href="#module-xmltools.forms">xmltools.forms</a></li>
+<li><a class="reference internal" href="#module-xmltools.utils">xmltools.utils</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -971,7 +1166,7 @@ The generated classes inherit from <a class="reference internal" href="#xmltools
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltools 0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltools 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -10,7 +10,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Index &mdash; xmltools 0.1 documentation</title>
+    <title>Index &mdash; xmltools 0.2 documentation</title>
     
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
@@ -18,7 +18,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1',
+        VERSION:     '0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -28,7 +28,7 @@
     <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="xmltools 0.1 documentation" href="index.html" /> 
+    <link rel="top" title="xmltools 0.2 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">xmltools 0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">xmltools 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -58,10 +58,12 @@
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
@@ -70,6 +72,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
  
@@ -78,16 +81,16 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.DtdElement._attrs">_attrs (xmltools.dtd_parser.DtdElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.Element._attrs">_attrs (xmltools.elements.Element attribute)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="index.html#xmltools.dtd_parser.DtdSubElement._attrs">(xmltools.dtd_parser.DtdSubElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.SubElement._attrs">(xmltools.elements.SubElement attribute)</a>
   </dt>
 
         
-  <dt><a href="index.html#xmltools.dtd_parser.DtdTextElement._attrs">(xmltools.dtd_parser.DtdTextElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.TextElement._attrs">(xmltools.elements.TextElement attribute)</a>
   </dt>
 
       </dl></dd>
@@ -122,23 +125,23 @@
 
       </dl></dd>
       
-  <dt><a href="index.html#xmltools.dtd_parser.DtdElement._elements">_elements (xmltools.dtd_parser.DtdElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.Element._elements">_elements (xmltools.elements.Element attribute)</a>
   </dt>
 
       
-  <dt><a href="index.html#xmltools.dtd_parser.DtdElement._generator">_generator (xmltools.dtd_parser.DtdElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.Element._generator">_generator (xmltools.elements.Element attribute)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="index.html#xmltools.dtd_parser.DtdTextElement._generator">(xmltools.dtd_parser.DtdTextElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.TextElement._generator">(xmltools.elements.TextElement attribute)</a>
   </dt>
 
       </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser._get_dtd_content">_get_dtd_content() (in module xmltools.dtd_parser)</a>
+  <dt><a href="index.html#xmltools.elements.Element._get_element">_get_element() (xmltools.elements.Element method)</a>
   </dt>
 
       
@@ -173,15 +176,17 @@
   </dt>
 
       </dl></dd>
-      
-  <dt><a href="index.html#xmltools.dtd_parser._validate_xml">_validate_xml() (in module xmltools.dtd_parser)</a>
-  </dt>
-
   </dl></td>
 </tr></table>
 
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="index.html#xmltools.elements.ElementList.add">add() (xmltools.elements.ElementList method)</a>
+  </dt>
+
+  </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="index.html#xmltools.forms.Field.attrs">attrs (xmltools.forms.Field attribute)</a>
@@ -225,14 +230,22 @@
   <dt><a href="index.html#xmltools.dtd_parser.clear_value">clear_value() (in module xmltools.dtd_parser)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="index.html#xmltools.forms.clone_obj">clone_obj() (in module xmltools.forms)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="index.html#xmltools.forms.ConditionalContainer">ConditionalContainer (class in xmltools.forms)</a>
+  </dt>
+
+      
+  <dt><a href="index.html#xmltools.elements.Element.create">create() (xmltools.elements.Element method)</a>
+  </dt>
+
+      
+  <dt><a href="index.html#xmltools.dtd_parser.Generator.create_obj">create_obj() (xmltools.dtd_parser.Generator method)</a>
   </dt>
 
   </dl></td>
@@ -259,6 +272,8 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="index.html#xmltools.forms.Field.display_container">display_container (xmltools.forms.Field attribute)</a>
   </dt>
@@ -282,17 +297,19 @@
   </dt>
 
   </dl></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.DtdElement">DtdElement (class in xmltools.dtd_parser)</a>
+  <dt><a href="index.html#xmltools.elements.Element">Element (class in xmltools.elements)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.DtdSubElement">DtdSubElement (class in xmltools.dtd_parser)</a>
-  </dt>
-
-      
-  <dt><a href="index.html#xmltools.dtd_parser.DtdTextElement">DtdTextElement (class in xmltools.dtd_parser)</a>
+  <dt><a href="index.html#xmltools.elements.ElementList">ElementList (class in xmltools.elements)</a>
   </dt>
 
   </dl></td>
@@ -322,7 +339,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.generate_form">generate_form() (in module xmltools.dtd_parser)</a>
+  <dt><a href="index.html#xmltools.factory.generate_form">generate_form() (in module xmltools.factory)</a>
   </dt>
 
       <dd><dl>
@@ -382,6 +399,10 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="index.html#xmltools.utils.get_dtd_content">get_dtd_content() (in module xmltools.utils)</a>
+  </dt>
+
+      
   <dt><a href="index.html#xmltools.forms.Field.get_id">get_id() (xmltools.forms.Field method)</a>
   </dt>
 
@@ -399,10 +420,6 @@
 
       
   <dt><a href="index.html#xmltools.forms.Field.get_name">get_name() (xmltools.forms.Field method)</a>
-  </dt>
-
-      
-  <dt><a href="index.html#xmltools.dtd_parser.get_obj">get_obj() (in module xmltools.dtd_parser)</a>
   </dt>
 
       
@@ -452,7 +469,17 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.is_http_url">is_http_url() (in module xmltools.dtd_parser)</a>
+  <dt><a href="index.html#xmltools.utils.is_http_url">is_http_url() (in module xmltools.utils)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="index.html#xmltools.factory.load">load() (in module xmltools.factory)</a>
   </dt>
 
   </dl></td>
@@ -472,12 +499,12 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.DtdElement.name">name (xmltools.dtd_parser.DtdElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.Element.name">name (xmltools.elements.Element attribute)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="index.html#xmltools.dtd_parser.DtdTextElement.name">(xmltools.dtd_parser.DtdTextElement attribute)</a>
+  <dt><a href="index.html#xmltools.elements.TextElement.name">(xmltools.elements.TextElement attribute)</a>
   </dt>
 
       </dl></dd>
@@ -535,14 +562,18 @@
   <dt><a href="index.html#xmltools.dtd_parser.Generator.set_attrs_to_xml">set_attrs_to_xml() (xmltools.dtd_parser.Generator method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="index.html#xmltools.forms.Field.set_value">set_value() (xmltools.forms.Field method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="index.html#xmltools.dtd_parser.split_list">split_list() (in module xmltools.dtd_parser)</a>
+  </dt>
+
+      
+  <dt><a href="index.html#xmltools.elements.SubElement">SubElement (class in xmltools.elements)</a>
   </dt>
 
   </dl></td>
@@ -555,6 +586,16 @@
   <dt><a href="index.html#xmltools.forms.TextAreaField">TextAreaField (class in xmltools.forms)</a>
   </dt>
 
+      
+  <dt><a href="index.html#xmltools.elements.TextElement">TextElement (class in xmltools.elements)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="index.html#xmltools.elements.Element.to_xml">to_xml() (xmltools.elements.Element method)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -562,7 +603,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.update_xml_file">update_xml_file() (in module xmltools.dtd_parser)</a>
+  <dt><a href="index.html#xmltools.factory.update_xml_file">update_xml_file() (in module xmltools.factory)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="index.html#xmltools.utils.validate_xml">validate_xml() (in module xmltools.utils)</a>
   </dt>
 
   </dl></td>
@@ -572,13 +623,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#xmltools.dtd_parser.DtdElement.write">write() (xmltools.dtd_parser.DtdElement method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="index.html#xmltools.dtd_parser.write_obj">write_obj() (in module xmltools.dtd_parser)</a>
+  <dt><a href="index.html#xmltools.elements.Element.write">write() (xmltools.elements.Element method)</a>
   </dt>
 
   </dl></td>
@@ -591,10 +636,22 @@
   <dt><a href="index.html#module-xmltools.dtd_parser">xmltools.dtd_parser (module)</a>
   </dt>
 
+      
+  <dt><a href="index.html#module-xmltools.elements">xmltools.elements (module)</a>
+  </dt>
+
+      
+  <dt><a href="index.html#module-xmltools.factory">xmltools.factory (module)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="index.html#module-xmltools.forms">xmltools.forms (module)</a>
+  </dt>
+
+      
+  <dt><a href="index.html#module-xmltools.utils">xmltools.utils (module)</a>
   </dt>
 
   </dl></td>
@@ -636,7 +693,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">xmltools 0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">xmltools 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
