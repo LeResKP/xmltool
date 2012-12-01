@@ -1,0 +1,6 @@
+<!ELEMENT Exercise (question, (qcm|mqm)*)>
+<!ELEMENT question (#PCDATA)>
+<!ELEMENT qcm (good-choice, bad-choice*)>
+<!ELEMENT mqm (good-choice, bad-choice*)>
+<!ELEMENT good-choice (#PCDATA)>
+<!ELEMENT bad-choice (#PCDATA)>

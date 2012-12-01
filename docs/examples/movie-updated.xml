@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd">
 <movie idmovie="M1">
-  <title>Full Metal Jacket updated</title>
+  <title>My new title</title>
   <realisator>Stanley Kubrick</realisator>
   <characters>
     <character idcharacter="C1">Matthew Modine</character>
