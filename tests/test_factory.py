@@ -49,6 +49,19 @@ class TestFactory(TestCase):
 </Exercise>
 '''
             self.assertEqual(result, expected)
+            transform_func = lambda  txt: txt.replace('number',
+                                                      'number-updated')
+            obj = factory.update_xml_file(filename, data,
+                                          transform=transform_func)
+            self.assertTrue(obj)
+            result = open(filename, 'r').read()
+            expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Exercise PUBLIC "http://xml-tools.lereskp.fr/static/exercise.dtd" "http://xml-tools.lereskp.fr/static/exercise.dtd">
+<Exercise>
+  <number-updated/>
+</Exercise>
+'''
+            self.assertEqual(result, expected)
         finally:
             if os.path.isfile(filename):
                 os.remove(filename)

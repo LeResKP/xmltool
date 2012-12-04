@@ -257,6 +257,11 @@ class test_Element(TestCase):
             except etree.DocumentInvalid:
                 pass
             obj.write(filename, validate_xml=False)
+            transform_func = lambda  txt: txt.replace('comments',
+                                                      'comments-updated')
+            obj.write(filename, validate_xml=False, transform=transform_func)
+            new_content = open(filename, 'r').read()
+            self.assertTrue('comments-updated' in new_content)
         finally:
             utils.validate_xml = old_validate
             if os.path.isfile(filename):

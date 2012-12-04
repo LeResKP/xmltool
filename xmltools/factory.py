@@ -48,7 +48,7 @@ def generate_form(xml_filename, form_action=None, validate_xml=True):
     return form.display()
 
 
-def update_xml_file(xml_filename, data, validate_xml=True):
+def update_xml_file(xml_filename, data, validate_xml=True, transform=None):
     """Update the file named xml_filename with data.
 
     :param xml_filename: the XML filename we should update
@@ -57,6 +57,9 @@ def update_xml_file(xml_filename, data, validate_xml=True):
     :type xml_filename: str
     :type data: dict style like: dict, webob.MultiDict, ...
     :type validate_xml: bool
+    :param transform: function to transform the XML string just before
+        writing it.
+    :type transform: function
     :return: the object generated from the data
     :rtype: :class:`Element`
     """
@@ -69,6 +72,6 @@ def update_xml_file(xml_filename, data, validate_xml=True):
     gen = Generator(dtd_url=dtd_url)
     obj = gen.dict_to_obj(root_tag, data)
 
-    obj.write(xml_filename, encoding, validate_xml)
+    obj.write(xml_filename, encoding, validate_xml, transform)
     return obj
 

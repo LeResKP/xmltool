@@ -197,15 +197,19 @@ class Element(object):
             xml.getroottree(),
             pretty_print=True)
 
-    def write(self, xml_filename, encoding='UTF-8', validate_xml=True):
+    def write(self, xml_filename, encoding='UTF-8', validate_xml=True,
+              transform=None):
         """Update the file named xml_filename with obj.
 
         :param xml_filename: the XML filename we should update
-        :param encoding: the encoding to use when writing the XML file.
-        :param validate_xml: validate the updated XML before writing it.
         :type xml_filename: str
+        :param encoding: the encoding to use when writing the XML file.
         :type encoding: str
+        :param validate_xml: validate the updated XML before writing it.
         :type validate_xml: bool
+        :param transform: function to transform the XML string just before
+            writing it.
+        :type transform: function
         :return: self
         :rtype: :class:`Element`
         """
@@ -229,6 +233,8 @@ class Element(object):
             xml_declaration=True,
             encoding=encoding,
             doctype=doctype)
+        if transform:
+            xml_str = transform(xml_str)
         open(xml_filename, 'w').write(xml_str)
 
 
