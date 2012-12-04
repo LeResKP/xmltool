@@ -854,7 +854,7 @@ class TestGenerator3(TestCase):
         dic = {'choice': []}
         obj = gen.dict_to_obj('mqm', dic)
         self.assertTrue(isinstance(obj, gen.dtd_classes['mqm']))
-        self.assertEqual(hasattr(obj, 'choice'), False)
+        self.assertEqual(obj.choice, [])
 
         dic = {'question': None}
         obj = gen.dict_to_obj('test', dic)

@@ -206,11 +206,9 @@ class Generator(object):
                 continue
             if element.islist:
                 children = get_children(key, xml)
-                lis = ElementList(None)
+                lis = ElementList(self.dtd_classes[key])
                 lis.extend([self.generate_obj(c) for c in children])
-                if lis:
-                    lis.cls = lis[0].__class__
-                    setattr(obj, key, lis)
+                setattr(obj, key, lis)
             else:
                 child = get_child(key, xml)
                 value = (child is not None) and self.generate_obj(child) or None
@@ -381,15 +379,13 @@ class Generator(object):
             if element.islist:
                 value = value or []
                 assert isinstance(value, list)
-                lis = ElementList(None)
+                lis = ElementList(self.dtd_classes[key])
                 for v in value:
                     sub_obj = self.dict_to_obj(key, v, element.required)
                     if sub_obj:
                         lis += [sub_obj]
-                if lis:
-                    lis.cls = lis[0].__class__
-                    setattr(obj, key, lis)
-                isempty=False
+                setattr(obj, key, lis)
+                isempty = False
             else:
                 res = self.dict_to_obj(key, value, element.required)
                 if (element.required and required) or res:
