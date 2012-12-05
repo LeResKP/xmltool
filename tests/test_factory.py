@@ -10,7 +10,7 @@ class TestFactory(TestCase):
 
     def test_load(self):
         obj = factory.load('tests/exercise.xml')
-        self.assertEqual(obj.name, 'Exercise')
+        self.assertEqual(obj.tagname, 'Exercise')
         try:
             obj = factory.load('tests/exercise-notvalid.xml')
             assert 0
@@ -19,7 +19,7 @@ class TestFactory(TestCase):
 
         obj = factory.load('tests/exercise-notvalid.xml',
                                  validate_xml=False)
-        self.assertEqual(obj.name, 'Exercise')
+        self.assertEqual(obj.tagname, 'Exercise')
 
     def test_generate_form(self):
         html = factory.generate_form('tests/exercise.xml')

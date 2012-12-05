@@ -40,7 +40,7 @@ def generate_form(xml_filename, form_action=None, validate_xml=True):
     :rtype: str
     """
     obj = load(xml_filename, validate_xml)
-    form = obj._generator.generate_form(obj.name)
+    form = obj._generator.generate_form(obj.tagname)
     form.set_value(obj)
 
     if form_action:

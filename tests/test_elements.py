@@ -7,7 +7,15 @@ from xmltools import dtd_parser, utils, factory
 from test_dtd_parser import BOOK_XML, BOOK_DTD, EXERCISE_XML_2, EXERCISE_DTD_2
 
 
-class test_Element(TestCase):
+class TestElement(TestCase):
+
+    def test_init(self):
+        root = etree.fromstring(EXERCISE_XML_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        obj = gen.generate_obj(root)
+        self.assertEqual(obj.child_tagnames, ['number', 'test'])
+        self.assertEqual(obj.test[0].child_tagnames,
+                         ['question', 'qcm', 'mqm', 'comments'])
 
     def test__get_element(self):
         root = etree.fromstring(BOOK_XML)
@@ -16,14 +24,14 @@ class test_Element(TestCase):
         result = obj._get_element('unexisting')
         self.assertEqual(result, None)
         result = obj._get_element('ISBN')
-        self.assertEqual(result.name, 'ISBN')
+        self.assertEqual(result.tagname, 'ISBN')
 
     def test__get_element_conditional(self):
         root = etree.fromstring(EXERCISE_XML_2)
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         obj = gen.generate_obj(root)
         result = obj.test[0]._get_element('qcm')
-        self.assertEqual(result.name, '(qcm|mqm)')
+        self.assertEqual(result.tagname, '(qcm|mqm)')
 
     def test_getitem(self):
         root = etree.fromstring(BOOK_XML)
@@ -61,7 +69,7 @@ class test_Element(TestCase):
         root = etree.fromstring(BOOK_XML)
         gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
         obj = gen.generate_obj(root)
-        o = gen.dtd_classes['ISBN']()
+        o = gen.create_obj('ISBN')
         o.value = 'NEW_ISBN'
         obj['ISBN'] = o
 
@@ -132,8 +140,7 @@ class test_Element(TestCase):
 
     def test_create(self):
         gen = dtd_parser.Generator(dtd_str=BOOK_DTD)
-        cls = gen.dtd_classes['Book']
-        book = cls()
+        book = gen.create_obj('Book')
         book.create('ISBN', 'ISBN_VALUE')
         xml = gen.obj_to_xml(book)
         xml_str = etree.tostring(
@@ -160,7 +167,7 @@ class test_Element(TestCase):
             book.create('unexisting')
             assert 0
         except Exception, e:
-            self.assertEqual(str(e), 'Unexisting tagname unexisting')
+            self.assertEqual(str(e), 'Invalid child unexisting')
 
         book.create('book-title', 'The title of the book')
         book.create('book-resume', 'The resume of the book')
@@ -272,8 +279,7 @@ class TestElementList(TestCase):
 
     def test_add(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        cls = gen.dtd_classes['Exercise']
-        exercise = cls()
+        exercise = gen.create_obj('Exercise')
         test = exercise.create('test')
 
         test1 = test.add()
@@ -389,8 +395,7 @@ class TestElementList(TestCase):
 
     def test_add_text_not_allowed(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        cls = gen.dtd_classes['Exercise']
-        exercise = cls()
+        exercise = gen.create_obj('Exercise')
         test = exercise.create('test')
         try:
             test.add(text='text')

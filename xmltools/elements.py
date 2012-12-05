@@ -8,42 +8,44 @@ class SubElement(object):
     _attrs = []
 
     def __init__(self, text):
-        self.name = text
+        self.tagname = text
         self.required = True
         self.islist = False
-        self.conditional_names = []
+        self.conditional_sub_elements = []
+        self._conditional_names = []
         self.attrs = {}
 
         if text.endswith('+'):
-            self.name = text[:-1]
+            self.tagname = text[:-1]
             self.islist = True
         elif text.endswith('*'):
-            self.name = text[:-1]
+            self.tagname = text[:-1]
             self.islist = True
             self.required = False
         elif text.endswith('?'):
-            self.name = text[:-1]
+            self.tagname = text[:-1]
             self.required = False
 
-        if '|' in self.name:
-            text = self.name.replace('(', '').replace(')', '')
-            conditional_names = text.split('|')
-            for name in conditional_names:
-                elt = type(self)(name)
+        if '|' in self.tagname:
+            text = self.tagname.replace('(', '').replace(')', '')
+            tagnames= text.split('|')
+            for tagname in tagnames:
+                elt = type(self)(tagname)
                 # If the conditional element is a list, the conditionals
                 # are also a list
                 # TODO: add test for islist
                 elt.islist = self.islist
-                self.conditional_names += [elt]
+                self.conditional_sub_elements += [elt]
+                self._conditional_names += [elt.tagname]
 
     def __repr__(self):
-        return '<name=%(name)s required=%(required)s islist=%(islist)s>' % vars(self)
+        return '<tagname=%(tagname)s required=%(required)s islist=%(islist)s>' % vars(self)
 
 
 class TextElement(object):
 
     #: The XML tag name corresponding to this class
-    name = None
+    tagname = None
     #: The object :class: `Generator` used to generate the classes
     _generator = None
     #: List of dtd attributes
@@ -58,31 +60,34 @@ class Element(object):
     """After reading a dtd file we construct some Element
     """
     #: The XML tag name corresponding to this class
-    name = None
+    tagname = None
     #: The object :class: `Generator` used to generate the classess
     _generator = None
     #: List of dtd attributes
     _attrs = []
     #: List of :class:`SubElement`
-    _elements = []
+    _sub_elements = []
+    #: List of str containing the possible child tag names
+    child_tagnames = []
+    #: List of allowed properties which can be defined on the objects from this
+    # class
+    _allowed_items = ['attrs']
 
     def __init__(self):
         self.attrs = {}
 
-    def _get_element(self, name):
-        """Get SubElement corresponding to the given name
+    def _get_element(self, tagname):
+        """Get SubElement corresponding to the given tagname
 
-        :param name: the name to find
-        :type name: str
+        :param tagname: the tag name to find
+        :type tagname: str
         :return: The matching SubElement or None
         :rtype: SubElement
         """
-        for elt in self._elements:
-            names = [elt.name]
-            if elt.conditional_names:
-                names = [n.name for n in elt.conditional_names]
-            for n in names:
-                if n == name:
+        for elt in self._sub_elements:
+            tagnames = elt._conditional_names or [elt.tagname]
+            for n in tagnames:
+                if n == tagname:
                     return elt
         return None
 
@@ -127,7 +132,7 @@ class Element(object):
         :param value: the value to set
         :type value: str
         """
-        if item != 'attrs':
+        if item in self.child_tagnames:
             elt = self._get_element(item)
             if not elt:
                 raise Exception('Invalid child %s' % item)
@@ -139,6 +144,8 @@ class Element(object):
                 raise Exception('Invalid child %s' % item)
             if value is not None and not isinstance(value, cls):
                 raise Exception('Wrong type for %s' % item)
+        elif item not in self._allowed_items:
+            raise Exception('Invalid child %s' % item)
         super(Element, self).__setattr__(item, value)
 
     def create(self, tagname, text=None):
@@ -151,6 +158,9 @@ class Element(object):
         :return: the create object
         :rtype: instance of TextElement or Element
         """
+        if tagname not in self.child_tagnames:
+            raise Exception('Invalid child %s' % tagname)
+
         if getattr(self, tagname, None) is not None:
             raise Exception('%s already defined' % tagname)
 
@@ -160,15 +170,15 @@ class Element(object):
         cls = self._generator.dtd_classes[tagname]
         elt = self._get_element(tagname)
         if elt.islist:
-            if elt.conditional_names:
-                other_names = [n.name for n in elt.conditional_names if
-                         n.name != tagname]
-                for name in other_names:
-                    if name in self:
+            if elt._conditional_names:
+                other_tagnames = [tn for tn in elt._conditional_names if
+                         tn != tagname]
+                for tn in other_tagnames:
+                    if tn in self:
                         raise Exception("You can't add a %s since it "
                                         "already contains a %s" % (
                                             tagname,
-                                            name))
+                                            tn))
             obj = ElementList(cls)
         else:
             cls = self._generator.dtd_classes.get(tagname)
@@ -223,7 +233,7 @@ class Element(object):
         doctype = ('<!DOCTYPE %(root_tag)s PUBLIC '
                    '"%(dtd_url)s" '
                    '"%(dtd_url)s">' % {
-                       'root_tag': self.name,
+                       'root_tag': self.tagname,
                        'dtd_url': gen._dtd_url,
                    })
 

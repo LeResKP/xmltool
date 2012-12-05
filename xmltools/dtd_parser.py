@@ -68,8 +68,8 @@ def parse_attribute(value):
     assert (len(lis) - 1) % 3 == 0
     name = lis[0].strip()
     attributes = []
-    for (att_name, type_, require) in split_list(lis[1:], 3):
-        attributes += [(att_name.strip(), type_.strip(), require.strip())]
+    for (attr_name, attr_type, require) in split_list(lis[1:], 3):
+        attributes += [(attr_name.strip(), attr_type.strip(), require.strip())]
     return name, attributes
 
 
@@ -83,36 +83,36 @@ def dtd_to_dict(dtd):
     for element, value in res:
         clean_value = cleanup(value)
         if element == 'ELEMENT':
-            name, elements = parse_element(clean_value)
-            dtd_elements[name] = elements
+            tagname, elements = parse_element(clean_value)
+            dtd_elements[tagname] = elements
         elif element == 'ENTITY':
-            name, elements = parse_entity(clean_value)
-            dtd_entities[name] = elements
+            tagname, elements = parse_entity(clean_value)
+            dtd_entities[tagname] = elements
         elif element == 'ATTLIST':
-            name, attributes = parse_attribute(value)
-            dtd_attributes.setdefault(name, []).extend(attributes)
+            tagname, attributes = parse_attribute(value)
+            dtd_attributes.setdefault(tagname, []).extend(attributes)
         else:
             raise Exception, '%s is not supported' % element
 
-    for name, elements in dtd_elements.items():
+    for tagname, elements in dtd_elements.items():
         for key, value in dtd_entities.items():
             elements = elements.replace('%s;' % key, value)
-        dtd_elements[name] = elements
+        dtd_elements[tagname] = elements
 
     return dtd_elements, dtd_attributes
 
 
-def get_child(name, xml):
+def get_child(tagname, xml):
     for child in xml:
-        if child.tag == name:
+        if child.tag == tagname:
             return child
     return None
 
 
-def get_children(name, xml):
+def get_children(tagname, xml):
     lis = []
     for child in xml:
-        if child.tag == name:
+        if child.tag == tagname:
             lis += [child]
     return lis
 
@@ -150,37 +150,50 @@ class Generator(object):
         elements.
         The generated classes inherit from :class:`Element`
         """
-        for name, elements in self.dtd.items():
-            attrs = self.dtd_attrs.get(name) or []
+        for tagname, elements in self.dtd.items():
+            attrs = self.dtd_attrs.get(tagname) or []
             if elements in ['#PCDATA', 'EMPTY']:
-                cls = type(name, (TextElement,), {'_attrs': attrs,
-                                                     'name': name,
-                                                     '_generator': self})
-                cls.__name__ = name
-                self.dtd_classes[name] = cls
+                cls = type(tagname, (TextElement,), {
+                    '_attrs': attrs,
+                    'tagname': tagname,
+                    '_generator': self})
+                cls.__name__ = tagname
+                self.dtd_classes[tagname] = cls
                 continue
             splitted = elements.split(',')
             lis = [SubElement(element) for element in splitted]
-            cls = type(name, (Element,), {'_elements': lis,
-                                             '_attrs': attrs,
-                                             'name': name,
-                                             '_generator': self})
-            cls.__name__ = name
-            self.dtd_classes[name] = cls
+            child_tagnames = []
+            for elt in lis:
+                tagnames = elt._conditional_names or [elt.tagname]
+                child_tagnames += tagnames
+            cls = type(tagname, (Element,), {
+                '_sub_elements': lis,
+                'child_tagnames': child_tagnames,
+                '_attrs': attrs,
+                'tagname': tagname,
+                '_generator': self})
+            cls.__name__ = tagname
+            self.dtd_classes[tagname] = cls
 
     def create_obj(self, tagname):
+        """Create the object correspoding to the given tagname
+
+        :param tagname: the XML tag name
+        :type tagname: str
+        :return: The created object
+        :rtype: :class: `Element` or :class: `TextElement`
+        """
         if tagname not in self.dtd_classes:
             raise Exception("Tagname %s doesn't exist" % tagname)
         return self.dtd_classes[tagname]()
 
     def get_key_from_xml(self, element, obj):
-        if not element.conditional_names:
-            return element.name
+        if not element._conditional_names:
+            return element.tagname
 
-        for elt in element.conditional_names:
-            name = elt.name
-            if get_children(name, obj):
-                return name
+        for tagname in element._conditional_names:
+            if get_children(tagname, obj):
+                return tagname
         return None
 
     def set_attrs_to_obj(self, obj, xml):
@@ -190,7 +203,7 @@ class Generator(object):
                 obj.attrs[attr_name] = value
 
     def generate_obj(self, xml):
-        obj = self.dtd_classes[xml.tag]()
+        obj = self.create_obj(xml.tag)
         self.set_attrs_to_obj(obj, xml)
 
         if isinstance(obj, TextElement):
@@ -200,7 +213,7 @@ class Generator(object):
             obj.value = text
             return obj
 
-        for element in obj._elements:
+        for element in obj._sub_elements:
             key = self.get_key_from_xml(element, xml)
             if not key:
                 continue
@@ -217,13 +230,12 @@ class Generator(object):
         return obj
 
     def get_key_from_obj(self, element, obj):
-        if not element.conditional_names:
-            return element.name
+        if not element._conditional_names:
+            return element.tagname
 
-        for elt in element.conditional_names:
-            name = elt.name
-            if getattr(obj, name, None):
-                return name
+        for tagname in element._conditional_names:
+            if getattr(obj, tagname, None):
+                return tagname
         return None
 
     def set_attrs_to_xml(self, obj, xml):
@@ -236,8 +248,8 @@ class Generator(object):
 
         if xml is None:
             # Create the root node
-            name = obj.__class__.__name__
-            xml = etree.Element(name)
+            tagname = obj.__class__.__name__
+            xml = etree.Element(tagname)
 
         self.set_attrs_to_xml(obj, xml)
 
@@ -245,7 +257,7 @@ class Generator(object):
             xml.text = obj.value
             return xml
 
-        for element in obj._elements:
+        for element in obj._sub_elements:
             key = self.get_key_from_obj(element, obj)
             if not key:
                 continue
@@ -270,15 +282,15 @@ class Generator(object):
         return xml
 
     def generate_form_child(self, element, parent):
-        if element.conditional_names:
+        if element._conditional_names:
             field = forms.ConditionalContainer(parent=parent,
                                                required=element.required)
-            for elt in element.conditional_names:
+            for elt in element.conditional_sub_elements:
                 field.possible_children += [self.generate_form_child(elt,
                                                                      field)]
             return field
 
-        key = element.name
+        key = element.tagname
         sub_cls = self.dtd_classes[key]
         if element.islist:
             field = forms.GrowingContainer(
@@ -319,7 +331,7 @@ class Generator(object):
 
     def generate_form_children(self, cls, parent, element):
         if issubclass(cls, TextElement):
-            key = cls.name
+            key = cls.tagname
             return forms.TextAreaField(
                 key=key,
                 name=key,
@@ -328,7 +340,7 @@ class Generator(object):
                 required=element.required,
                 )
         children = []
-        for elt in cls._elements:
+        for elt in cls._sub_elements:
             children += [self.generate_form_child(elt, parent)]
 
         return children
@@ -337,25 +349,24 @@ class Generator(object):
         cls = self.dtd_classes[root_tag]
         kwargs['_dtd_url'] = self._dtd_url
         kwargs['_encoding'] = self._encoding
-        parent = forms.FormField(legend=cls.name, **kwargs)
+        parent = forms.FormField(legend=cls.tagname, **kwargs)
         parent.children += self.generate_form_children(cls, parent, None)
         return parent
 
     def get_key_from_dict(self, element, dic):
-        if not element.conditional_names:
-            return element.name
+        if not element._conditional_names:
+            return element.tagname
 
-        for elt in element.conditional_names:
-            name = elt.name
-            if name in dic:
-                return name
+        for tagname in element._conditional_names:
+            if tagname in dic:
+                return tagname
         return None
 
     def dict_to_obj(self, root_tag, dic, required=True):
         if not dic:
             return None
 
-        obj = self.dtd_classes[root_tag]()
+        obj = self.create_obj(root_tag)
         attrs = dic.get('attrs') or {}
         for (attr_name, type_, require) in obj._attrs:
             if attr_name in attrs:
@@ -364,14 +375,14 @@ class Generator(object):
         if isinstance(obj, TextElement):
             value = dic.get('value')
             if value == '':
-                # We want to make sure we will display the tags added by the
+                # We want to make sure we will keep the empty tags added by the
                 # user
                 value = UNDEFINED
             obj.value = value
             return obj
 
         isempty = True
-        for element in obj._elements:
+        for element in obj._sub_elements:
             key = self.get_key_from_dict(element, dic)
             if not key:
                 continue

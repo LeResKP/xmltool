@@ -343,42 +343,43 @@ class test_SubElement(TestCase):
     def test_init(self):
         text = 'actor'
         elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
+        self.assertEqual(elt.tagname, 'actor')
         self.assertTrue(elt.required)
         self.assertFalse(elt.islist)
 
     def test_init_no_required(self):
         text = 'actor?'
         elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
+        self.assertEqual(elt.tagname, 'actor')
         self.assertFalse(elt.required)
         self.assertFalse(elt.islist)
 
     def test_init_list(self):
         text = 'actor*'
         elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
+        self.assertEqual(elt.tagname, 'actor')
         self.assertFalse(elt.required)
         self.assertTrue(elt.islist)
 
     def test_init_list_required(self):
         text = 'actor+'
         elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
+        self.assertEqual(elt.tagname, 'actor')
         self.assertTrue(elt.required)
         self.assertTrue(elt.islist)
 
     def test_init_conditional(self):
         text = '(qcm|mqm)*'
         elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, '(qcm|mqm)')
+        self.assertEqual(elt.tagname, '(qcm|mqm)')
         self.assertFalse(elt.required)
         self.assertTrue(elt.islist)
-        qcm, mqm = elt.conditional_names
-        self.assertEqual(qcm.name, 'qcm')
+        self.assertTrue(['qcm', 'mqm'], elt._conditional_names)
+        qcm, mqm = elt.conditional_sub_elements
+        self.assertEqual(qcm.tagname, 'qcm')
         self.assertTrue(qcm.required)
         self.assertTrue(qcm.islist)
-        self.assertEqual(mqm.name, 'mqm')
+        self.assertEqual(mqm.tagname, 'mqm')
         self.assertTrue(mqm.required)
         self.assertTrue(mqm.islist)
 
@@ -409,13 +410,13 @@ class TestGenerator1(TestCase):
                 dtd_parser.TextElement))
         cls = gen.dtd_classes['Movie']
         self.assertEqual(cls.__name__, 'Movie')
-        self.assertEqual(len(cls._elements), 7)
+        self.assertEqual(len(cls._sub_elements), 7)
         for (key, expected) in [('directors', 1), 
                                 ('actors', 1), 
                                 ('director', 2),
                                 ('actor', 2)]:
             cls = gen.dtd_classes[key]
-            self.assertEqual(len(cls._elements), expected)
+            self.assertEqual(len(cls._sub_elements), expected)
 
     def test_create_obj(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
@@ -539,9 +540,9 @@ class TestGenerator2(TestCase):
                                 ('qcm', 1), 
                                 ('mqm', 1)]:
             cls = gen.dtd_classes[key]
-            self.assertEqual(len(cls._elements), nb_elements)
+            self.assertEqual(len(cls._sub_elements), nb_elements)
         cls = gen.dtd_classes['test']
-        self.assertEqual(len(cls._elements[0].conditional_names), 2)
+        self.assertEqual(len(cls._sub_elements[0].conditional_sub_elements), 2)
 
     def test_generate_obj(self):
         root = etree.fromstring(EXERCISE_XML)
@@ -585,9 +586,9 @@ class TestGenerator3(TestCase):
                                    ('mqm', 1),
                                    ('comments', 1)]:
             cls = gen.dtd_classes[key]
-            self.assertEqual(len(cls._elements), nb_elements)
+            self.assertEqual(len(cls._sub_elements), nb_elements)
         cls = gen.dtd_classes['test']
-        self.assertEqual(len(cls._elements[1].conditional_names), 2)
+        self.assertEqual(len(cls._sub_elements[1].conditional_sub_elements), 2)
 
     def test_dtd_attrs(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
