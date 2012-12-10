@@ -167,6 +167,18 @@ class InputField(Field):
         return '<input type="text" value="%s"%s />' % (self.get_value(),
                                                     self.get_attrs())
 
+class LinkField(Field):
+
+    def display(self):
+        """
+        ..note:: We don't put 'href' on the link since the action are done in
+                 javascript.
+        ..note:: We use link instead of button because it's searchable (ctrl+F)
+                 in the browsers.
+        """
+        return '<a%s>%s</a>' % (self.get_attrs(), self.get_value())
+
+
 class ButtonField(Field):
 
     def display(self):
@@ -196,7 +208,7 @@ class TextAreaField(Field):
                 add_button_css_classes = ['add-button']
                 if show_container:
                     add_button_css_classes += ['hidden']
-                add_button = ButtonField(value='Add %s' % self.key,
+                add_button = LinkField(value='Add %s' % self.key,
                                          css_classes=add_button_css_classes)
                 html += [add_button.display()]
                 if show_container:
@@ -208,14 +220,14 @@ class TextAreaField(Field):
             css_classes=['delete-button']
             if parent_is_growing:
                 css_classes=['growing-delete-button']
-            delete_button = ButtonField(value='Delete %s' % self.key,
+            delete_button = LinkField(value='Delete %s' % self.key,
                                         css_classes=css_classes)
             html += [delete_button.display()]
         html += ['<textarea%s>%s</textarea>' % (self.get_attrs(), self.get_value())]
         if not self.required and not parent_is_growing:
             html += ['</div>']
         if parent_is_growing:
-            add_button = ButtonField(value="New %s" % self.parent.key,
+            add_button = LinkField(value="New %s" % self.parent.key,
                                      css_classes=['growing-add-button'])
             html += [add_button.display()]
         return ''.join(html)
@@ -267,14 +279,14 @@ class Fieldset(MultipleField):
             css_classes=['fieldset-delete-button']
             if parent_is_growing:
                 css_classes=['growing-fieldset-delete-button']
-            delete_button = ButtonField(value='Delete %s' % self.key,
+            delete_button = LinkField(value='Delete %s' % self.key,
                                         css_classes=css_classes)
             legend += delete_button.display()
             if not parent_is_growing:
                 add_button_css_classes = ['add-button']
                 if show_container:
                     add_button_css_classes += ['hidden']
-                add_button = ButtonField(value='Add %s' % self.key,
+                add_button = LinkField(value='Add %s' % self.key,
                                          css_classes=add_button_css_classes)
                 html += [add_button.display()]
 
@@ -287,7 +299,7 @@ class Fieldset(MultipleField):
         html += ['</fieldset>']
 
         if parent_is_growing:
-            add_button = ButtonField(value="New %s" % self.parent.key,
+            add_button = LinkField(value="New %s" % self.parent.key,
                                     css_classes=['growing-add-button'])
             html += [add_button.display()]
         return ''.join(html)

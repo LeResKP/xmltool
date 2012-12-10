@@ -24,7 +24,7 @@
         var found=false;
         container.find('.conditional-option').each(function(){
             $(this).children().each(function(){
-                if (! $(this).hasClass('growing-source') && ! $(this).hasClass('deleted') && !$(this).is(':input')){
+                if (! $(this).hasClass('growing-source') && ! $(this).hasClass('deleted') && !$(this).is('a')){
                     found=true;
                     return true;
                 }

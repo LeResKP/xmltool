@@ -165,10 +165,10 @@ class TestTextAreaField(TestCase):
         expected = '''
         <div class="container">
           <input type="text" value="1" name="test:attrs:id" id="test:attrs:id" class="attr id">
-          <input type="button" value="Add test" class="add-button hidden">
+          <a class="add-button hidden">Add test</a>
           <div>
             <label>None</label>
-            <input type="button" value="Delete test" class="delete-button">
+            <a class="delete-button">Delete test</a>
             <textarea name="test:value" id="test" class="test" rows="2">Hello</textarea>
            </div>
         </div>'''
@@ -183,10 +183,10 @@ class TestTextAreaField(TestCase):
         expected = '''
         <div class="container">
           <input type="text" value="1" name="test:attrs:id" id="test:attrs:id" class="attr id">
-          <input type="button" value="Add test" class="add-button hidden">
+          <a class="add-button hidden">Add test</a>
           <div>
             <label>None</label>
-            <input type="button" value="Delete test" class="delete-button">
+            <a class="delete-button">Delete test</a>
             <textarea name="test:value" id="test" class="test" rows="3">Hello\nWorld\n!</textarea>
           </div>
         </div>
@@ -197,10 +197,10 @@ class TestTextAreaField(TestCase):
         field = forms.TextAreaField(name='test', key='test', label='test')
         expected = '''
         <div class="container">
-          <input type="button" value="Add test" class="add-button">
+          <a class="add-button">Add test</a>
           <div class="deleted">
             <label>test</label>
-            <input type="button" value="Delete test" class="delete-button">
+            <a class="delete-button">Delete test</a>
             <textarea name="test:value" id="test" class="test"></textarea>
           </div>
         </div>'''
@@ -212,10 +212,10 @@ class TestTextAreaField(TestCase):
         field.set_value(o)
         expected = '''
         <div class="container">
-          <input type="button" value="Add test" class="add-button hidden">
+          <a class="add-button hidden">Add test</a>
           <div>
             <label>test</label>
-            <input type="button" value="Delete test" class="delete-button">
+            <a class="delete-button">Delete test</a>
             <textarea name="test:value" id="test" class="test" rows="2">
             </textarea>
           </div>
@@ -252,9 +252,9 @@ class TestTextAreaField(TestCase):
         expected = '''
         <div class="container">
           <label>test</label>
-          <input type="button" value="Delete test" class="growing-delete-button">
+          <a class="growing-delete-button">Delete test</a>
           <textarea name="test:value" id="test" class="test"></textarea>
-          <input type="button" value="New test" class="growing-add-button">
+          <a class="growing-add-button">New test</a>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
 
@@ -367,25 +367,25 @@ class TestFieldset(TestCase):
         expected = '''
         <div class="container">
           <input type="text" value="idfieldset" name="test:attrs:id" id="test:attrs:id" class="attr id">
-          <input type="button" value="Add test" class="add-button hidden">
+          <a class="add-button hidden">Add test</a>
           <fieldset id="test" class="test">
-            <legend>test<input type="button" value="Delete test" class="fieldset-delete-button">
+            <legend>test<a class="fieldset-delete-button">Delete test</a>
             </legend>
             <div class="container">
               <input type="text" value="1" name="test:sub1:attrs:id" id="test:sub1:attrs:id" class="attr id">
-              <input type="button" value="Add sub1" class="add-button hidden">
+              <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub1" class="delete-button">
+                <a class="delete-button">Delete sub1</a>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">textarea 1</textarea>
               </div>
             </div>
             <div class="container">
               <input type="text" value="2" name="test:sub2:attrs:id" id="test:sub2:attrs:id" class="attr id">
-              <input type="button" value="Add sub2" class="add-button hidden">
+              <a class="add-button hidden">Add sub2</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub2" class="delete-button">
+                <a class="delete-button">Delete sub2</a>
                 <textarea name="test:sub2:value" id="test:sub2" class="sub2" rows="2">textarea 2</textarea>
               </div>
             </div>
@@ -401,15 +401,15 @@ class TestFieldset(TestCase):
         field.children = [sub1]
         expected = '''
         <div class="container">
-          <input type="button" value="Add test" class="add-button">
+          <a class="add-button">Add test</a>
           <fieldset id="test" class="test deleted">
-            <legend>test<input type="button" value="Delete test" class="fieldset-delete-button">
+            <legend>test<a class="fieldset-delete-button">Delete test</a>
             </legend>
             <div class="container">
-              <input type="button" value="Add sub1" class="add-button hidden">
+              <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub1" class="delete-button">
+                <a class="delete-button">Delete sub1</a>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
@@ -428,10 +428,10 @@ class TestFieldset(TestCase):
           <fieldset id="test" class="test">
             <legend>test</legend>
             <div class="container">
-              <input type="button" value="Add sub1" class="add-button hidden">
+              <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub1" class="delete-button">
+                <a class="delete-button">Delete sub1</a>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
@@ -450,18 +450,18 @@ class TestFieldset(TestCase):
         expected = '''
         <div class="container">
           <fieldset id="test" class="test">
-            <legend>test<input type="button" value="Delete test" class="growing-fieldset-delete-button">
+            <legend>test<a class="growing-fieldset-delete-button">Delete test</a>
             </legend>
             <div class="container">
-              <input type="button" value="Add sub1" class="add-button hidden">
+              <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub1" class="delete-button">
+                <a class="delete-button">Delete sub1</a>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
           </fieldset>
-          <input type="button" value="New test" class="growing-add-button">
+          <a class="growing-add-button">New test</a>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
 
@@ -486,18 +486,18 @@ class TestFormField(TestCase):
           <fieldset>
             <legend>None</legend>
             <div class="container">
-              <input type="button" value="Add sub1" class="add-button hidden">
+              <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub1" class="delete-button">
+                <a class="delete-button">Delete sub1</a>
                 <textarea name="form:sub1:value" id="form:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
             <div class="container">
-              <input type="button" value="Add sub2" class="add-button hidden">
+              <a class="add-button hidden">Add sub2</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub2" class="delete-button">
+                <a class="delete-button">Delete sub2</a>
                 <textarea name="form:sub2:value" id="form:sub2" class="sub2">textarea 2</textarea>
               </div>
             </div>
@@ -526,18 +526,18 @@ class TestFormField(TestCase):
           <fieldset>
             <legend>None</legend>
             <div class="container">
-              <input type="button" value="Add sub1" class="add-button hidden">
+              <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub1" class="delete-button">
+                <a class="delete-button">Delete sub1</a>
                 <textarea name="form:sub1:value" id="form:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
             <div class="container">
-              <input type="button" value="Add sub2" class="add-button hidden">
+              <a class="add-button hidden">Add sub2</a>
               <div>
                 <label>None</label>
-                <input type="button" value="Delete sub2" class="delete-button">
+                <a class="delete-button">Delete sub2</a>
                 <textarea name="form:sub2:value" id="form:sub2" class="sub2">textarea 2</textarea>
               </div>
             </div>
@@ -588,18 +588,18 @@ class TestConditionalContainer(TestCase):
             <option value="test:sub2:option:1">sub2</option>
           </select>
           <div class="container conditional-option test:sub1:option:0">
-            <input type="button" value="Add sub1" class="add-button hidden">
+            <a class="add-button hidden">Add sub1</a>
             <div>
               <label>None</label>
-              <input type="button" value="Delete sub1" class="delete-button">
+              <a class="delete-button">Delete sub1</a>
               <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">first textarea</textarea>
             </div>
           </div>
           <div class="container deleted conditional-option test:sub2:option:1">
-            <input type="button" value="Add sub2" class="add-button">
+            <a class="add-button">Add sub2</a>
             <div class="deleted">
               <label>None</label>
-              <input type="button" value="Delete sub2" class="delete-button">
+              <a class="delete-button">Delete sub2</a>
               <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
             </div>
           </div>
@@ -622,18 +622,18 @@ class TestConditionalContainer(TestCase):
             <option value="test:sub2:option:1">sub2</option>
           </select>
           <div class="container deleted conditional-option test:sub1:option:0">
-            <input type="button" value="Add sub1" class="add-button">
+            <a class="add-button">Add sub1</a>
             <div class="deleted">
               <label>None</label>
-              <input type="button" value="Delete sub1" class="delete-button">
+              <a class="delete-button">Delete sub1</a>
               <textarea name="test:sub1:value" id="test:sub1" class="sub1"></textarea>
             </div>
           </div>
           <div class="container deleted conditional-option test:sub2:option:1">
-            <input type="button" value="Add sub2" class="add-button">
+            <a class="add-button">Add sub2</a>
             <div class="deleted">
               <label>None</label>
-              <input type="button" value="Delete sub2" class="delete-button">
+              <a class="delete-button">Delete sub2</a>
               <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
             </div>
           </div>
@@ -660,17 +660,17 @@ class TestConditionalContainer(TestCase):
           <div class="deleted conditional-option growing1:option:0 growing-container">
             <div class="container growing-source" id="growing1:textarea_child1">
               <label>None</label>
-              <input type="button" value="Delete None" class="growing-delete-button">
+              <a class="growing-delete-button">Delete None</a>
               <textarea name="growing1:textarea_child1:0:value" id="growing1:textarea_child1:0" rows="2"></textarea>
-              <input type="button" value="New growing1" class="growing-add-button">
+              <a class="growing-add-button">New growing1</a>
             </div>
           </div>
           <div class="deleted conditional-option growing2:option:1 growing-container">
             <div class="container growing-source" id="growing2:textarea_child2">
               <label>None</label>
-              <input type="button" value="Delete None" class="growing-delete-button">
+              <a class="growing-delete-button">Delete None</a>
               <textarea name="growing2:textarea_child2:0:value" id="growing2:textarea_child2:0" rows="2"></textarea>
-              <input type="button" value="New growing2" class="growing-add-button">
+              <a class="growing-add-button">New growing2</a>
             </div>
           </div>
         </div>'''
@@ -725,9 +725,9 @@ class TestGrowingContainer(TestCase):
         <div class="growing-container">
           <div class="container growing-source" id="test:textarea_child">
             <label>None</label>
-            <input type="button" value="Delete test" class="growing-delete-button">
+            <a class="growing-delete-button">Delete test</a>
             <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
-            <input type="button" value="New test" class="growing-add-button">
+            <a class="growing-add-button">New test</a>
           </div>
         </div>
         '''
@@ -746,35 +746,26 @@ class TestGrowingContainer(TestCase):
         <div class="growing-container required">
           <div class="container growing-source" id="test:textarea_child">
             <label>None</label>
-            <input type="button" value="Delete test" class="growing-delete-button">
+            <a class="growing-delete-button">Delete test</a>
             <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
-            <input type="button" value="New test" class="growing-add-button">
+            <a class="growing-add-button">New test</a>
           </div>
           <div class="container">
             <input type="text" value="test0" name="test:textarea_child:1:attrs:idtest" id="test:textarea_child:1:attrs:idtest" class="attr idtest">
             <label>None</label>
-            <input type="button" value="Delete test" class="growing-delete-button">
+            <a class="growing-delete-button">Delete test</a>
             <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2">hello</textarea>
-            <input type="button" value="New test" class="growing-add-button">
+            <a class="growing-add-button">New test</a>
           </div>
           <div class="container">
             <input type="text" value="test1" name="test:textarea_child:2:attrs:idtest" id="test:textarea_child:2:attrs:idtest" class="attr idtest">
             <label>None</label>
-            <input type="button" value="Delete test" class="growing-delete-button">
+            <a class="growing-delete-button">Delete test</a>
             <textarea name="test:textarea_child:2:value" id="test:textarea_child:2" class="test" rows="2">world</textarea>
-            <input type="button" value="New test" class="growing-add-button">
+            <a class="growing-add-button">New test</a>
           </div>
         </div>'''
 
-        '''
-        <div class="growing-container growing-container required">
-          <div class="container growing-source" id="test:textarea_child">
-          <label>None</label>
-          <input type="button" value="Delete test" class="growing-delete-button"><textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea><input type="button" value="New test" class="growing-add-button"></div>
-<div class="container"><input type="text" value="test0" name="test:textarea_child:1:attrs:idtest" id="test:textarea_child:1:attrs:idtest" class="attr idtest"><label>None</label><input type="button" value="Delete test" class="growing-delete-button"><textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2">hello</textarea><input type="button" value="New test" class="growing-add-button"></div>
-<div class="container"><input type="text" value="test1" name="test:textarea_child:2:attrs:idtest" id="test:textarea_child:2:attrs:idtest" class="attr idtest"><label>None</label><input type="button" value="Delete test" class="growing-delete-button"><textarea name="test:textarea_child:2:value" id="test:textarea_child:2" class="test" rows="2">world</textarea><input type="button" value="New test" class="growing-add-button"></div></div> 
-
-        '''
         tw2test.assert_eq_xml(field.display(), expected)
 
 
