@@ -27,20 +27,26 @@ def load(xml_filename, validate_xml=True):
     return obj
 
 
-def generate_form(xml_filename, form_action=None, validate_xml=True):
+def generate_form(xml_filename, form_action=None, validate_xml=True, **kwargs):
     """Generate the HTML form for the given xml_filename.
 
     :param xml_filename: the XML filename we should load
-    :param form_action: the action to put on the HTML form
-    :param validate_xml: validate the XML before generating the form.
     :type xml_filename: str
+    :param form_action: the action to put on the HTML form
     :type form_action: str
+    :param validate_xml: validate the XML before generating the form.
     :type validate_xml: bool
+    :param kwargs: Some extra values passed to the form generator. It's usefull
+                   if you want to pass a custom _filename, for example if you
+                   work with relative filename.
+    :type kwargs: dict
     :return: the generated HTML form
     :rtype: str
     """
+    if '_filename' not in kwargs:
+        kwargs['_filename'] = xml_filename
     obj = load(xml_filename, validate_xml)
-    form = obj._generator.generate_form(obj.tagname)
+    form = obj._generator.generate_form(obj.tagname, **kwargs)
     form.set_value(obj)
 
     if form_action:

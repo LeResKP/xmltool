@@ -482,6 +482,47 @@ class TestFormField(TestCase):
           <input type="text" value="" name="form:_dtd_url" id="form:_dtd_url" class="_dtd_url">
           <input type="text" value="" name="form:_encoding" id="form:_encoding" class="_encoding">
           <input type="text" value="" name="form:_root_tag" id="form:_root_tag" class="_root_tag">
+          <input type="text" value="" name="form:_filename" id="form:_filename" class="_filename" />
+          <fieldset>
+            <legend>None</legend>
+            <div class="container">
+              <input type="button" value="Add sub1" class="add-button hidden">
+              <div>
+                <label>None</label>
+                <input type="button" value="Delete sub1" class="delete-button">
+                <textarea name="form:sub1:value" id="form:sub1" class="sub1">textarea 1</textarea>
+              </div>
+            </div>
+            <div class="container">
+              <input type="button" value="Add sub2" class="add-button hidden">
+              <div>
+                <label>None</label>
+                <input type="button" value="Delete sub2" class="delete-button">
+                <textarea name="form:sub2:value" id="form:sub2" class="sub2">textarea 2</textarea>
+              </div>
+            </div>
+          </fieldset>
+          <input type="submit" />
+        </form>'''
+        tw2test.assert_eq_xml(form.display(), expected)
+
+
+    def test_display_filename(self):
+        form = forms.FormField(name='form', _filename='file.xml',
+                               _encoding='UTF-8')
+        # No value
+        self.assertEqual(form.display(), '')
+        sub1 = forms.TextAreaField(name='sub1', key='sub1', value='textarea 1',
+                                  parent=form)
+        sub2 = forms.TextAreaField(name='sub2', key='sub2', value='textarea 2',
+                                  parent=form)
+        form.children = [sub1, sub2]
+        expected = '''
+        <form method="POST">
+          <input type="text" value="" name="form:_dtd_url" id="form:_dtd_url" class="_dtd_url">
+          <input type="text" value="UTF-8" name="form:_encoding" id="form:_encoding" class="_encoding">
+          <input type="text" value="" name="form:_root_tag" id="form:_root_tag" class="_root_tag">
+          <input type="text" value="file.xml" name="form:_filename" id="form:_filename" class="_filename" />
           <fieldset>
             <legend>None</legend>
             <div class="container">

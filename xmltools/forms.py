@@ -321,6 +321,13 @@ class FormField(Fieldset):
                 parent=self,
                 add_value_str=False,
                 value=self.legend
+            ),
+            InputField(
+                key='_filename',
+                name='_filename',
+                parent=self,
+                add_value_str=False,
+                value=kwargs.get('_filename')
             )
         ]
 

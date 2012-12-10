@@ -346,6 +346,15 @@ class Generator(object):
         return children
 
     def generate_form(self, root_tag, encoding='UTF-8', **kwargs):
+        """Generate the HTML form for the given xml_filename.
+
+        :param root_tag: the root tag of the form
+        :type root_tag: str
+        :param encoding: the encoding to use
+        :type encoding: str
+        :param kwargs: Some extra values passed to the form object.
+        :type kwargs: dict
+        """
         cls = self.dtd_classes[root_tag]
         kwargs['_dtd_url'] = self._dtd_url
         kwargs['_encoding'] = self._encoding
