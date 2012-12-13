@@ -196,7 +196,7 @@ class TestTextAreaField(TestCase):
     def test_display_empty_non_required(self):
         field = forms.TextAreaField(name='test', key='test', label='test')
         expected = '''
-        <div class="container">
+        <div class="container inline">
           <a class="add-button">Add test</a>
           <div class="deleted">
             <label>test</label>
@@ -400,7 +400,7 @@ class TestFieldset(TestCase):
                                   parent=field)
         field.children = [sub1]
         expected = '''
-        <div class="container">
+        <div class="container inline">
           <a class="add-button">Add test</a>
           <fieldset id="test" class="test deleted">
             <legend>test<a class="fieldset-delete-button">Delete test</a>
@@ -595,7 +595,7 @@ class TestConditionalContainer(TestCase):
               <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">first textarea</textarea>
             </div>
           </div>
-          <div class="container deleted conditional-option test:sub2:option:1">
+          <div class="container deleted conditional-option test:sub2:option:1 inline">
             <a class="add-button">Add sub2</a>
             <div class="deleted">
               <label>None</label>
@@ -621,7 +621,7 @@ class TestConditionalContainer(TestCase):
             <option value="test:sub1:option:0">sub1</option>
             <option value="test:sub2:option:1">sub2</option>
           </select>
-          <div class="container deleted conditional-option test:sub1:option:0">
+          <div class="container deleted conditional-option test:sub1:option:0 inline">
             <a class="add-button">Add sub1</a>
             <div class="deleted">
               <label>None</label>
@@ -629,7 +629,7 @@ class TestConditionalContainer(TestCase):
               <textarea name="test:sub1:value" id="test:sub1" class="sub1"></textarea>
             </div>
           </div>
-          <div class="container deleted conditional-option test:sub2:option:1">
+          <div class="container deleted conditional-option test:sub2:option:1 inline">
             <a class="add-button">Add sub2</a>
             <div class="deleted">
               <label>None</label>

@@ -43,33 +43,46 @@
         }
     }
 
+    exports.confirm_delete = function(button){
+        var question = 'Are you sure you want to delete this ' + button.text().replace('Delete ', '');
+        return confirm(question);
+    }
 
     $(document).ready(function(){
         $('.delete-button').live('click', function(){
             var container = $(this).parent();
             container.addClass('deleted');
+            container.parent('.container').addClass('inline');
             container.prev().removeClass('hidden');
             exports.update_conditional_container(container);
         });
         $('.growing-delete-button').live('click', function(){
-            var container = $(this).parent();
-            container.addClass('deleted');
-            exports.update_conditional_container(container);
+            if(exports.confirm_delete($(this))){
+                var container = $(this).parent();
+                container.addClass('deleted');
+                exports.update_conditional_container(container);
+            }
         });
         $('.fieldset-delete-button').live('click', function(){
-            var container = $(this).parent('legend').parent('fieldset');
-            container.addClass('deleted');
-            container.prev().removeClass('hidden');
-            exports.update_conditional_container(container);
+            if(exports.confirm_delete($(this))){
+                var container = $(this).parent('legend').parent('fieldset');
+                container.addClass('deleted');
+                container.parent('.container').addClass('inline');
+                container.prev().removeClass('hidden');
+                exports.update_conditional_container(container);
+            }
         });
         $('.growing-fieldset-delete-button').live('click', function(){
-            var container = $(this).parent('legend').parent('fieldset').parent('.container');
-            container.addClass('deleted');
-            exports.update_conditional_container(container);
+            if(exports.confirm_delete($(this))){
+                var container = $(this).parent('legend').parent('fieldset').parent('.container');
+                container.addClass('deleted');
+                exports.update_conditional_container(container);
+            }
         });
         $('.add-button').live('click', function(){
             $(this).next().removeClass('deleted');
-            $(this).addClass('hidden'); // hide();
+            $(this).addClass('hidden');
+            $(this).parent('.container').removeClass('inline');
         });
         $('.growing-add-button').live('click', function(){
             var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));

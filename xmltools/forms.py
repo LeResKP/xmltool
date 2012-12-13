@@ -208,6 +208,8 @@ class TextAreaField(Field):
                 add_button_css_classes = ['add-button']
                 if show_container:
                     add_button_css_classes += ['hidden']
+                else:
+                    self.container_css_classes += ['inline']
                 add_button = LinkField(value='Add %s' % self.key,
                                          css_classes=add_button_css_classes)
                 html += [add_button.display()]
@@ -286,6 +288,8 @@ class Fieldset(MultipleField):
                 add_button_css_classes = ['add-button']
                 if show_container:
                     add_button_css_classes += ['hidden']
+                else:
+                    self.container_css_classes += ['inline']
                 add_button = LinkField(value='Add %s' % self.key,
                                          css_classes=add_button_css_classes)
                 html += [add_button.display()]
