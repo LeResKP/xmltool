@@ -357,7 +357,7 @@ class FormField(Fieldset):
             extra_children_html.append(child.display())
 
         html = []
-        html += ['<form%s method="POST">' % self.get_attrs()]
+        html += ['<form%s method="POST" id="xmltools-form">' % self.get_attrs()]
         html += [''.join(extra_children_html)]
         html += [children_html]
         html += ['<input type="submit" />']

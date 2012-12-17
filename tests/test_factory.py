@@ -23,11 +23,12 @@ class TestFactory(TestCase):
 
     def test_generate_form(self):
         html = factory.generate_form('tests/exercise.xml')
-        self.assertTrue('<form method="POST">' in html)
+        self.assertTrue('<form method="POST" id="xmltools-form">' in html)
 
         html = factory.generate_form('tests/exercise.xml',
                                         form_action='/action/submit')
-        self.assertTrue('<form action="/action/submit" method="POST">' in html)
+        self.assertTrue('<form action="/action/submit" method="POST" '
+                        'id="xmltools-form">' in html)
 
     def test_update_xml_file(self):
         filename = 'tests/test.xml'
