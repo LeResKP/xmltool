@@ -437,6 +437,8 @@ class GrowingContainer(MultipleField):
             repetitions = len(values)
         else:
             repetitions = self.repetitions
+            if self.required:
+                repetitions += 1
 
         children = []
         for i in range(repetitions):

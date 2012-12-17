@@ -735,6 +735,26 @@ class TestGrowingContainer(TestCase):
 
         field = forms.GrowingContainer(key='test', name='test', required=True,
                                       child=child)
+        expected = '''
+        <div class="growing-container required">
+          <div class="container growing-source" id="test:textarea_child">
+            <label>None</label>
+            <a class="growing-delete-button">Delete test</a>
+            <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
+            <a class="growing-add-button">New test</a>
+          </div>
+          <div class="container">
+            <label>None</label>
+            <a class="growing-delete-button">Delete test</a>
+            <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2"></textarea>
+            <a class="growing-add-button">New test</a>
+          </div>
+        </div>
+        '''
+        tw2test.assert_eq_xml(field.display(), expected)
+
+        field = forms.GrowingContainer(key='test', name='test', required=True,
+                                      child=child)
         values = []
         for index, s in enumerate(['hello', 'world']):
             o = cls()
