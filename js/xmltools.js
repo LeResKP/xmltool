@@ -103,7 +103,7 @@
         $('select.conditional').live('change', function(){
             if ($(this).val()){
                 var cls = $(this).val().replace(/:/g, '\\:');
-                var container = $(this).nextAll('.' + cls);
+                var container = $(this).parent().find('.' + cls);
                 container.removeClass('deleted');
                 var growing_source = container.children('.growing-source');
                 if (growing_source.length){
