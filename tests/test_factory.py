@@ -21,6 +21,22 @@ class TestFactory(TestCase):
                                  validate_xml=False)
         self.assertEqual(obj.tagname, 'Exercise')
 
+    def test_load_string(self):
+        xml_str = open('tests/exercise.xml', 'r').read()
+        obj = factory.load_string(xml_str)
+        self.assertEqual(obj.tagname, 'Exercise')
+        try:
+            xml_str = open('tests/exercise-notvalid.xml', 'r').read()
+            obj = factory.load_string(xml_str)
+            assert 0
+        except etree.DocumentInvalid:
+            pass
+
+        xml_str = open('tests/exercise-notvalid.xml', 'r').read()
+        obj = factory.load_string(xml_str,
+                                 validate_xml=False)
+        self.assertEqual(obj.tagname, 'Exercise')
+
     def test_generate_form(self):
         html = factory.generate_form('tests/exercise.xml')
         self.assertTrue('<form method="POST" id="xmltools-form">' in html)

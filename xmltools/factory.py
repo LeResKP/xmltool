@@ -2,8 +2,12 @@
 
 import tw2.core as twc
 from lxml import etree
+import re
+from StringIO import StringIO
 from dtd_parser import Generator
 import utils
+
+xml_declaration_re = re.compile(r'(<\?xml [^>]*\?>)')
 
 
 def load(xml_filename, validate_xml=True):
@@ -25,6 +29,22 @@ def load(xml_filename, validate_xml=True):
     gen = Generator(dtd_url=dtd_url)
     obj = gen.generate_obj(tree.getroot())
     return obj
+
+
+def load_string(xml_str, validate_xml=True):
+    """Generate a python object
+
+    :param xml_str: the XML file as string
+    :type xml_str: str
+    :param validate_xml: validate the XML before generating the python object.
+    :type validate_xml: bool
+    :return: the generated python object
+    :rtype: :class:`Element`
+    """
+    # We remove the xml declaration since it's not supported to load xml with
+    # it in lxml
+    xml_str = xml_declaration_re.sub('', xml_str)
+    return load(StringIO(xml_str), validate_xml)
 
 
 def generate_form(xml_filename, form_action=None, validate_xml=True, **kwargs):
