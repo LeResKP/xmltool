@@ -156,6 +156,7 @@ class Generator(object):
                 cls = type(tagname, (TextElement,), {
                     '_attrs': attrs,
                     'tagname': tagname,
+                    'empty': (elements == 'EMPTY'),
                     '_generator': self})
                 cls.__name__ = tagname
                 self.dtd_classes[tagname] = cls
@@ -254,7 +255,8 @@ class Generator(object):
         self.set_attrs_to_xml(obj, xml)
 
         if isinstance(obj, TextElement):
-            xml.text = obj.value
+            if not obj.empty:
+                xml.text = obj.value
             return xml
 
         for element in obj._sub_elements:
@@ -274,7 +276,8 @@ class Generator(object):
                 value = getattr(obj, key, None)
                 e = etree.Element(key)
                 self.obj_to_xml(value, e)
-                if len(e) or e.text or element.required:
+                empty_elt = getattr(value, 'empty', False)
+                if len(e) or e.text or element.required or empty_elt:
                     if e.text:
                         e.text = clear_value(e.text)
                     xml.append(e)

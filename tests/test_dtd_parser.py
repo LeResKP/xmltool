@@ -4,6 +4,7 @@ from unittest import TestCase
 from lxml import etree
 import __builtin__
 from xmltools import dtd_parser, forms
+import tw2.core.testbase as tw2test
 
 
 def fake_open(content, *args):
@@ -233,16 +234,16 @@ class DtdParser(TestCase):
 
     def test_dtd_to_dict(self):
         expected = {
-            'name': '#PCDATA', 
-            'firstname': '#PCDATA', 
+            'name': '#PCDATA',
+            'firstname': '#PCDATA',
             'is-publish': 'EMPTY',
-            'resume': '#PCDATA', 
+            'resume': '#PCDATA',
             'Movie': 'is-publish?,name,year,directors,actors,resume?,critique*', 
-            'actor': 'name,firstname', 
-            'director': 'name,firstname', 
-            'directors': 'director+', 
-            'actors': 'actor+', 
-            'year': '#PCDATA', 
+            'actor': 'name,firstname',
+            'director': 'name,firstname',
+            'directors': 'director+',
+            'actors': 'actor+',
+            'year': '#PCDATA',
             'critique': '#PCDATA'
             }
         dtd, dtd_attrs = dtd_parser.dtd_to_dict(MOVIE_DTD)
@@ -406,13 +407,18 @@ class TestGenerator1(TestCase):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         self.assertEqual(len(gen.dtd_classes), 11)
         for key in ['is-publish', 'name', 'firstname', 'year', 'resume', 'critique']:
-            self.assertTrue(issubclass(gen.dtd_classes[key],
+            cls = gen.dtd_classes[key]
+            self.assertTrue(issubclass(cls,
                 dtd_parser.TextElement))
+            if key == 'is-publish':
+                self.assertEqual(cls.empty, True)
+            else:
+                self.assertEqual(cls.empty, False)
         cls = gen.dtd_classes['Movie']
         self.assertEqual(cls.__name__, 'Movie')
         self.assertEqual(len(cls._sub_elements), 7)
-        for (key, expected) in [('directors', 1), 
-                                ('actors', 1), 
+        for (key, expected) in [('directors', 1),
+                                ('actors', 1),
                                 ('director', 2),
                                 ('actor', 2)]:
             cls = gen.dtd_classes[key]
@@ -519,12 +525,64 @@ class TestGenerator1(TestCase):
         s = etree.tostring(xml, pretty_print=True, xml_declaration=True)
         docinfo = root.getroottree().docinfo
         s = etree.tostring(
-                xml, 
+                xml,
                 pretty_print=True,
                 xml_declaration=True,
                 encoding=docinfo.encoding,
                 doctype=docinfo.doctype)
         self.assertEqual(MOVIE_XML_TITANIC, s)
+
+    def test_obj_to_xml_with_empty(self):
+        root = etree.fromstring(MOVIE_XML_TITANIC)
+        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
+        obj = gen.generate_obj(root)
+        is_publish = gen.dtd_classes['is-publish']()
+        is_publish.value = "don't care"
+        obj['is-publish'] = is_publish
+        xml = gen.obj_to_xml(obj)
+        s = etree.tostring(xml, pretty_print=True, xml_declaration=True)
+        docinfo = root.getroottree().docinfo
+        s = etree.tostring(
+                xml,
+                pretty_print=True,
+                xml_declaration=True,
+                encoding=docinfo.encoding,
+                doctype=docinfo.doctype)
+        expected = '''
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Movie SYSTEM "test.dtd">
+<Movie>
+  <is-publish />
+  <name>Titanic</name>
+  <year>1997</year>
+  <directors>
+    <director>
+      <name>Cameron</name>
+      <firstname>James</firstname>
+    </director>
+  </directors>
+  <actors>
+    <actor>
+      <name>DiCaprio</name>
+      <firstname>Leonardo</firstname>
+    </actor>
+    <actor>
+      <name>Winslet</name>
+      <firstname>Kate</firstname>
+    </actor>
+    <actor>
+      <name>Zane</name>
+      <firstname>Billy</firstname>
+    </actor>
+  </actors>
+  <resume>
+     Resume of the movie
+  </resume>
+  <critique>critique1</critique>
+  <critique>critique2</critique>
+</Movie>
+'''
+        tw2test.assert_eq_xml(s, expected)
 
 
 class TestGenerator2(TestCase):

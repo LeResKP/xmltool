@@ -50,6 +50,8 @@ class TextElement(object):
     _generator = None
     #: List of dtd attributes
     _attrs = []
+    # if True the tag is not a PCDATA type, it's a EMPTY type
+    empty = False
 
     def __init__(self, value=None):
         self.value = value
