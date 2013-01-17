@@ -361,7 +361,8 @@ class Generator(object):
         cls = self.dtd_classes[root_tag]
         kwargs['_dtd_url'] = self._dtd_url
         kwargs['_encoding'] = self._encoding
-        parent = forms.FormField(legend=cls.tagname, **kwargs)
+        parent = forms.FormField(
+            legend=cls.tagname, name=cls.tagname,  **kwargs)
         parent.children += self.generate_form_children(cls, parent, None)
         return parent
 

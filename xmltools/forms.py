@@ -119,14 +119,15 @@ class Field(object):
     def get_value(self):
         return self.value or ''
 
-    def get_attrs(self):
+    def get_attrs(self, exclude_id=False):
         attrs = []
         name = self.get_name()
         if name and not isinstance(self, MultipleField):
             attrs += ['name="%s"' % name]
-        id_ = self.get_id()
-        if id_ and not isinstance(self, FormField):
-            attrs += ['id="%s"' % id_]
+        if not exclude_id:
+            ident = self.get_id()
+            if ident:
+                attrs += ['id="%s"' % ident]
         css_classes = ' '.join(self.css_classes)
         if css_classes:
             attrs += ['class="%s"' % css_classes ]
@@ -166,6 +167,15 @@ class InputField(Field):
     def _display(self):
         return '<input type="text" value="%s"%s />' % (self.get_value(),
                                                     self.get_attrs())
+
+class RootInputField(InputField):
+    """Basically the same object than InputField but the HTML name is never
+    prefix by the names of its parents.
+    """
+
+    def _get_name(self):
+        return self.name
+
 
 class LinkField(Field):
 
@@ -317,28 +327,28 @@ class FormField(Fieldset):
     def __init__(self, **kwargs):
         super(FormField, self).__init__(**kwargs)
         self.extra_children = [
-            InputField(
+            RootInputField(
                 key='_dtd_url',
                 name='_dtd_url',
                 parent=self,
                 add_value_str=False,
                 value=kwargs.get('_dtd_url')
             ),
-            InputField(
+            RootInputField(
                 key='_encoding',
                 name='_encoding',
                 parent=self,
                 add_value_str=False,
                 value=kwargs.get('_encoding')
             ),
-            InputField(
+            RootInputField(
                 key='_root_tag',
                 name='_root_tag',
                 parent=self,
                 add_value_str=False,
                 value=self.legend
             ),
-            InputField(
+            RootInputField(
                 key='_filename',
                 name='_filename',
                 parent=self,
@@ -357,7 +367,10 @@ class FormField(Fieldset):
             extra_children_html.append(child.display())
 
         html = []
-        html += ['<form%s method="POST" id="xmltools-form">' % self.get_attrs()]
+        # We don't want to add the id on the form, it's already included on the
+        # fieldset of this form
+        html += ['<form%s method="POST" id="xmltools-form">' % (
+            self.get_attrs(exclude_id=True))]
         html += [''.join(extra_children_html)]
         html += [children_html]
         html += ['<input type="submit" />']

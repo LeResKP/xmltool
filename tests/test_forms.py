@@ -479,11 +479,11 @@ class TestFormField(TestCase):
         form.children = [sub1, sub2]
         expected = '''
         <form method="POST" id="xmltools-form">
-          <input type="text" value="" name="form:_dtd_url" id="form:_dtd_url" class="_dtd_url">
-          <input type="text" value="" name="form:_encoding" id="form:_encoding" class="_encoding">
-          <input type="text" value="" name="form:_root_tag" id="form:_root_tag" class="_root_tag">
-          <input type="text" value="" name="form:_filename" id="form:_filename" class="_filename" />
-          <fieldset>
+          <input type="text" value="" name="_dtd_url" id="_dtd_url" class="_dtd_url">
+          <input type="text" value="" name="_encoding" id="_encoding" class="_encoding">
+          <input type="text" value="" name="_root_tag" id="_root_tag" class="_root_tag">
+          <input type="text" value="" name="_filename" id="_filename" class="_filename" />
+          <fieldset id="form">
             <legend>None</legend>
             <div class="container">
               <a class="add-button hidden">Add sub1</a>
@@ -519,11 +519,11 @@ class TestFormField(TestCase):
         form.children = [sub1, sub2]
         expected = '''
         <form method="POST" id="xmltools-form">
-          <input type="text" value="" name="form:_dtd_url" id="form:_dtd_url" class="_dtd_url">
-          <input type="text" value="UTF-8" name="form:_encoding" id="form:_encoding" class="_encoding">
-          <input type="text" value="" name="form:_root_tag" id="form:_root_tag" class="_root_tag">
-          <input type="text" value="file.xml" name="form:_filename" id="form:_filename" class="_filename" />
-          <fieldset>
+          <input type="text" value="" name="_dtd_url" id="_dtd_url" class="_dtd_url">
+          <input type="text" value="UTF-8" name="_encoding" id="_encoding" class="_encoding">
+          <input type="text" value="" name="_root_tag" id="_root_tag" class="_root_tag">
+          <input type="text" value="file.xml" name="_filename" id="_filename" class="_filename" />
+          <fieldset id="form">
             <legend>None</legend>
             <div class="container">
               <a class="add-button hidden">Add sub1</a>
