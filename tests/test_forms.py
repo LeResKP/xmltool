@@ -641,13 +641,17 @@ class TestConditionalContainer(TestCase):
         tw2test.assert_eq_xml(field.display(), expected)
 
     def test_display_growing(self):
-        field = forms.ConditionalContainer(name='test')
+        field = forms.ConditionalContainer()
         growing1 = forms.GrowingContainer(key='growing1', name='growing1')
         child1 = forms.TextAreaField(name='textarea_child1', parent=growing1)
         growing1.child = child1
-        growing2 = forms.GrowingContainer(key='growing2', name='growing2')
-        child2 = forms.TextAreaField(name='textarea_child2', parent=growing2)
+        growing1.parent = field
+        growing2 = forms.GrowingContainer(
+            key='growing2', name='growing2', required=True)
+        child2 = forms.TextAreaField(
+            name='textarea_child2', parent=growing2)
         growing2.child = child2
+        growing2.parent = field
         field.possible_children = [growing1, growing2]
 
         expected = '''
@@ -665,7 +669,7 @@ class TestConditionalContainer(TestCase):
               <a class="growing-add-button">New growing1</a>
             </div>
           </div>
-          <div class="deleted conditional-option growing2:option:1 growing-container">
+          <div class="deleted conditional-option growing2:option:1 growing-container required">
             <div class="container growing-source" id="growing2:textarea_child2">
               <label>None</label>
               <a class="growing-delete-button">Delete None</a>
