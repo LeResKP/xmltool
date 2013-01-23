@@ -4,7 +4,93 @@ from unittest import TestCase
 from lxml import etree
 import os.path
 from xmltools import dtd_parser, utils, factory
+from xmltools.elements import TextElement, get_id
 from test_dtd_parser import BOOK_XML, BOOK_DTD, EXERCISE_XML_2, EXERCISE_DTD_2
+import simplejson as json
+
+
+class TestFunction(TestCase):
+
+    def test_get_id(self):
+        class Comment(TextElement):
+            tagname = 'comment'
+        result = get_id(Comment)
+        expected = 'comment'
+        self.assertEqual(result, expected)
+
+        result = get_id(Comment, prefix_id='prefix')
+        expected = 'prefix:comment'
+        self.assertEqual(result, expected)
+
+        result = get_id(Comment, prefix_id='prefix', index=10)
+        expected = 'prefix:comment:10'
+        self.assertEqual(result, expected)
+
+
+class TestTextElement(TestCase):
+
+    def test_init(self):
+        elt = TextElement()
+        self.assertEqual(elt.value, None)
+
+        elt = TextElement(value='my value')
+        self.assertEqual(elt.value, 'my value')
+
+    def test_to_jstree_dict(self):
+        class Comment(TextElement):
+            tagname = 'comment'
+
+        elt = Comment(value='my comment')
+        self.assertEqual(elt.value, 'my comment')
+
+        expected = {
+            'data': 'comment',
+            'attr': {
+                'id': 'tree_comment',
+                'class': 'tree_comment'},
+            'metadata': {'id': 'comment'}}
+        result = elt.to_jstree_dict()
+        self.assertEqual(result, expected)
+
+        expected = {
+            'data': 'comment (%s)' % elt.value,
+            'attr': {
+                'id': 'tree_comment',
+                'class': 'tree_comment'},
+            'metadata': {'id': 'comment'}}
+        result = elt.to_jstree_dict(value=elt.value)
+        self.assertEqual(result, expected)
+
+        expected = {
+            'data': 'comment (%s)' % elt.value,
+            'attr': {
+                'id': 'tree_prefix:prefix2:1:comment',
+                'class': 'tree_prefix:prefix2:1:comment'},
+            'metadata': {'id': 'prefix:prefix2:1:comment'}}
+        result = elt.to_jstree_dict(
+            value=elt.value, prefix_id='prefix:prefix2:1')
+        self.assertEqual(result, expected)
+
+        expected = {
+            'data': 'comment (%s)' % elt.value,
+            'attr': {
+                'id': 'tree_prefix:prefix2:1:comment:4',
+                'class': 'tree_prefix:prefix2:1:comment'},
+            'metadata': {'id': 'prefix:prefix2:1:comment:4'}}
+        result = elt.to_jstree_dict(
+            value=elt.value,
+            prefix_id='prefix:prefix2:1',
+            number=4)
+        self.assertEqual(result, expected)
+
+    def test_to_jstree_json(self):
+        class Comment(TextElement):
+            tagname = 'comment'
+        elt = Comment(value='my comment')
+
+        dict_result = elt.to_jstree_dict()
+        json_result = elt.to_jstree_json()
+        self.assertEqual(json_result, json.dumps(dict_result))
 
 
 class TestElement(TestCase):
@@ -242,6 +328,82 @@ class TestElement(TestCase):
             assert 0
         except Exception, e:
             self.assertEqual(str(e), "You can't add a mqm since it already contains a qcm")
+
+    def test_to_jstree_dict(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        expected = {
+            'children': [
+                {'data': 'comment (Excerice:comments)',
+                 'attr': {
+                     'id': 'tree_1:comment',
+                     'class': 'tree_1:comment'},
+                 'metadata': {'id': '1:comment'}}],
+            'data': 'comments',
+            'attr': {
+                'id': 'tree_Excerice:comments',
+                'class': 'tree_Excerice:comments'},
+            'metadata': {'id': 'Excerice:comments'}}
+        result = gen.dtd_classes['comments'].to_jstree_dict('Excerice')
+        self.assertEqual(result, expected)
+
+        expected = {
+            'data': 'question (Excerice)',
+            'attr': {
+                'id': 'tree_question',
+                'class': 'tree_question'},
+            'metadata': {'id': 'question'}}
+        result = gen.dtd_classes['question'].to_jstree_dict('Excerice')
+        self.assertEqual(result, expected)
+
+        expected = {
+            'children': [
+                {'data': 'question (Excerice:test)',
+                 'attr': {'id': 'tree_question',
+                          'class': 'tree_question'},
+                 'metadata': {'id': 'question'}}],
+            'data': 'test',
+            'attr': {
+                'id': 'tree_Excerice:test',
+                'class': 'tree_Excerice:test'},
+            'metadata': {'id': 'Excerice:test'}}
+        result = gen.dtd_classes['test'].to_jstree_dict('Excerice')
+        self.assertEqual(result, expected)
+
+        expected = {
+            'children': [
+                {'data': 'choice (Excerice:qcm)',
+                 'attr': {
+                     'id': 'tree_1:choice',
+                     'class': 'tree_1:choice'},
+                 'metadata': {'id': '1:choice'}}],
+            'data': 'qcm',
+            'attr': {
+                'id': 'tree_Excerice:qcm',
+                'class': 'tree_Excerice:qcm'},
+            'metadata': {'id': 'Excerice:qcm'}}
+        result = gen.dtd_classes['qcm'].to_jstree_dict('Excerice')
+        self.assertEqual(result, expected)
+
+        expected = {
+            'children': [
+                {'data': 'choice (Excerice:qcm:0)',
+                 'attr': {
+                     'id': 'tree_1:choice',
+                     'class': 'tree_1:choice'},
+                 'metadata': {'id': '1:choice'}}],
+            'data': 'qcm',
+            'attr': {
+                'id': 'tree_Excerice:qcm:0',
+                'class': 'tree_Excerice:qcm'},
+            'metadata': {'id': 'Excerice:qcm:0'}}
+        result = gen.dtd_classes['qcm'].to_jstree_dict('Excerice', number=0)
+        self.assertEqual(result, expected)
+
+    def test_to_jstree_json(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        json_result = gen.dtd_classes['qcm'].to_jstree_json('Excerice', number=0)
+        dict_result = gen.dtd_classes['qcm'].to_jstree_dict('Excerice', number=0)
+        self.assertEqual(json_result, json.dumps(dict_result))
 
     def test_write(self):
         def FakeValidate(*args, **kwargs):

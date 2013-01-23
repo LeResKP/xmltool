@@ -3,6 +3,7 @@ from lxml import etree
 import forms
 import utils
 from elements import Element, SubElement, TextElement, ElementList
+import simplejson as json
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -283,6 +284,42 @@ class Generator(object):
                     xml.append(e)
 
         return xml
+
+    def obj_to_jstree_dict(self, obj, prefix_id=None, index=None):
+        """Generate a python dic from the given object which can be jsonified
+        and can be used with jstree.
+        """
+        if not obj:
+            return {}
+
+        if isinstance(obj, TextElement):
+            return obj.to_jstree_dict(obj.value, prefix_id, index)
+
+        dic =  obj.to_jstree_dict(prefix_id, index, skip_children=True)
+
+        ident = dic['metadata']['id']
+        children = []
+        for element in obj._sub_elements:
+            key = self.get_key_from_obj(element, obj)
+            if not key:
+                continue
+            if element.islist:
+                value = getattr(obj, key, [])
+                for i, v in enumerate(value):
+                    d = self.obj_to_jstree_dict(v, ident, (i + 1))
+                    if d:
+                        children += [d]
+            else:
+                value = getattr(obj, key, None)
+                d = self.obj_to_jstree_dict(value, ident)
+                if d:
+                    children += [d]
+
+        dic.update({'children': children})
+        return dic
+
+    def obj_to_jstree_json(self, *args, **kw):
+        return json.dumps(self.obj_to_jstree_dict(*args, **kw))
 
     def generate_form_child(self, element, parent):
         if element._conditional_names:

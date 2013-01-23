@@ -2,6 +2,20 @@
 
 from lxml import etree
 import utils
+import simplejson as json
+
+
+def get_id(cls, prefix_id=None, index=None):
+    """Get the id put on the form objects (input, textarea, ...)
+
+    :param cls: the class we want to get the HTML id
+    :type cls: Element, TextElement
+    :return: the id of the given obj
+    :rtype: str
+    """
+    lis = [prefix_id, cls.tagname, index]
+    lis = map(str, filter(lambda x: x is not None,  lis))
+    return ':'.join(lis)
 
 
 class SubElement(object):
@@ -56,6 +70,29 @@ class TextElement(object):
     def __init__(self, value=None):
         self.value = value
         self.attrs = {}
+
+    @classmethod
+    def to_jstree_dict(cls, value=None, prefix_id=None, number=None, **kw):
+        ident = get_id(cls, prefix_id, number)
+        css_class = get_id(cls, prefix_id)
+        data = cls.tagname
+        if value:
+            # TODO: Make a nice cut of value
+            data = '%s (%s)' % (cls.tagname, value[:50])
+        return {
+            'data': data,
+            'attr': {
+                'id': 'tree_%s' % ident,
+                'class': 'tree_%s' % css_class,
+            },
+            'metadata': {
+                'id': ident,
+            },
+        }
+
+    @classmethod
+    def to_jstree_json(cls, *args, **kw):
+        return json.dumps(cls.to_jstree_dict(*args, **kw))
 
 
 class Element(object):
@@ -208,6 +245,41 @@ class Element(object):
         return etree.tostring(
             xml.getroottree(),
             pretty_print=True)
+
+    @classmethod
+    def to_jstree_dict(cls, prefix_id=None, number=None, skip_children=False):
+        ident = get_id(cls, prefix_id, number)
+        css_class = get_id(cls, prefix_id)
+
+        if not skip_children:
+            children = []
+            for c in cls._sub_elements:
+                if c.required:
+                    k = cls._generator.dtd_classes[c.tagname]
+                    i = None
+                    if c.islist:
+                        i = 1
+                    children += [k.to_jstree_dict(ident, i)]
+
+        dic = {
+            'data': cls.tagname,
+            'attr': {
+                'id': 'tree_%s' % ident,
+                'class': 'tree_%s' % css_class,
+            },
+            'metadata': {
+                'id': ident,
+            },
+        }
+        if not skip_children:
+            dic.update({
+                'children': children
+            })
+        return dic
+
+    @classmethod
+    def to_jstree_json(cls, *args, **kw):
+        return json.dumps(cls.to_jstree_dict(*args, **kw))
 
     def write(self, xml_filename, encoding='UTF-8', validate_xml=True,
               transform=None):

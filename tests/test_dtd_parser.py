@@ -5,6 +5,7 @@ from lxml import etree
 import __builtin__
 from xmltools import dtd_parser, forms
 import tw2.core.testbase as tw2test
+import simplejson as json
 
 
 def fake_open(content, *args):
@@ -584,6 +585,90 @@ class TestGenerator1(TestCase):
 '''
         tw2test.assert_eq_xml(s, expected)
 
+    def test_obj_to_jstree_dict(self):
+        root = etree.fromstring(MOVIE_XML_TITANIC)
+        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
+        obj = gen.generate_obj(root)
+        dic = gen.obj_to_jstree_dict(obj)
+        expected = {'attr': {'class': 'tree_Movie', 'id': 'tree_Movie'},
+ 'children': [{'attr': {'class': 'tree_Movie:name', 'id': 'tree_Movie:name'},
+               'data': 'name (Titanic)',
+               'metadata': {'id': 'Movie:name'}},
+              {'attr': {'class': 'tree_Movie:year', 'id': 'tree_Movie:year'},
+               'data': 'year (1997)',
+               'metadata': {'id': 'Movie:year'}},
+              {'attr': {'class': 'tree_Movie:directors',
+                        'id': 'tree_Movie:directors'},
+               'children': [{'attr': {'class': 'tree_Movie:directors:director',
+                                      'id': 'tree_Movie:directors:director:1'},
+                             'children': [{'attr': {'class': 'tree_Movie:directors:director:1:name',
+                                                    'id': 'tree_Movie:directors:director:1:name'},
+                                           'data': 'name (Cameron)',
+                                           'metadata': {'id': 'Movie:directors:director:1:name'}},
+                                          {'attr': {'class': 'tree_Movie:directors:director:1:firstname',
+                                                    'id': 'tree_Movie:directors:director:1:firstname'},
+                                           'data': 'firstname (James)',
+                                           'metadata': {'id': 'Movie:directors:director:1:firstname'}}],
+                             'data': 'director',
+                             'metadata': {'id': 'Movie:directors:director:1'}}],
+               'data': 'directors',
+               'metadata': {'id': 'Movie:directors'}},
+              {'attr': {'class': 'tree_Movie:actors',
+                        'id': 'tree_Movie:actors'},
+               'children': [{'attr': {'class': 'tree_Movie:actors:actor',
+                                      'id': 'tree_Movie:actors:actor:1'},
+                             'children': [{'attr': {'class': 'tree_Movie:actors:actor:1:name',
+                                                    'id': 'tree_Movie:actors:actor:1:name'},
+                                           'data': 'name (DiCaprio)',
+                                           'metadata': {'id': 'Movie:actors:actor:1:name'}},
+                                          {'attr': {'class': 'tree_Movie:actors:actor:1:firstname',
+                                                    'id': 'tree_Movie:actors:actor:1:firstname'},
+                                           'data': 'firstname (Leonardo)',
+                                           'metadata': {'id': 'Movie:actors:actor:1:firstname'}}],
+                             'data': 'actor',
+                             'metadata': {'id': 'Movie:actors:actor:1'}},
+                            {'attr': {'class': 'tree_Movie:actors:actor',
+                                      'id': 'tree_Movie:actors:actor:2'},
+                             'children': [{'attr': {'class': 'tree_Movie:actors:actor:2:name',
+                                                    'id': 'tree_Movie:actors:actor:2:name'},
+                                           'data': 'name (Winslet)',
+                                           'metadata': {'id': 'Movie:actors:actor:2:name'}},
+                                          {'attr': {'class': 'tree_Movie:actors:actor:2:firstname',
+                                                    'id': 'tree_Movie:actors:actor:2:firstname'},
+                                           'data': 'firstname (Kate)',
+                                           'metadata': {'id': 'Movie:actors:actor:2:firstname'}}],
+                             'data': 'actor',
+                             'metadata': {'id': 'Movie:actors:actor:2'}},
+                            {'attr': {'class': 'tree_Movie:actors:actor',
+                                      'id': 'tree_Movie:actors:actor:3'},
+                             'children': [{'attr': {'class': 'tree_Movie:actors:actor:3:name',
+                                                    'id': 'tree_Movie:actors:actor:3:name'},
+                                           'data': 'name (Zane)',
+                                           'metadata': {'id': 'Movie:actors:actor:3:name'}},
+                                          {'attr': {'class': 'tree_Movie:actors:actor:3:firstname',
+                                                    'id': 'tree_Movie:actors:actor:3:firstname'},
+                                           'data': 'firstname (Billy)',
+                                           'metadata': {'id': 'Movie:actors:actor:3:firstname'}}],
+                             'data': 'actor',
+                             'metadata': {'id': 'Movie:actors:actor:3'}}],
+               'data': 'actors',
+               'metadata': {'id': 'Movie:actors'}},
+              {'attr': {'class': 'tree_Movie:resume',
+                        'id': 'tree_Movie:resume'},
+               'data': 'resume (\n     Resume of the movie\n  )',
+               'metadata': {'id': 'Movie:resume'}},
+              {'attr': {'class': 'tree_Movie:critique',
+                        'id': 'tree_Movie:critique:1'},
+               'data': 'critique (critique1)',
+               'metadata': {'id': 'Movie:critique:1'}},
+              {'attr': {'class': 'tree_Movie:critique',
+                        'id': 'tree_Movie:critique:2'},
+               'data': 'critique (critique2)',
+               'metadata': {'id': 'Movie:critique:2'}}],
+ 'data': 'Movie',
+ 'metadata': {'id': 'Movie'}}
+        self.assertEqual(dic, expected)
+
 
 class TestGenerator2(TestCase):
 
@@ -594,8 +679,8 @@ class TestGenerator2(TestCase):
             self.assertTrue(issubclass(gen.dtd_classes[key],
                 dtd_parser.TextElement))
         for (key, nb_elements) in [('Exercise', 2),
-                                ('test', 1), 
-                                ('qcm', 1), 
+                                ('test', 1),
+                                ('qcm', 1),
                                 ('mqm', 1)]:
             cls = gen.dtd_classes[key]
             self.assertEqual(len(cls._sub_elements), nb_elements)
@@ -628,6 +713,55 @@ class TestGenerator2(TestCase):
                 encoding=docinfo.encoding,
                 doctype=docinfo.doctype)
         self.assertEqual(EXERCISE_XML, s)
+
+    def test_obj_to_jstree_dict(self):
+        root = etree.fromstring(EXERCISE_XML)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD)
+        obj = gen.generate_obj(root)
+        dic = gen.obj_to_jstree_dict(obj)
+        expected = {'attr': {'class': 'tree_Exercise', 'id': 'tree_Exercise'},
+ 'children': [{'attr': {'id': 'tree_Exercise:question',
+                        'class': 'tree_Exercise:question',
+                       },
+               'data': 'question (What is your favorite color?)',
+               'metadata': {'id': 'Exercise:question'}},
+              {'attr': {'class': 'tree_Exercise:test',
+                        'id': 'tree_Exercise:test'},
+               'children': [{'attr': {'class': 'tree_Exercise:test:mqm',
+                                      'id': 'tree_Exercise:test:mqm'},
+                             'children': [{'attr': {
+                                 'id': 'tree_Exercise:test:mqm:choice:1',
+                                 'class': 'tree_Exercise:test:mqm:choice',
+                             },
+                                           'data': 'choice (blue)',
+                                           'metadata': {'id': 'Exercise:test:mqm:choice:1'}},
+                                          {'attr': {
+                                              'id': 'tree_Exercise:test:mqm:choice:2',
+                                              'class': 'tree_Exercise:test:mqm:choice',
+                                          },
+                                           'data': 'choice (red)',
+                                           'metadata': {'id': 'Exercise:test:mqm:choice:2'}},
+                                          {'attr': {
+                                              'id': 'tree_Exercise:test:mqm:choice:3',
+                                              'class': 'tree_Exercise:test:mqm:choice',
+                                          },
+                                           'data': 'choice (black)',
+                                           'metadata': {'id': 'Exercise:test:mqm:choice:3'}}],
+                             'data': 'mqm',
+                             'metadata': {'id': 'Exercise:test:mqm'}}],
+               'data': 'test',
+               'metadata': {'id': 'Exercise:test'}}],
+ 'data': 'Exercise',
+ 'metadata': {'id': 'Exercise'}}
+        self.assertEqual(dic, expected)
+
+    def test_obj_to_jstree_json(self):
+        root = etree.fromstring(EXERCISE_XML)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD)
+        obj = gen.generate_obj(root)
+        dict_result = gen.obj_to_jstree_dict(obj)
+        json_result = gen.obj_to_jstree_json(obj)
+        self.assertEqual(json_result, json.dumps(dict_result))
 
 
 class TestGenerator3(TestCase):
@@ -777,6 +911,104 @@ class TestGenerator3(TestCase):
 </Exercise>
 '''
         self.assertEqual(s, expected)
+
+    def test_obj_to_jstree_dict(self):
+        root = etree.fromstring(EXERCISE_XML_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        obj = gen.generate_obj(root)
+        dic = gen.obj_to_jstree_dict(obj)
+        expected = {'attr': {'class': 'tree_Exercise', 'id': 'tree_Exercise'},
+ 'children': [{'attr': {'class': 'tree_Exercise:number',
+                        'id': 'tree_Exercise:number'},
+               'data': 'number (1)',
+               'metadata': {'id': 'Exercise:number'}},
+              {'attr': {'class': 'tree_Exercise:test',
+                        'id': 'tree_Exercise:test:1'},
+               'children': [{'attr': {'class': 'tree_Exercise:test:1:question',
+                                      'id': 'tree_Exercise:test:1:question'},
+                             'data': 'question (What is your favorite color?)',
+                             'metadata': {'id': 'Exercise:test:1:question'}},
+                            {'attr': {'class': 'tree_Exercise:test:1:mqm',
+                                      'id': 'tree_Exercise:test:1:mqm:1'},
+                             'children': [{'attr': {'class': 'tree_Exercise:test:1:mqm:1:choice',
+                                                    'id': 'tree_Exercise:test:1:mqm:1:choice:1'},
+                                           'data': 'choice (blue)',
+                                           'metadata': {'id': 'Exercise:test:1:mqm:1:choice:1'}},
+                                          {'attr': {'class': 'tree_Exercise:test:1:mqm:1:choice',
+                                                    'id': 'tree_Exercise:test:1:mqm:1:choice:2'},
+                                           'data': 'choice (red)',
+                                           'metadata': {'id': 'Exercise:test:1:mqm:1:choice:2'}},
+                                          {'attr': {'class': 'tree_Exercise:test:1:mqm:1:choice',
+                                                    'id': 'tree_Exercise:test:1:mqm:1:choice:3'},
+                                           'data': 'choice (black)',
+                                           'metadata': {'id': 'Exercise:test:1:mqm:1:choice:3'}}],
+                             'data': 'mqm',
+                             'metadata': {'id': 'Exercise:test:1:mqm:1'}},
+                            {'attr': {'class': 'tree_Exercise:test:1:mqm',
+                                      'id': 'tree_Exercise:test:1:mqm:2'},
+                             'children': [{'attr': {'class': 'tree_Exercise:test:1:mqm:2:choice',
+                                                    'id': 'tree_Exercise:test:1:mqm:2:choice:1'},
+                                           'data': 'choice (magenta)',
+                                           'metadata': {'id': 'Exercise:test:1:mqm:2:choice:1'}},
+                                          {'attr': {'class': 'tree_Exercise:test:1:mqm:2:choice',
+                                                    'id': 'tree_Exercise:test:1:mqm:2:choice:2'},
+                                           'data': 'choice (orange)',
+                                           'metadata': {'id': 'Exercise:test:1:mqm:2:choice:2'}},
+                                          {'attr': {'class': 'tree_Exercise:test:1:mqm:2:choice',
+                                                    'id': 'tree_Exercise:test:1:mqm:2:choice:3'},
+                                           'data': 'choice (yellow)',
+                                           'metadata': {'id': 'Exercise:test:1:mqm:2:choice:3'}}],
+                             'data': 'mqm',
+                             'metadata': {'id': 'Exercise:test:1:mqm:2'}}],
+               'data': 'test',
+               'metadata': {'id': 'Exercise:test:1'}},
+              {'attr': {'class': 'tree_Exercise:test',
+                        'id': 'tree_Exercise:test:2'},
+               'children': [{'attr': {'class': 'tree_Exercise:test:2:question',
+                                      'id': 'tree_Exercise:test:2:question'},
+                             'data': 'question (Have you got a pet?)',
+                             'metadata': {'id': 'Exercise:test:2:question'}},
+                            {'attr': {'class': 'tree_Exercise:test:2:qcm',
+                                      'id': 'tree_Exercise:test:2:qcm:1'},
+                             'children': [{'attr': {'class': 'tree_Exercise:test:2:qcm:1:choice',
+                                                    'id': 'tree_Exercise:test:2:qcm:1:choice:1'},
+                                           'data': 'choice (yes)',
+                                           'metadata': {'id': 'Exercise:test:2:qcm:1:choice:1'}},
+                                          {'attr': {'class': 'tree_Exercise:test:2:qcm:1:choice',
+                                                    'id': 'tree_Exercise:test:2:qcm:1:choice:2'},
+                                           'data': 'choice (no)',
+                                           'metadata': {'id': 'Exercise:test:2:qcm:1:choice:2'}}],
+                             'data': 'qcm',
+                             'metadata': {'id': 'Exercise:test:2:qcm:1'}},
+                            {'attr': {'class': 'tree_Exercise:test:2:qcm',
+                                      'id': 'tree_Exercise:test:2:qcm:2'},
+                             'children': [{'attr': {'class': 'tree_Exercise:test:2:qcm:2:choice',
+                                                    'id': 'tree_Exercise:test:2:qcm:2:choice:1'},
+                                           'data': 'choice (yes)',
+                                           'metadata': {'id': 'Exercise:test:2:qcm:2:choice:1'}},
+                                          {'attr': {'class': 'tree_Exercise:test:2:qcm:2:choice',
+                                                    'id': 'tree_Exercise:test:2:qcm:2:choice:2'},
+                                           'data': 'choice (no)',
+                                           'metadata': {'id': 'Exercise:test:2:qcm:2:choice:2'}}],
+                             'data': 'qcm',
+                             'metadata': {'id': 'Exercise:test:2:qcm:2'}},
+                            {'attr': {'class': 'tree_Exercise:test:2:comments',
+                                      'id': 'tree_Exercise:test:2:comments'},
+                             'children': [{'attr': {'class': 'tree_Exercise:test:2:comments:comment',
+                                                    'id': 'tree_Exercise:test:2:comments:comment:1'},
+                                           'data': 'comment (My comment 1)',
+                                           'metadata': {'id': 'Exercise:test:2:comments:comment:1'}},
+                                          {'attr': {'class': 'tree_Exercise:test:2:comments:comment',
+                                                    'id': 'tree_Exercise:test:2:comments:comment:2'},
+                                           'data': 'comment (My comment 2)',
+                                           'metadata': {'id': 'Exercise:test:2:comments:comment:2'}}],
+                             'data': 'comments',
+                             'metadata': {'id': 'Exercise:test:2:comments'}}],
+               'data': 'test',
+               'metadata': {'id': 'Exercise:test:2'}}],
+ 'data': 'Exercise',
+ 'metadata': {'id': 'Exercise'}}
+        self.assertEqual(dic, expected)
 
     def test_generate_form_child_conditional(self):
         text = '(qcm|mqm)*'
