@@ -53,8 +53,15 @@
 
 (function($){
     
-    $.fn.xmltools = function(){
+    $.fn.xmltools = function(options){
     
+        var settings = $.extend({
+            'on_submit': function(){
+                $(this).find('.deleted').remove();
+                $(this).find('.growing-source').remove();
+            }
+        }, options);
+
         return this.each(function(){
             $(this).on('click', '.delete-button', function(){
                 var container = $(this).parent();
@@ -123,17 +130,7 @@
                 }
             });
 
-            $('body').on('submit', $(this), function(){
-                $(this).find('.deleted').remove();
-                $(this).find('.growing-source').remove();
-            });
-            
+            $('body').on('submit', $(this), settings.on_submit);
         });
     };
-
-
-    $(document).ready(function(){
-        $('#xmltools-form').xmltools();
-    });
-
 })(jQuery);
