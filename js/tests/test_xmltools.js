@@ -555,6 +555,7 @@ test("form submit", function() {
     var obj = $(html);
     var form = obj.find('form');
     form.xmltools();
+    obj.appendTo($("body"));
     form.trigger('submit');
     equal(form.serialize(), 'input1=1&input5=5', 'submit');
     obj.remove();

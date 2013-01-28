@@ -56,21 +56,21 @@
     $.fn.xmltools = function(){
     
         return this.each(function(){
-            $(this).find('.delete-button').live('click', function(){
+            $(this).on('click', '.delete-button', function(){
                 var container = $(this).parent();
                 container.addClass('deleted');
                 container.parent('.container').addClass('inline');
                 container.prev().removeClass('hidden');
                 xmltools.update_conditional_container(container);
             });
-            $(this).find('.growing-delete-button').live('click', function(){
+            $(this).on('click', '.growing-delete-button', function(){
                 if(xmltools.confirm_delete($(this))){
                     var container = $(this).parent();
                     container.addClass('deleted');
                     xmltools.update_conditional_container(container);
                 }
             });
-            $(this).find('.fieldset-delete-button').live('click', function(){
+            $(this).on('click', '.fieldset-delete-button', function(){
                 if(xmltools.confirm_delete($(this))){
                     var container = $(this).parent('legend').parent('fieldset');
                     container.addClass('deleted');
@@ -79,35 +79,35 @@
                     xmltools.update_conditional_container(container);
                 }
             });
-            $(this).find('.growing-fieldset-delete-button').live('click', function(){
+            $(this).on('click', '.growing-fieldset-delete-button', function(){
                 if(xmltools.confirm_delete($(this))){
                     var container = $(this).parent('legend').parent('fieldset').parent('.container');
                     container.addClass('deleted');
                     xmltools.update_conditional_container(container);
                 }
             });
-            $(this).find('.add-button').live('click', function(){
+            $(this).on('click', '.add-button', function(){
                 $(this).next().removeClass('deleted');
                 $(this).addClass('hidden');
                 $(this).parent('.container').removeClass('inline');
             });
-            $(this).find('.growing-add-button').live('click', function(){
-                var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
-                var new_id = id + 1;
-                var container = $(this).parent('.container');
-                var source = container.parent('.growing-container').children('.growing-source').clone();
-                source.removeClass('deleted').removeClass('growing-source');
-                xmltools.replace_id(source, new_id);
-                container.after(source);
-                var container_id = source.attr('id');
-                source.removeAttr('id');
-                source.nextAll('.container').each(function(){
-                    new_id += 1;
-                    xmltools.replace_id($(this), new_id, container_id);
-                });
+        $(this).on('click', '.growing-add-button', function(){
+            var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
+            var new_id = id + 1;
+            var container = $(this).parent('.container');
+            var source = container.parent('.growing-container').children('.growing-source').clone();
+            source.removeClass('deleted').removeClass('growing-source');
+            xmltools.replace_id(source, new_id);
+            container.after(source);
+            var container_id = source.attr('id');
+            source.removeAttr('id');
+            source.nextAll('.container').each(function(){
+                new_id += 1;
+                xmltools.replace_id($(this), new_id, container_id);
             });
+        });
 
-            $(this).find('select.conditional').live('change', function(){
+        $(this).on('change', 'select.conditional', function(){
                 if ($(this).val()){
                     var cls = $(this).val().replace(/:/g, '\\:');
                     var container = $(this).parent().find('.' + cls);
@@ -123,7 +123,7 @@
                 }
             });
 
-            $(this).live('submit', function(){
+            $('body').on('submit', $(this), function(){
                 $(this).find('.deleted').remove();
                 $(this).find('.growing-source').remove();
             });
