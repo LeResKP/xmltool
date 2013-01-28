@@ -212,7 +212,7 @@ test("Button", function() {
         '  </div>',
         '</div>'].join('\n')
     var obj = $(html);
-    obj.appendTo($('body'));
+    obj.xmltools();
     obj.find('.delete-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'delete button');
 
@@ -254,7 +254,7 @@ test("Growing button", function() {
     '</div>',
     ].join('\n')
     var obj = $(html);
-    obj.appendTo($('body'));
+    obj.xmltools();
     obj.find('.growing-add-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'add button');
 
@@ -309,7 +309,7 @@ test("Fieldset button", function() {
     '</div>'
     ].join('\n')
     var obj = $(html);
-    obj.appendTo($('body'));
+    obj.xmltools();
     obj.find('.fieldset-delete-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'delete button');
 
@@ -381,7 +381,7 @@ test("Growing fieldset button", function() {
     '</div>',
     ].join('\n')
     var obj = $(html);
-    obj.appendTo($('body'));
+    obj.xmltools();
     obj.find('.growing-add-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'add button');
 
@@ -423,7 +423,7 @@ test("Select on conditional", function() {
 
     var obj = $(html);
     var select = obj.find('select');
-    obj.appendTo($('body'));
+    obj.xmltools();
     select.trigger('change');
     equal(obj.html(), $(html).html(), 'Nothing has changed')
 
@@ -524,7 +524,7 @@ test("Select on conditional", function() {
     var obj = $(html);
     var select = obj.find('select');
     select.val(select.find('option:last').val());
-    obj.appendTo($('body'));
+    obj.xmltools();
     select.trigger('change');
     equal(obj.html(), $(expected).html(), 'Conditional container with Growing');
     obj.remove();
@@ -535,7 +535,7 @@ test("form submit", function() {
 
     var html = [
     '<div>',
-    '<form action="javascript:">',
+    '<form action="javascript:" class="xmltools-form">',
     '<input type="text" value="1" name="input1" />',
     '<input type="text" value="2" name="input2" class="deleted" />',
     '<div class="deleted">',
@@ -554,7 +554,7 @@ test("form submit", function() {
 
     var obj = $(html);
     var form = obj.find('form');
-    obj.appendTo($('body'));
+    form.xmltools();
     form.trigger('submit');
     equal(form.serialize(), 'input1=1&input5=5', 'submit');
     obj.remove();

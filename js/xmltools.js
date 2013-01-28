@@ -48,81 +48,92 @@
         return confirm(question);
     }
 
-    $(document).ready(function(){
-        $('.delete-button').live('click', function(){
-            var container = $(this).parent();
-            container.addClass('deleted');
-            container.parent('.container').addClass('inline');
-            container.prev().removeClass('hidden');
-            exports.update_conditional_container(container);
-        });
-        $('.growing-delete-button').live('click', function(){
-            if(exports.confirm_delete($(this))){
+}(typeof exports === "undefined"? (this.xmltools={}): exports));
+
+
+(function($){
+    
+    $.fn.xmltools = function(){
+    
+        return this.each(function(){
+            $(this).find('.delete-button').live('click', function(){
                 var container = $(this).parent();
-                container.addClass('deleted');
-                exports.update_conditional_container(container);
-            }
-        });
-        $('.fieldset-delete-button').live('click', function(){
-            if(exports.confirm_delete($(this))){
-                var container = $(this).parent('legend').parent('fieldset');
                 container.addClass('deleted');
                 container.parent('.container').addClass('inline');
                 container.prev().removeClass('hidden');
-                exports.update_conditional_container(container);
-            }
-        });
-        $('.growing-fieldset-delete-button').live('click', function(){
-            if(exports.confirm_delete($(this))){
-                var container = $(this).parent('legend').parent('fieldset').parent('.container');
-                container.addClass('deleted');
-                exports.update_conditional_container(container);
-            }
-        });
-        $('.add-button').live('click', function(){
-            $(this).next().removeClass('deleted');
-            $(this).addClass('hidden');
-            $(this).parent('.container').removeClass('inline');
-        });
-        $('.growing-add-button').live('click', function(){
-            var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
-            var new_id = id + 1;
-            var container = $(this).parent('.container');
-            var source = container.parent('.growing-container').children('.growing-source').clone();
-            source.removeClass('deleted').removeClass('growing-source');
-            exports.replace_id(source, new_id);
-            container.after(source);
-            var container_id = source.attr('id');
-            source.removeAttr('id');
-            source.nextAll('.container').each(function(){
-                new_id += 1;
-                exports.replace_id($(this), new_id, container_id);
+                xmltools.update_conditional_container(container);
             });
-        });
-
-        $('select.conditional').live('change', function(){
-            if ($(this).val()){
-                var cls = $(this).val().replace(/:/g, '\\:');
-                var container = $(this).parent().find('.' + cls);
-                container.removeClass('deleted');
-                var growing_source = container.children('.growing-source');
-                if (growing_source.length){
-                    growing_source.children('.growing-add-button').trigger('click');
+            $(this).find('.growing-delete-button').live('click', function(){
+                if(xmltools.confirm_delete($(this))){
+                    var container = $(this).parent();
+                    container.addClass('deleted');
+                    xmltools.update_conditional_container(container);
                 }
-                else{
-                    container.children('.add-button').trigger('click');
+            });
+            $(this).find('.fieldset-delete-button').live('click', function(){
+                if(xmltools.confirm_delete($(this))){
+                    var container = $(this).parent('legend').parent('fieldset');
+                    container.addClass('deleted');
+                    container.parent('.container').addClass('inline');
+                    container.prev().removeClass('hidden');
+                    xmltools.update_conditional_container(container);
                 }
+            });
+            $(this).find('.growing-fieldset-delete-button').live('click', function(){
+                if(xmltools.confirm_delete($(this))){
+                    var container = $(this).parent('legend').parent('fieldset').parent('.container');
+                    container.addClass('deleted');
+                    xmltools.update_conditional_container(container);
+                }
+            });
+            $(this).find('.add-button').live('click', function(){
+                $(this).next().removeClass('deleted');
                 $(this).addClass('hidden');
-            }
-        });
+                $(this).parent('.container').removeClass('inline');
+            });
+            $(this).find('.growing-add-button').live('click', function(){
+                var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
+                var new_id = id + 1;
+                var container = $(this).parent('.container');
+                var source = container.parent('.growing-container').children('.growing-source').clone();
+                source.removeClass('deleted').removeClass('growing-source');
+                xmltools.replace_id(source, new_id);
+                container.after(source);
+                var container_id = source.attr('id');
+                source.removeAttr('id');
+                source.nextAll('.container').each(function(){
+                    new_id += 1;
+                    xmltools.replace_id($(this), new_id, container_id);
+                });
+            });
 
-        $('form').live('submit', function(){
-            $(this).find('.deleted').remove();
-            $(this).find('.growing-source').remove();
+            $(this).find('select.conditional').live('change', function(){
+                if ($(this).val()){
+                    var cls = $(this).val().replace(/:/g, '\\:');
+                    var container = $(this).parent().find('.' + cls);
+                    container.removeClass('deleted');
+                    var growing_source = container.children('.growing-source');
+                    if (growing_source.length){
+                        growing_source.children('.growing-add-button').trigger('click');
+                    }
+                    else{
+                        container.children('.add-button').trigger('click');
+                    }
+                    $(this).addClass('hidden');
+                }
+            });
+
+            $(this).live('submit', function(){
+                $(this).find('.deleted').remove();
+                $(this).find('.growing-source').remove();
+            });
+            
         });
+    };
+
+
+    $(document).ready(function(){
+        $('#xmltools-form').xmltools();
     });
 
-}(typeof exports === "undefined"
-        ? (this.xmltools = {})
-        : exports));
-
+})(jQuery);
