@@ -1,51 +1,55 @@
 (function(exports) {
 
-    exports.replace_id = function(container, new_id, container_id){
-        var container_id = container_id || container.attr('id');
-        var regex = new RegExp('^('+container_id+':)\\d*');
-        var id = container_id.replace(regex, '$1') + ':' + new_id;
-        $(container).each(function(){
-            $(this).find('[id^="'+container_id+':"]').each(function(){
-                var v_id = $(this).attr('id');
-                if(typeof(v_id) != 'undefined'){
-                    $(this).attr('id', v_id.replace(regex, id));
-                }
+    functions = {
+        replace_id: function(container, new_id, container_id){
+            var container_id = container_id || container.attr('id');
+            var regex = new RegExp('^('+container_id+':)\\d*');
+            var id = container_id.replace(regex, '$1') + ':' + new_id;
+            $(container).each(function(){
+                $(this).find('[id^="'+container_id+':"]').each(function(){
+                    var v_id = $(this).attr('id');
+                    if(typeof(v_id) != 'undefined'){
+                        $(this).attr('id', v_id.replace(regex, id));
+                    }
+                });
+                $(this).find('[name^="'+container_id+':"]').each(function(){
+                    var v_name = $(this).attr('name');
+                    if(typeof(v_name) != 'undefined'){
+                        $(this).attr('name', v_name.replace(regex, id));
+                    }
+                });
             });
-            $(this).find('[name^="'+container_id+':"]').each(function(){
-                var v_name = $(this).attr('name');
-                if(typeof(v_name) != 'undefined'){
-                    $(this).attr('name', v_name.replace(regex, id));
-                }
+        },
+        has_field: function(container){
+            var found=false;
+            container.find('.conditional-option').each(function(){
+                $(this).children().each(function(){
+                    if (! $(this).hasClass('growing-source') && ! $(this).hasClass('deleted') && !$(this).is('a')){
+                        found=true;
+                        return true;
+                    }
+                });
             });
-        });
-    }
+            return found;
+        },
 
-    exports.has_field = function(container){
-        var found=false;
-        container.find('.conditional-option').each(function(){
-            $(this).children().each(function(){
-                if (! $(this).hasClass('growing-source') && ! $(this).hasClass('deleted') && !$(this).is('a')){
-                    found=true;
-                    return true;
+        update_conditional_container: function(obj){
+            if (obj.parent().hasClass('conditional-option')){
+                var conditional_container = obj.parent().parent();
+                if (! exports.has_field(conditional_container)){
+                    conditional_container.children(':first').removeClass('hidden');
+                    conditional_container.find('.conditional-option').addClass('deleted');
                 }
-            });
-        });
-        return found;
-    }
-
-    exports.update_conditional_container = function(obj){
-        if (obj.parent().hasClass('conditional-option')){
-            var conditional_container = obj.parent().parent();
-            if (! exports.has_field(conditional_container)){
-                conditional_container.children(':first').removeClass('hidden');
-                conditional_container.find('.conditional-option').addClass('deleted');
             }
+        },
+        confirm_delete: function(button){
+            var question = 'Are you sure you want to delete this ' + button.text().replace('Delete ', '');
+            return confirm(question);
         }
     }
 
-    exports.confirm_delete = function(button){
-        var question = 'Are you sure you want to delete this ' + button.text().replace('Delete ', '');
-        return confirm(question);
+    for (key in functions){
+        exports[key] = functions[key];
     }
 
 }(typeof exports === "undefined"? (this.xmltools={}): exports));
