@@ -49,3 +49,10 @@ def validate_xml(xml_obj, dtd_str):
     dtd_obj = etree.DTD(StringIO.StringIO(dtd_str))
     dtd_obj.assertValid(xml_obj)
     return True
+
+
+def to_int(value):
+    try:
+        return int(value)
+    except ValueError:
+        return None

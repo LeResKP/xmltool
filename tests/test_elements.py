@@ -4,25 +4,25 @@ from unittest import TestCase
 from lxml import etree
 import os.path
 from xmltools import dtd_parser, utils, factory
-from xmltools.elements import TextElement, get_id
+from xmltools.elements import TextElement, generate_id
 from test_dtd_parser import BOOK_XML, BOOK_DTD, EXERCISE_XML_2, EXERCISE_DTD_2
 import simplejson as json
 
 
 class TestFunction(TestCase):
 
-    def test_get_id(self):
+    def test_generate_id(self):
         class Comment(TextElement):
             tagname = 'comment'
-        result = get_id(Comment)
+        result = generate_id(Comment)
         expected = 'comment'
         self.assertEqual(result, expected)
 
-        result = get_id(Comment, prefix_id='prefix')
+        result = generate_id(Comment, prefix_id='prefix')
         expected = 'prefix:comment'
         self.assertEqual(result, expected)
 
-        result = get_id(Comment, prefix_id='prefix', index=10)
+        result = generate_id(Comment, prefix_id='prefix', index=10)
         expected = 'prefix:comment:10'
         self.assertEqual(result, expected)
 
@@ -325,7 +325,7 @@ class TestElement(TestCase):
 
         try:
             mqm_list = test1.create('mqm')
-            assert 0
+            assert0
         except Exception, e:
             self.assertEqual(str(e), "You can't add a mqm since it already contains a qcm")
 
@@ -333,11 +333,11 @@ class TestElement(TestCase):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         expected = {
             'children': [
-                {'data': 'comment (Excerice:comments)',
+                {'data': 'comment',
                  'attr': {
-                     'id': 'tree_1:comment',
-                     'class': 'tree_1:comment'},
-                 'metadata': {'id': '1:comment'}}],
+                     'id': 'tree_Excerice:comments:comment:1',
+                     'class': 'tree_Excerice:comments:comment'},
+                 'metadata': {'id': 'Excerice:comments:comment:1'}}],
             'data': 'comments',
             'attr': {
                 'id': 'tree_Excerice:comments',
@@ -357,10 +357,10 @@ class TestElement(TestCase):
 
         expected = {
             'children': [
-                {'data': 'question (Excerice:test)',
-                 'attr': {'id': 'tree_question',
-                          'class': 'tree_question'},
-                 'metadata': {'id': 'question'}}],
+                {'data': 'question',
+                 'attr': {'id': 'tree_Excerice:test:question',
+                          'class': 'tree_Excerice:test:question'},
+                 'metadata': {'id': 'Excerice:test:question'}}],
             'data': 'test',
             'attr': {
                 'id': 'tree_Excerice:test',
@@ -371,11 +371,11 @@ class TestElement(TestCase):
 
         expected = {
             'children': [
-                {'data': 'choice (Excerice:qcm)',
+                {'data': 'choice',
                  'attr': {
-                     'id': 'tree_1:choice',
-                     'class': 'tree_1:choice'},
-                 'metadata': {'id': '1:choice'}}],
+                     'id': 'tree_Excerice:qcm:choice:1',
+                     'class': 'tree_Excerice:qcm:choice'},
+                 'metadata': {'id': 'Excerice:qcm:choice:1'}}],
             'data': 'qcm',
             'attr': {
                 'id': 'tree_Excerice:qcm',
@@ -386,17 +386,18 @@ class TestElement(TestCase):
 
         expected = {
             'children': [
-                {'data': 'choice (Excerice:qcm:0)',
+                {'data': 'choice',
                  'attr': {
-                     'id': 'tree_1:choice',
-                     'class': 'tree_1:choice'},
-                 'metadata': {'id': '1:choice'}}],
+                     'id': 'tree_Excerice:qcm:0:choice:1',
+                     'class': 'tree_Excerice:qcm:0:choice'},
+                 'metadata': {'id': 'Excerice:qcm:0:choice:1'}}],
             'data': 'qcm',
             'attr': {
                 'id': 'tree_Excerice:qcm:0',
                 'class': 'tree_Excerice:qcm'},
             'metadata': {'id': 'Excerice:qcm:0'}}
         result = gen.dtd_classes['qcm'].to_jstree_dict('Excerice', number=0)
+        self.maxDiff = None
         self.assertEqual(result, expected)
 
     def test_to_jstree_json(self):

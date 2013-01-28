@@ -32,4 +32,11 @@ class TestUtils(TestCase):
             assert 0
         except etree.DocumentInvalid:
             pass
+    
+    def test_to_int(self):
+        result = utils.to_int('bob')
+        self.assertEqual(result, None)
 
+        result = utils.to_int('10')
+        self.assertEqual(result, 10)
+        

@@ -5,7 +5,7 @@ import utils
 import simplejson as json
 
 
-def get_id(cls, prefix_id=None, index=None):
+def generate_id(cls, prefix_id=None, index=None):
     """Get the id put on the form objects (input, textarea, ...)
 
     :param cls: the class we want to get the HTML id
@@ -73,8 +73,8 @@ class TextElement(object):
 
     @classmethod
     def to_jstree_dict(cls, value=None, prefix_id=None, number=None, **kw):
-        ident = get_id(cls, prefix_id, number)
-        css_class = get_id(cls, prefix_id)
+        ident = generate_id(cls, prefix_id, number)
+        css_class = generate_id(cls, prefix_id)
         data = cls.tagname
         if value:
             # TODO: Make a nice cut of value
@@ -248,8 +248,8 @@ class Element(object):
 
     @classmethod
     def to_jstree_dict(cls, prefix_id=None, number=None, skip_children=False):
-        ident = get_id(cls, prefix_id, number)
-        css_class = get_id(cls, prefix_id)
+        ident = generate_id(cls, prefix_id, number)
+        css_class = generate_id(cls, prefix_id)
 
         if not skip_children:
             children = []
@@ -259,7 +259,7 @@ class Element(object):
                     i = None
                     if c.islist:
                         i = 1
-                    children += [k.to_jstree_dict(ident, i)]
+                    children += [k.to_jstree_dict(prefix_id=ident, number=i)]
 
         dic = {
             'data': cls.tagname,

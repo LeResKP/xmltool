@@ -1162,3 +1162,58 @@ class TestGenerator3(TestCase):
         self.assertEqual(obj.value, None)
         self.assertEqual(obj.attrs, {})
 
+    def test_split_id(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        cls, ident, parent_id = gen.split_id('test')
+        self.assertEqual(cls.__name__, 'test')
+        self.assertEqual(ident, None)
+        self.assertEqual(parent_id, '')
+
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        cls, ident, parent_id = gen.split_id('Exercise:test:qcm:0')
+        self.assertEqual(cls.__name__, 'qcm')
+        self.assertEqual(ident, 0)
+        self.assertEqual(parent_id, 'Exercise:test')
+
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        cls, ident, parent_id = gen.split_id('Exercise:test:qcm:0:choice:1')
+        self.assertEqual(cls.__name__, 'choice')
+        self.assertEqual(ident, 1)
+        self.assertEqual(parent_id, 'Exercise:test:qcm:0')
+
+    def test_split_id_not_valid(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        try:
+            cls, ident, parent_id = gen.split_id('plop')
+            assert False
+        except Exception, e:
+            self.assertEqual(str(e), 'plop is not a valid element')
+
+    def test_get_previous_element_for_jstree(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        expected = [('#tree_Exercise:test:0', 'inside')]
+        result = gen.get_previous_element_for_jstree(
+            'Exercise:test:0:question')
+        self.assertEqual(result, expected)
+
+        expected = [('.tree_Exercise:test:0:mqm', 'after'),
+                    ('.tree_Exercise:test:0:qcm', 'after'),
+                    ('#tree_Exercise:test:0:question', 'after'),
+                    ('#tree_Exercise:test:0', 'inside')]
+        result = gen.get_previous_element_for_jstree('Exercise:test:0:qcm:1')
+        self.assertEqual(result, expected)
+        
+        expected = [('#tree_Exercise:test:0:mqm:1', 'after'),
+                    ('#tree_Exercise:test:0:qcm:1', 'after'),
+                    ('#tree_Exercise:test:0:question', 'after'),
+                    ('#tree_Exercise:test:0', 'inside')]
+        result = gen.get_previous_element_for_jstree('Exercise:test:0:qcm:2')
+        self.assertEqual(result, expected)
+
+        expected = [('.tree_Exercise:test:0:mqm', 'after'),
+                    ('.tree_Exercise:test:0:qcm', 'after'),
+                    ('#tree_Exercise:test:0:question', 'after'),
+                    ('#tree_Exercise:test:0', 'inside')]
+        result = gen.get_previous_element_for_jstree(
+            'Exercise:test:0:comments')
+        self.assertEqual(result, expected)

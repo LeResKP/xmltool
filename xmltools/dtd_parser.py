@@ -2,7 +2,7 @@ import re
 from lxml import etree
 import forms
 import utils
-from elements import Element, SubElement, TextElement, ElementList
+from elements import Element, SubElement, TextElement, ElementList, generate_id
 import simplejson as json
 
 
@@ -456,3 +456,69 @@ class Generator(object):
             return None
         return obj
 
+    def split_id(self, ident):
+        """Split the given ident to find the right class, the index (may be
+        None) and the parent id.
+
+        :param ident: HTML identifier like (Excercise:test:choice:1)
+        :type ident: str
+        :return: cls, index, parent_id
+        :rtype: tuple
+        """
+        splitted = ident.split(':')
+        eltname = splitted.pop()
+        index = utils.to_int(eltname)
+        if index is not None:
+            eltname = splitted.pop()
+
+        if eltname not in self.dtd_classes:
+            raise Exception('%s is not a valid element' % eltname)
+
+        cls = self.dtd_classes[eltname]
+        return cls, index, ':'.join(splitted)
+
+    def get_previous_element_for_jstree(self, ident):
+        """Find the previous element from the given ident. We also get the
+        position where this element should be inserted in the tree.
+
+        :param ident: HTML identifier like (Excercise:test:choice:1)
+        :type ident: str
+        :return: the list of the previous elements and the position
+        :rtype: list of tuple
+        """
+        cls, ident, parent_id = self.split_id(ident)
+        parent_cls, parent_ident, parent_parent_id = self.split_id(parent_id)
+
+        lis = []
+        found = False
+        for elt in parent_cls._sub_elements:
+            for tn in (elt._conditional_names or [elt.tagname]):
+                if cls.tagname == tn:
+                    found = True
+
+                subcls = self.dtd_classes[tn]
+                selector = None
+                if elt.islist:
+                    if found and ident > 1:
+                        selector = ('#tree_%s' % generate_id(subcls, parent_id,
+                                                             ident-1), 'after')
+                    else:
+                        selector = ('.tree_%s' % generate_id(subcls, parent_id),
+                                'after')
+                elif not found:
+                    selector = ('#tree_%s' % generate_id(subcls, parent_id),
+                                'after')
+
+                if selector:
+                    lis += [selector]
+            if found:
+                break
+
+        lis.reverse()
+        ident = generate_id(parent_cls, parent_parent_id, parent_ident)
+        # Also add the parent in case there is no child!
+        if parent_ident is not None:
+            lis += [('#tree_%s' % ident, 'inside')]
+        else:
+            lis += [('.tree_%s' % ident, 'inside')]
+        return lis
