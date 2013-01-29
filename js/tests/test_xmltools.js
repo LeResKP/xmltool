@@ -1,4 +1,4 @@
-QUnit.module('Test functions');
+QUnit.module('Test xmltools functions');
 
 test("xmltools.replace_id", function() {
     expect(3);
@@ -559,6 +559,210 @@ test("form submit", function() {
     form.trigger('submit');
     equal(form.serialize(), 'input1=1&input5=5', 'submit');
     obj.remove();
+});
+
+
+QUnit.module('Test xmltools.jstree functions');
+test("xmltools.jstree.update_node", function() {
+    expect(6);
+    var node = $('<li class="tree_test:old:1 class1 class2" />');
+    node.data('id', 'test:old:1');
+    xmltools.jstree.update_node(node, 'test:old:1', 'test:new:1');
+    equal(node.attr('id'), 'tree_test:new:1', 'id updated');
+    equal(node.data('id'), 'test:new:1', 'data id updated');
+    equal(node.attr('class'), 'tree_test:new:1 class1 class2', 'class updated');
+
+    var node = $('<li class="tree_test:old:1:question class1 class2" />');
+    node.data('id', 'test:old:1:question');
+    xmltools.jstree.update_node(node, 'test:old:1', 'test:new:1');
+    equal(node.attr('id'), 'tree_test:new:1:question', 'id updated');
+    equal(node.data('id'), 'test:new:1:question', 'data id updated');
+    equal(node.attr('class'), 'tree_test:new:1:question class1 class2', 'class updated');
+});
+
+test("xmltools.jstree.increment_id", function() {
+    expect(9);
+    var html = [
+    '<ul>',
+    '  <li id="tree_test:comment:1" class="tree_test:comment"></li> ',
+    '  <li id="tree_test:comment:1" class="tree_test:comment"></li> ',
+    '  <li id="tree_test:comment:4"></li> ',
+    '</ul>',
+    ].join('\n');
+    
+    var obj = $(html);
+    var lis = obj.find('li');
+    obj.find('li').each(function(){
+        $(this).data('id', $(this).attr('id').replace('tree_', ''));
+    });
+    var node = obj.find('li:first');
+    xmltools.jstree.increment_id(node);
+    equal($(lis[0]).attr('id'), 'tree_test:comment:1', "current node attr id hasn't changed");
+    equal($(lis[0]).data('id'), 'test:comment:1', "current node data id hasn't changed");
+    equal($(lis[0]).attr('class'), 'tree_test:comment', "current node class hasn't changed");
+
+    equal($(lis[1]).attr('id'), 'tree_test:comment:2', "sibling node attr id has changed");
+    equal($(lis[1]).data('id'), 'test:comment:2', "sibling node data id has changed");
+    equal($(lis[1]).attr('class'), 'tree_test:comment', "sibling node class has changed");
+
+    equal($(lis[2]).attr('id'), 'tree_test:comment:4', "no class node attr id hasn't changed");
+    equal($(lis[2]).data('id'), 'test:comment:4', "no class node data id hasn't changed");
+    equal($(lis[2]).attr('class'), '', "no class node class hasn't changed");
+});
+
+test("xmltools.jstree.increment_id with children", function() {
+    expect(9);
+    var html = [
+    '<ul>',
+    '  <li id="tree_test:comment:1" class="tree_test:comment"></li>',
+    '  <li id="tree_test:comment:1" class="tree_test:comment">',
+    '  <ul>',
+    '    <li id="tree_test:comment:1:username" class="tree_test:comment:1:username">',
+    '  </ul>',
+    '  </li> ',
+    '</ul>',
+    ].join('\n');
+    
+    var obj = $(html);
+    var lis = obj.find('li');
+    obj.find('li').each(function(){
+        $(this).data('id', $(this).attr('id').replace('tree_', ''));
+    });
+    var node = obj.find('li:first');
+    xmltools.jstree.increment_id(node);
+    equal($(lis[0]).attr('id'), 'tree_test:comment:1', "current node attr id hasn't changed");
+    equal($(lis[0]).data('id'), 'test:comment:1', "current node data id hasn't changed");
+    equal($(lis[0]).attr('class'), 'tree_test:comment', "current node class hasn't changed");
+
+    equal($(lis[1]).attr('id'), 'tree_test:comment:2', "sibling node attr id has changed");
+    equal($(lis[1]).data('id'), 'test:comment:2', "sibling node data id has changed");
+    equal($(lis[1]).attr('class'), 'tree_test:comment', "sibling node class has changed");
+
+    equal($(lis[2]).attr('id'), 'tree_test:comment:2:username', "child attr id has changed");
+    equal($(lis[2]).data('id'), 'test:comment:2:username', "child data id has changed");
+    equal($(lis[2]).attr('class'), 'tree_test:comment:2:username', "child class has changed");
+});
+
+
+test("xmltools.jstree.create_nodes", function() {
+    expect(3);
+    var tree = $('<div id="tree"></div>');
+    var node = {
+        data: 'node 1',
+        attr: {
+            'id': 'id1',
+            'class': 'class1'
+        }
+    }
+    tree.jstree();
+    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    expected = [
+        '<ul>',
+        '<li id="id1" class="class1 jstree-last jstree-leaf">',
+        '<ins class="jstree-icon">&nbsp;</ins>',
+        '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 1</a>',
+        '</li>',
+        '</ul>'
+    ].join('');
+    equal(tree.html(), expected, 'add node');
+
+    var tree = $('<div id="tree"></div>');
+    var node = {
+        data: 'node 1',
+        attr: {
+            'id': 'tree_id:1',
+            'class': 'tree_class'
+        },
+        metadata:{
+            'id': 'id:1'
+        },
+        children: [{
+            data: 'node 2',
+            attr: {
+                'id': 'tree_id2',
+                'class': 'tree_class2'
+            },
+            metadata: {
+                'id': 'id2',
+            }
+        }]
+    }
+    tree.jstree();
+    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    expected = [
+        '<ul>',
+        '<li id="tree_id:1" class="tree_class jstree-last jstree-closed">',
+        '<ins class="jstree-icon">&nbsp;</ins>',
+        '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 1</a>',
+        '<ul>',
+        '<li id="tree_id2" class="tree_class2 jstree-last jstree-leaf">',
+        '<ins class="jstree-icon">&nbsp;</ins>',
+        '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 2</a>',
+        '</li>',
+        '</ul>',
+        '</li>',
+        '</ul>'
+    ].join('');
+    equal(tree.html(), expected, 'add node with children');
+
+    var node = {
+        data: 'node 3',
+        attr: {
+            'id': 'tree_id:1',
+            'class': 'tree_class'
+        },
+        metadata:{
+            'id': 'id:1',
+        }
+    }
+    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    expected = [
+        '<ul>',
+        '<li id="tree_id:1" class="tree_class jstree-leaf">',
+        '<ins class="jstree-icon">&nbsp;</ins>',
+        '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 3</a>',
+        '</li>',
+        '<li id="tree_id:2" class="tree_class jstree-closed jstree-last">',
+        '<ins class="jstree-icon">&nbsp;</ins>',
+        '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 1</a>',
+        '<ul>',
+        '<li id="tree_id2" class="tree_class2 jstree-leaf jstree-last">',
+        '<ins class="jstree-icon">&nbsp;</ins>',
+        '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 2</a>',
+        '</li>',
+        '</ul>',
+        '</li>',
+        '</ul>'
+    ].join('')
+    equal(tree.html(), expected, 'add node with increment_id');
+});
+
+test("xmltools.jstree.delete_node", function() {
+    expect(2);
+
+    var tree = $('<div id="tree"></div>');
+    var node = {
+        data: 'node 1',
+        attr: {
+            'id': 'tree_id1',
+            'class': 'class1'
+        }
+    }
+    tree.jstree();
+    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    expected = [
+        '<ul>',
+        '<li id="tree_id1" class="class1 jstree-last jstree-leaf">',
+        '<ins class="jstree-icon">&nbsp;</ins>',
+        '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 1</a>',
+        '</li>',
+        '</ul>'
+    ].join('');
+    equal(tree.html(), expected, 'add node');
+    
+    var elt = $('<div id="id1"></div>');
+    xmltools.jstree.delete_node(tree, elt);
+    equal(tree.html(), '<ul></ul>', 'delete node');
 });
 
 /*
