@@ -1196,9 +1196,7 @@ class TestGenerator3(TestCase):
             'Exercise:test:0:question')
         self.assertEqual(result, expected)
 
-        expected = [('.tree_Exercise:test:0:mqm', 'after'),
-                    ('.tree_Exercise:test:0:qcm', 'after'),
-                    ('#tree_Exercise:test:0:question', 'after'),
+        expected = [('#tree_Exercise:test:0:question', 'after'),
                     ('#tree_Exercise:test:0', 'inside')]
         result = gen.get_previous_element_for_jstree('Exercise:test:0:qcm:1')
         self.assertEqual(result, expected)

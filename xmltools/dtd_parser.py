@@ -499,9 +499,10 @@ class Generator(object):
                 subcls = self.dtd_classes[tn]
                 selector = None
                 if elt.islist:
-                    if found and ident > 1:
-                        selector = ('#tree_%s' % generate_id(subcls, parent_id,
-                                                             ident-1), 'after')
+                    if found:
+                        if ident > 1:
+                            selector = ('#tree_%s' % generate_id(
+                                subcls, parent_id, ident-1), 'after')
                     else:
                         selector = ('.tree_%s' % generate_id(subcls, parent_id),
                                 'after')
