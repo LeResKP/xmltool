@@ -170,7 +170,7 @@
         }
 
         return this.each(function(){
-            $(this).on('click', '.delete-button', function(){
+            $(this).find('.delete-button').on('click', function(){
                 var container = $(this).parent();
                 container.addClass('deleted');
                 container.parent('.container').addClass('inline');
@@ -178,7 +178,7 @@
                 xmltools.update_conditional_container(container);
                 on_delete($(this).next());
             });
-            $(this).on('click', '.growing-delete-button', function(){
+            $(this).find('.growing-delete-button').on('click', function(){
                 if(xmltools.confirm_delete($(this))){
                     var container = $(this).parent();
                     container.addClass('deleted');
@@ -186,7 +186,7 @@
                     on_delete($(this).next());
                 }
             });
-            $(this).on('click', '.fieldset-delete-button', function(){
+            $(this).find('.fieldset-delete-button').on('click', function(){
                 if(xmltools.confirm_delete($(this))){
                     var container = $(this).parent('legend').parent('fieldset');
                     container.addClass('deleted');
@@ -196,7 +196,7 @@
                     on_delete(container);
                 }
             });
-            $(this).on('click', '.growing-fieldset-delete-button', function(){
+            $(this).find('.growing-fieldset-delete-button').on('click', function(){
                 if(xmltools.confirm_delete($(this))){
                     var fieldset = $(this).parent('legend').parent('fieldset')
                     var container = fieldset.parent('.container');
@@ -205,7 +205,7 @@
                     on_delete(fieldset);
                 }
             });
-            $(this).on('click', '.add-button', function(){
+            $(this).find('.add-button').on('click', function(){
                 $(this).next().removeClass('deleted');
                 $(this).addClass('hidden');
                 $(this).parent('.container').removeClass('inline');
@@ -215,7 +215,7 @@
                 on_add(child);
             });
 
-        $(this).on('click', '.growing-add-button', function(){
+        $(this).find('.growing-add-button').on('click',function(){
             var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
             var new_id = id + 1;
             var container = $(this).parent('.container');
@@ -235,7 +235,7 @@
             });
         });
 
-        $(this).on('change', 'select.conditional', function(){
+        $(this).find('select.conditional').on('change', function(){
                 if ($(this).val()){
                     var cls = $(this).val().replace(/:/g, '\\:');
                     var container = $(this).parent().find('.' + cls);
@@ -251,7 +251,7 @@
                 }
             });
 
-            $('body').on('submit', $(this), settings.on_submit);
+            $(this).on('submit', settings.on_submit);
         });
     };
 })(jQuery);
