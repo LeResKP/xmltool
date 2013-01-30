@@ -95,6 +95,8 @@ def update_xml_file(xml_filename, data, validate_xml=True, transform=None):
     dtd_url = data['_dtd_url']
     root_tag = data['_root_tag']
 
+    # We don't need the root tag to generate the dict.
+    data = data[root_tag]
     gen = Generator(dtd_url=dtd_url)
     obj = gen.dict_to_obj(root_tag, data)
 

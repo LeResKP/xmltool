@@ -54,7 +54,9 @@ class TestFactory(TestCase):
                 '_encoding': 'UTF-8',
                 '_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
                 '_root_tag': 'Exercise',
-                'Exercise.question': 'How are you?',
+                'Exercise': {
+                    'Exercise.question': 'How are you?',
+                },
             }
             obj = factory.update_xml_file(filename, data)
             self.assertTrue(obj)
