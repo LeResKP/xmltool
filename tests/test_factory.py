@@ -83,3 +83,18 @@ class TestFactory(TestCase):
             if os.path.isfile(filename):
                 os.remove(filename)
 
+    def test_get_jstree_node_data(self):
+        dtd_url = 'http://xml-tools.lereskp.fr/static/exercise.dtd'
+        elt_id = 'Exercise:question'
+        dic = factory.get_jstree_node_data(dtd_url, elt_id)
+        self.assertEqual(len(dic), 2)
+        expected_elt = {
+            'data': 'question', 
+            'attr': {'id': 'tree_Exercise:question',
+                     'class': 'tree_Exercise:question'},
+            'metadata': {'id': 'Exercise:question'}}
+        self.assertEqual(dic['elt'], expected_elt)
+        expected_previous = [('.tree_Exercise:test', 'after'),
+                             ('#tree_Exercise:number', 'after'),
+                             ('.tree_:Exercise', 'inside')]
+        self.assertEqual(dic['previous'], expected_previous)

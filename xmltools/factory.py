@@ -101,3 +101,23 @@ def update_xml_file(xml_filename, data, validate_xml=True, transform=None):
     obj.write(xml_filename, encoding, validate_xml, transform)
     return obj
 
+
+def get_jstree_node_data(dtd_url, elt_id):
+    """Generate the data need to add a jstree node.
+
+    :param dtd_url: the dtd url we are working on.
+    :type dtd_url: str
+    :param elt_id: the HTML id attribute of the element we are adding.
+    :type elt_id: str
+    :return: The node element and the possible previous postions where we can
+    insert it.
+    :rtype: dict
+    """
+    gen = Generator(dtd_url=dtd_url)
+    cls, ident, parent_id = gen.split_id(elt_id)
+    elt = cls.to_jstree_dict(prefix_id=parent_id, number=ident)
+    previous = gen.get_previous_element_for_jstree(elt_id)
+    return {
+        'elt': elt,
+        'previous': previous,
+    }
