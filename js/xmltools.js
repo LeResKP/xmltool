@@ -235,6 +235,14 @@
             });
         });
 
+        
+        if (tree && tree.length){
+            $(this).find('textarea').focus(function(){
+                var id = $(this).attr('id').replace(/:/g, '\\:');
+                tree.jstree('hover_node', $('#tree_' + id));
+            });
+        }
+
         $(this).find('select.conditional').on('change', function(){
                 if ($(this).val()){
                     var cls = $(this).val().replace(/:/g, '\\:');
