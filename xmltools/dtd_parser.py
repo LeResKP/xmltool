@@ -293,7 +293,7 @@ class Generator(object):
             return {}
 
         if isinstance(obj, TextElement):
-            return obj.to_jstree_dict(obj.value, prefix_id, index)
+            return obj.to_jstree_dict(clear_value(obj.value), prefix_id, index)
 
         dic =  obj.to_jstree_dict(prefix_id, index, skip_children=True)
 
