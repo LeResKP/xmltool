@@ -264,7 +264,13 @@
                 var elt = $('#tree_' + id).find('a')
                 var text = elt.html();
                 text = text.replace(/\(.*/, '');
-                elt.html(text + ' (' + xmltools.truncate($(this).val(), 30) + ')');
+                if($(this).val()){
+                    elt.html(text + ' (' + xmltools.truncate($(this).val(), 30) + ')');
+                }
+                else{
+                    elt.html(text);
+                }
+                
             });
         }
 
