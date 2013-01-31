@@ -171,23 +171,24 @@
             tree = $(settings['jstree_selector']);
         }
 
-        var on_delete = function(elt){
-            if (tree && tree.length){
-                xmltools.jstree.delete_node(tree, elt);
-            }
-        };
+        var set_btn_event = function(p){
 
-        var on_add = function(elt){
-            if (tree && tree.length){
-                var url = settings.jstree_url;
-                if (url){
-                    xmltools.jstree.add_node(url, tree, elt);
+            var on_delete = function(elt){
+                if (tree && tree.length){
+                    xmltools.jstree.delete_node(tree, elt);
+                }
+            };
+
+            var on_add = function(elt){
+                if (tree && tree.length){
+                    var url = settings.jstree_url;
+                    if (url){
+                        xmltools.jstree.add_node(url, tree, elt);
+                    }
                 }
             }
-        }
 
-        return this.each(function(){
-            $(this).find('.delete-button').on('click', function(){
+            p.find('.delete-button').on('click', function(){
                 var container = $(this).parent();
                 container.addClass('deleted');
                 container.parent('.container').addClass('inline');
@@ -195,7 +196,7 @@
                 xmltools.update_conditional_container(container);
                 on_delete($(this).next());
             });
-            $(this).find('.growing-delete-button').on('click', function(){
+            p.find('.growing-delete-button').on('click', function(){
                 if(xmltools.confirm_delete($(this))){
                     var container = $(this).parent();
                     container.addClass('deleted');
@@ -203,7 +204,7 @@
                     on_delete($(this).next());
                 }
             });
-            $(this).find('.fieldset-delete-button').on('click', function(){
+            p.find('.fieldset-delete-button').on('click', function(){
                 if(xmltools.confirm_delete($(this))){
                     var container = $(this).parent('legend').parent('fieldset');
                     container.addClass('deleted');
@@ -213,7 +214,7 @@
                     on_delete(container);
                 }
             });
-            $(this).find('.growing-fieldset-delete-button').on('click', function(){
+            p.find('.growing-fieldset-delete-button').on('click', function(){
                 if(xmltools.confirm_delete($(this))){
                     var fieldset = $(this).parent('legend').parent('fieldset')
                     var container = fieldset.parent('.container');
@@ -222,7 +223,7 @@
                     on_delete(fieldset);
                 }
             });
-            $(this).find('.add-button').on('click', function(){
+            p.find('.add-button').on('click', function(){
                 $(this).next().removeClass('deleted');
                 $(this).addClass('hidden');
                 $(this).parent('.container').removeClass('inline');
@@ -232,29 +233,30 @@
                 on_add(child);
             });
 
-        $(this).find('.growing-add-button').on('click',function(){
-            var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
-            var new_id = id + 1;
-            var container = $(this).parent('.container');
-            var source = container.parent('.growing-container').children('.growing-source').clone();
-            source.removeClass('deleted').removeClass('growing-source');
-            xmltools.replace_id(source, new_id);
-            container.after(source);
-            var container_id = source.attr('id');
-            source.removeAttr('id');
-            var child = source.children('fieldset');
-            if (!child.length)
-                child = source.children('textarea');
-            on_add($(child[0]));
-            source.nextAll('.container').each(function(){
-                new_id += 1;
-                xmltools.replace_id($(this), new_id, container_id);
+            p.find('.growing-add-button').on('click',function(){
+                var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
+                var new_id = id + 1;
+                var container = $(this).parent('.container');
+                var source = container.parent('.growing-container').children('.growing-source').clone();
+                source.removeClass('deleted').removeClass('growing-source');
+                xmltools.replace_id(source, new_id);
+                set_btn_event(source);
+                container.after(source);
+                var container_id = source.attr('id');
+                source.removeAttr('id');
+                var child = source.children('fieldset');
+                if (!child.length)
+                    child = source.children('textarea');
+                on_add($(child[0]));
+                source.nextAll('.container').each(function(){
+                    new_id += 1;
+                    xmltools.replace_id($(this), new_id, container_id);
+                });
             });
-        });
 
         
         if (tree && tree.length){
-            $(this).find('textarea').focus(function(){
+            p.find('textarea').focus(function(){
                 var id = $(this).attr('id').replace(/:/g, '\\:');
                 tree.jstree('hover_node', $('#tree_' + id));
             }).blur(function(){
@@ -266,7 +268,7 @@
             });
         }
 
-        $(this).find('select.conditional').on('change', function(){
+        p.find('select.conditional').on('change', function(){
                 if ($(this).val()){
                     var cls = $(this).val().replace(/:/g, '\\:');
                     var container = $(this).parent().find('.' + cls);
@@ -281,7 +283,11 @@
                     $(this).addClass('hidden');
                 }
             });
+        
+        }
 
+        return this.each(function(){
+            set_btn_event($(this));
             $(this).on('submit', settings.on_submit);
         });
     };
