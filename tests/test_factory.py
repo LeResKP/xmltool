@@ -98,5 +98,5 @@ class TestFactory(TestCase):
         self.assertEqual(dic['elt'], expected_elt)
         expected_previous = [('.tree_Exercise:test', 'after'),
                              ('#tree_Exercise:number', 'after'),
-                             ('.tree_:Exercise', 'inside')]
+                             ('.tree_Exercise', 'inside')]
         self.assertEqual(dic['previous'], expected_previous)

@@ -14,7 +14,7 @@ def generate_id(cls, prefix_id=None, index=None):
     :rtype: str
     """
     lis = [prefix_id, cls.tagname, index]
-    lis = map(str, filter(lambda x: x is not None,  lis))
+    lis = map(str, filter(lambda x: x not in [None, ''],  lis))
     return ':'.join(lis)
 
 
