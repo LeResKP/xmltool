@@ -44,6 +44,23 @@
         confirm_delete: function(button){
             var question = 'Are you sure you want to delete this ' + button.text().replace('Delete ', '');
             return confirm(question);
+        },
+        truncate: function (str, limit) {
+            var bits, i;
+            bits = str.split('');
+            if (bits.length > limit) {
+                for (i = bits.length - 1; i > -1; --i) {
+                    if (i > limit) {
+                        bits.length = i;
+                    }
+                    else if (' ' === bits[i]) {
+                        bits.length = i;
+                        break;
+                    }
+                }
+                bits.push('...');
+            }
+            return bits.join('');
         }
     }
 
@@ -240,6 +257,12 @@
             $(this).find('textarea').focus(function(){
                 var id = $(this).attr('id').replace(/:/g, '\\:');
                 tree.jstree('hover_node', $('#tree_' + id));
+            }).blur(function(){
+                var id = $(this).attr('id').replace(/:/g, '\\:');
+                var elt = $('#tree_' + id).find('a')
+                var text = elt.html();
+                text = text.replace(/\(.*/, '');
+                elt.html(text + ' (' + xmltools.truncate($(this).val(), 30) + ')');
             });
         }
 

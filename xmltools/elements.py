@@ -77,8 +77,7 @@ class TextElement(object):
         css_class = generate_id(cls, prefix_id)
         data = cls.tagname
         if value:
-            # TODO: Make a nice cut of value
-            data = '%s (%s)' % (cls.tagname, value[:50])
+            data = '%s (%s)' % (cls.tagname, utils.truncate(value))
         return {
             'data': data,
             'attr': {

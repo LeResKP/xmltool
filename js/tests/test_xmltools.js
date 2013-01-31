@@ -182,7 +182,16 @@ test("xmltools.update_conditional_container", function() {
     container.addClass('deleted');
     xmltools.update_conditional_container(container)
     equal(obj.html(), $(expected).html(), 'Select is displayed')
-})
+});
+
+test("xmltools.truncate", function() {
+    expect(2);
+    var text = 'Short text';
+    equal(xmltools.truncate(text, 30), text, 'Short text is not truncated');
+    var text = 'This text is very too long and will be truncated';
+    var expected = 'This text is very too long and...';
+    equal(xmltools.truncate(text, 30), expected, 'Long text is truncated');
+});
 
 test("Button", function() {
     expect(2);

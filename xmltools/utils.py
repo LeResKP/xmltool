@@ -56,3 +56,14 @@ def to_int(value):
         return int(value)
     except ValueError:
         return None
+
+
+def truncate(s, limit=30):
+    limit += 1
+    if len(s) > limit:
+        s = s[:limit]
+        for i in xrange(len(s), 0, -1):
+            if s[i-1] == ' ':
+                return s.rstrip() + '...'
+            s = s[:-1]
+    return s
