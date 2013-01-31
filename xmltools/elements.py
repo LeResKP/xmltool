@@ -66,6 +66,8 @@ class TextElement(object):
     _attrs = []
     # if True the tag is not a PCDATA type, it's a EMPTY type
     empty = False
+    #: The source line if load from an xml file
+    sourceline = None
 
     def __init__(self, value=None):
         self.value = value
@@ -107,9 +109,11 @@ class Element(object):
     _sub_elements = []
     #: List of str containing the possible child tag names
     child_tagnames = []
+    #: The source line if load from an xml file
+    sourceline = None
     #: List of allowed properties which can be defined on the objects from this
     # class
-    _allowed_items = ['attrs']
+    _allowed_items = ['attrs', 'sourceline']
 
     def __init__(self):
         self.attrs = {}

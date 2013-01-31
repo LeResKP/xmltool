@@ -207,6 +207,7 @@ class Generator(object):
     def generate_obj(self, xml):
         obj = self.create_obj(xml.tag)
         self.set_attrs_to_obj(obj, xml)
+        obj.sourceline = xml.sourceline
 
         if isinstance(obj, TextElement):
             text = None
