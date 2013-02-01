@@ -112,6 +112,7 @@
                         tree.jstree("create_node", node, 'last', data.children[i]);
                     }
                 }
+                tree.jstree('open_all', node);
             },
             delete_node: function(tree, elt){
                 tree.jstree("delete_node", tree.find('#tree_' + elt.attr('id').replace(/:/g, '\\:')));
