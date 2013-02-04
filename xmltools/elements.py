@@ -258,6 +258,8 @@ class Element(object):
             children = []
             for c in cls._sub_elements:
                 if c.required:
+                    if c.tagname not in cls._generator.dtd_classes:
+                        continue
                     k = cls._generator.dtd_classes[c.tagname]
                     i = None
                     if c.islist:
