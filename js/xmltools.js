@@ -285,7 +285,12 @@
                         growing_source.children('.growing-add-button').trigger('click');
                     }
                     else{
-                        container.children('.add-button').trigger('click');
+                        var button = container.children('.add-button');
+                        if (button.length)
+                            button.trigger('click');
+                        else
+                            // Make sure the tree (if present) is up to date!
+                            on_add(container);
                     }
                     $(this).addClass('hidden');
                 }

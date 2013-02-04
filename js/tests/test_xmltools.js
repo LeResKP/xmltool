@@ -400,7 +400,12 @@ test("Growing fieldset button", function() {
 });
 
 test("Select on conditional", function() {
-    expect(3);
+    expect(10);
+    $('<div id="tree"></div>').appendTo($("body"));
+    var counter = 0;
+    xmltools.jstree.add_node = function(){
+        counter += 1;
+    };
 
     var html = [
     '<div>',
@@ -432,7 +437,10 @@ test("Select on conditional", function() {
 
     var obj = $(html);
     var select = obj.find('select');
-    obj.xmltools();
+    obj.xmltools({
+        jstree_selector: '#tree',
+        jstree_url: 'http://fake.url'
+    });
     select.trigger('change');
     equal(obj.html(), $(html).html(), 'Nothing has changed')
 
@@ -464,10 +472,62 @@ test("Select on conditional", function() {
     '</div>'
     ].join('\n')
 
+    equal(counter, 0, 'Counter has not changed');
     select.val(select.find('option:last').val());
     select.trigger('change');
     equal(obj.html(), $(expected).html(), 'Display last option')
     obj.remove();
+    equal(counter, 1, 'Counter has changed');
+
+
+    var html = [
+        '<div><div class="conditional-container">',
+        '<select class="conditional">',
+        '<option value="">Add new</option>',
+        '<option value="test:test1:option:0">test1</option>',
+        '</select>',
+        '<div class="container">',
+        '<fieldset id="test:test1" class="test1 deleted conditional-option test:test1:option:0">',
+        '<legend>test1</legend>',
+        '<div class="container">',
+        '<label>None</label>',
+        '<textarea name="test:test1:sub1:value" id="test:test1:sub1" class="sub1"></textarea>',
+        '</div>',
+        '</fieldset></div>',
+        '</div></div>',
+    ].join('\n');
+    
+    var expected = [
+        '<div><div class="conditional-container">',
+        '<select class="conditional hidden">',
+        '<option value="">Add new</option>',
+        '<option value="test:test1:option:0">test1</option>',
+        '</select>',
+        '<div class="container">',
+        '<fieldset id="test:test1" class="test1 conditional-option test:test1:option:0">',
+        '<legend>test1</legend>',
+        '<div class="container">',
+        '<label>None</label>',
+        '<textarea name="test:test1:sub1:value" id="test:test1:sub1" class="sub1"></textarea>',
+        '</div>',
+        '</fieldset></div>',
+        '</div></div>',
+    ].join('\n');
+    
+
+    equal(counter, 1, 'Counter has not changed');
+    var obj = $(html);
+    var select = obj.find('select');
+    select.val(select.find('option:last').val());
+    obj.xmltools({
+        jstree_selector: '#tree',
+        jstree_url: 'http://fake.url'
+    });
+    select.trigger('change');
+    equal(obj.html(), $(expected).html(), 'Conditional container required children');
+    equal(counter, 2, 'Counter has changed');
+    obj.remove();
+
 
     var html = [
     '<div>',
@@ -532,11 +592,16 @@ test("Select on conditional", function() {
 
     var obj = $(html);
     var select = obj.find('select');
+    equal(counter, 2, 'Counter has not changed');
     select.val(select.find('option:last').val());
-    obj.xmltools();
+    obj.xmltools({
+        jstree_selector: '#tree',
+        jstree_url: 'http://fake.url'
+    });
     select.trigger('change');
     equal(obj.html(), $(expected).html(), 'Conditional container with Growing');
     obj.remove();
+    equal(counter, 3, 'Counter has not changed');
 });
 
 test("form submit", function() {
@@ -700,7 +765,7 @@ test("xmltools.jstree.create_nodes", function() {
     xmltools.jstree.create_nodes(tree, node, tree, 'inside');
     expected = [
         '<ul>',
-        '<li id="tree_id:1" class="tree_class jstree-last jstree-closed">',
+        '<li id="tree_id:1" class="tree_class jstree-last jstree-open">',
         '<ins class="jstree-icon">&nbsp;</ins>',
         '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 1</a>',
         '<ul>',
@@ -731,7 +796,7 @@ test("xmltools.jstree.create_nodes", function() {
         '<ins class="jstree-icon">&nbsp;</ins>',
         '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 3</a>',
         '</li>',
-        '<li id="tree_id:2" class="tree_class jstree-closed jstree-last">',
+        '<li id="tree_id:2" class="tree_class jstree-open jstree-last">',
         '<ins class="jstree-icon">&nbsp;</ins>',
         '<a href="#"><ins class="jstree-icon">&nbsp;</ins>node 1</a>',
         '<ul>',

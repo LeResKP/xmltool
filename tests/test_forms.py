@@ -846,6 +846,20 @@ class JavascriptTestGenerator(TestCase):
             field.set_value(o)
             print '<div>%s</div>' % field.display()
 
+            print
+            print 'Conditional container, required children'
+            field = forms.ConditionalContainer(name='test')
+            fieldset = forms.Fieldset(
+                name='test1', key='test1', legend='test1', required=True)
+            fieldset.parent=field
+            field.possible_children = [fieldset]
+            sub1 = forms.TextAreaField(
+                name='sub1', key='sub1', parent=fieldset, required=True)
+            fieldset.children = [sub1]
+            o = cls()
+            field.set_value(o)
+            print '<div>%s</div>' % field.display()
+
             print 'Conditional container with Growing'
             field = forms.ConditionalContainer(name='test')
             growing1 = forms.GrowingContainer(key='growing1', name='growing1')
