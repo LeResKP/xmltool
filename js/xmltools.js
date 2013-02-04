@@ -88,6 +88,13 @@
                 classes.reverse();
                 node.attr('class', classes.join(' '));
             },
+            update_node_and_children: function(node, new_id){
+                var old_id = node.data('id')
+                self.update_node(node, old_id, new_id);
+                node.find('li').each(function(){
+                    self.update_node($(this), old_id, new_id); 
+                });
+            },
             increment_id: function(node){
                 var id = $(node).data('id');
                 var regex = new RegExp('^(.*:)(\\d*)$');
@@ -96,12 +103,8 @@
                 var siblings = node.find('~ .' + node.attr('class').split(' ')[0].replace(/:/g, '\\:'));
                 for(var i=0; i < siblings.length; i++){
                     var elt = siblings[i];
-                    var old_id = prefix_id + index;
                     index ++;
-                    self.update_node($(elt), old_id, prefix_id +  index);
-                    $(elt).find('li').each(function(){
-                        self.update_node($(this), old_id, prefix_id + index); 
-                    });
+                    self.update_node_and_children($(elt), prefix_id + index);
                 }
             },
             create_nodes: function(tree, data, parentobj, position){

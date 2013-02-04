@@ -654,6 +654,33 @@ test("xmltools.jstree.update_node", function() {
     equal(node.attr('class'), 'tree_test:new:1:question class1 class2', 'class updated');
 });
 
+test("xmltools.jstree.update_node_and_children", function() {
+    expect(7);
+    var node = $([
+        '<li class="tree_test:old:1 class1 class2">',
+        '<ul>',
+        '<li class="tree_test:old:1:children0"/>',
+        '<li class="tree_test:old:1:children1"/>',
+        '</ul>',
+        '</li>'
+        ].join(''));
+    node.data('id', 'test:old:1');
+    node.find('li').each(function(index){
+        $(this).data('id', 'test:old:1:children' + index);
+    });
+    xmltools.jstree.update_node_and_children(node, 'test:new:1');
+    equal(node.attr('id'), 'tree_test:new:1', 'id updated');
+    equal(node.data('id'), 'test:new:1', 'data id updated');
+    equal(node.attr('class'), 'tree_test:new:1 class1 class2', 'class updated');
+    var li1 = node.find('li:first');
+    equal(li1.attr('id'), 'tree_test:new:1:children0', 'id updated');
+    equal(li1.data('id'), 'test:new:1:children0', 'data id updated');
+    var li2 = node.find('li:last');
+    equal(li2.attr('id'), 'tree_test:new:1:children1', 'id updated');
+    equal(li2.data('id'), 'test:new:1:children1', 'data id updated');
+
+});
+
 test("xmltools.jstree.increment_id", function() {
     expect(9);
     var html = [
