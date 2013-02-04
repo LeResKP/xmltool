@@ -61,6 +61,12 @@
                 bits.push('...');
             }
             return bits.join('');
+        },
+        get_first_class: function(elt){
+            return elt.attr('class').split(' ')[0];
+        },
+        escape_id: function(id){
+            return id.replace(/:/g, '\\:');
         }
     }
 
@@ -100,7 +106,7 @@
                 var regex = new RegExp('^(.*:)(\\d*)$');
                 var index = parseInt(id.replace(regex, '$2'));
                 var prefix_id = id.replace(regex, '$1');
-                var siblings = node.find('~ .' + node.attr('class').split(' ')[0].replace(/:/g, '\\:'));
+                var siblings = node.find('~ .' + xmltools.escape_id(xmltools.get_first_class(node)));
                 for(var i=0; i < siblings.length; i++){
                     var elt = siblings[i];
                     index ++;
@@ -118,7 +124,7 @@
                 tree.jstree('open_all', node);
             },
             delete_node: function(tree, elt){
-                tree.jstree("delete_node", tree.find('#tree_' + elt.attr('id').replace(/:/g, '\\:')));
+                tree.jstree("delete_node", tree.find('#tree_' + xmltools.escape_id(elt.attr('id'))));
             },
             add_node: function(url, tree, elt){
                 var dtd_url = $('form#xmltools-form #_dtd_url').val();
@@ -135,7 +141,7 @@
                         var node = data.elt;
                         var previous = data.previous;
                         for (var i=0; i< previous.length; i++){
-                            var selector = previous[i][0].replace(/:/g, '\\:');
+                            var selector = xmltools.escape_id(previous[i][0]);
                             var position = previous[i][1];
                             var parentobj = $(selector + ':last');
                             if (parentobj.length){
@@ -261,10 +267,10 @@
         
         if (tree && tree.length){
             p.find('textarea').focus(function(){
-                var id = $(this).attr('id').replace(/:/g, '\\:');
+                var id = xmltools.escape_id($(this).attr('id'));
                 tree.jstree('hover_node', $('#tree_' + id));
             }).blur(function(){
-                var id = $(this).attr('id').replace(/:/g, '\\:');
+                var id = xmltools.escape_id($(this).attr('id'));
                 var elt = $('#tree_' + id).find('a')
                 var text = elt.html();
                 text = text.replace(/\(.*/, '');
@@ -280,7 +286,7 @@
 
         p.find('select.conditional').on('change', function(){
                 if ($(this).val()){
-                    var cls = $(this).val().replace(/:/g, '\\:');
+                    var cls = xmltools.escape_id($(this).val());
                     var container = $(this).parent().find('.' + cls);
                     container.removeClass('deleted');
                     var growing_source = container.children('.growing-source');

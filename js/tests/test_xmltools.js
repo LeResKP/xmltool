@@ -193,6 +193,20 @@ test("xmltools.truncate", function() {
     equal(xmltools.truncate(text, 30), expected, 'Long text is truncated');
 });
 
+test("xmltools.get_first_class", function() {
+    expect(2);
+    var elt = $('<li/>');
+    equal(xmltools.get_first_class(elt), '', 'no class');
+
+    var elt = $('<li class="class1 class2"/>');
+    equal(xmltools.get_first_class(elt), 'class1', 'ok first class');
+});
+
+test("xmltools.escape_id", function() {
+    expect(1);
+    equal(xmltools.escape_id('bob:1'), 'bob\\:1', 'id escaped');
+});
+
 test("Button", function() {
     expect(2);
     var html = [
