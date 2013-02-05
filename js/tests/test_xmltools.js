@@ -207,6 +207,16 @@ test("xmltools.escape_id", function() {
     equal(xmltools.escape_id('bob:1'), 'bob\\:1', 'id escaped');
 });
 
+test("xmltools.get_index", function() {
+    expect(1);
+    equal(xmltools.get_index('bob:children:10'), 10);
+});
+
+test("xmltools.get_prefix", function() {
+    expect(1);
+    equal(xmltools.get_prefix('bob:children:10'), 'bob:children');
+});
+
 test("Button", function() {
     expect(2);
     var html = [
@@ -878,6 +888,24 @@ test("xmltools.jstree.delete_node", function() {
     var elt = $('<div id="id1"></div>');
     xmltools.jstree.delete_node(tree, elt);
     equal(tree.html(), '<ul></ul>', 'delete node');
+});
+
+test("xmltools.jstree.same_node", function() {
+    expect(3);
+    var node1 = $('<div id="id1"/>');
+    var node2 = $('<div id="id2"/>');
+    equal(xmltools.jstree.same_node(node1, node2), false, 'different nodes');
+    equal(xmltools.jstree.same_node(node1, node1), true, 'same nodes');
+    equal(xmltools.jstree.same_node([node1], [node1]), true, 'same list nodes');
+});
+
+test("xmltools.jstree.same_class", function() {
+    expect(2);
+    var node1 = $('<div class="class1"/>');
+    var node2 = $('<div class="class2"/>');
+    equal(xmltools.jstree.same_class(node1, node2), false, 'different classes');
+    var node2 = $('<div class="class1"/>');
+    equal(xmltools.jstree.same_class(node1, node2), true, 'same class');
 });
 
 /*

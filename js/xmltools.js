@@ -1,5 +1,7 @@
 (function(exports) {
 
+    var re_id = new RegExp('^(.*):(\\d*)$');
+
     functions = {
         replace_id: function(container, new_id, container_id){
             var container_id = container_id || container.attr('id');
@@ -67,6 +69,12 @@
         },
         escape_id: function(id){
             return id.replace(/:/g, '\\:');
+        },
+        get_index: function(id){
+            return parseInt(id.replace(re_id, '$2'));
+        },
+        get_prefix: function(id){
+            return id.replace(re_id, '$1');
         }
     }
 
@@ -103,14 +111,13 @@
             },
             increment_id: function(node){
                 var id = $(node).data('id');
-                var regex = new RegExp('^(.*:)(\\d*)$');
-                var index = parseInt(id.replace(regex, '$2'));
-                var prefix_id = id.replace(regex, '$1');
+                var index = xmltools.get_index(id);
+                var prefix_id = xmltools.get_prefix(id);
                 var siblings = node.find('~ .' + xmltools.escape_id(xmltools.get_first_class(node)));
                 for(var i=0; i < siblings.length; i++){
                     var elt = siblings[i];
                     index ++;
-                    self.update_node_and_children($(elt), prefix_id + index);
+                    self.update_node_and_children($(elt), prefix_id + ':' + index);
                 }
             },
             create_nodes: function(tree, data, parentobj, position){
@@ -154,6 +161,69 @@
                       alert('Error ajax loading');
                     }
                 });
+            },
+            same_node: function(node1, node2){
+                // We assume there is no multiple selection, node1 and node2 are not list!
+                if(node1 === node2)
+                    return true;
+                if(node1[0] && node2[0] && node1[0] === node2[0])
+                    return true;
+                return false;
+            },
+            same_class: function(node1, node2){
+                if (xmltools.get_first_class(node1) == xmltools.get_first_class(node2))
+                    return true;
+                return false;
+            },
+            check_move: function (m) {
+                // Only be able to move elements with the same parent and the
+                // same class
+                var p = this._get_parent(m.o);
+                if(!p) return false;
+                p = p == -1 ? this.get_container() : p;
+                if (! self.same_node(p, m.np)){
+                    return false;
+                }
+                if (!self.same_class(m.o, m.r)){
+                    return false;
+                }
+                return true;
+            },
+            move_node: function (event, data) {
+                var position = data.rslt.p;
+                var drag_node = data.rslt.o; // The node we are moving
+                var drag_node_id = data.rslt.o.data('id');
+                var reference_node = data.rslt.r; // The reference where we are moving the node
+                var reference_node_id = reference_node.data('id');
+                if(position == 'before'){
+                    xmltools.jstree.update_node_and_children(drag_node, reference_node_id);
+                    xmltools.jstree.increment_id(drag_node);
+                    var old_e = $('#' + xmltools.escape_id(drag_node_id)).parent('.container');
+                    var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container');
+                    new_e.before(old_e);
+                    var container_prefix = xmltools.get_prefix(drag_node_id);
+                    var new_id = xmltools.get_index(reference_node_id);
+                    xmltools.replace_id(old_e, new_id, container_prefix);
+                    old_e.nextAll('.container').each(function(){
+                        new_id += 1;
+                        xmltools.replace_id($(this), new_id, container_prefix);
+                    });
+                }
+                else if (position == 'after'){
+                    var old_e = $('#' + xmltools.escape_id(drag_node_id)).parent('.container');
+                    var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container');
+                    xmltools.jstree.increment_id(reference_node);
+                    new_e.after(old_e);
+                    var new_id = xmltools.get_index(reference_node_id);
+                    var container_prefix = xmltools.get_prefix(drag_node_id);
+                    new_e.nextAll('.container').each(function(){
+                        new_id += 1;
+                        xmltools.replace_id($(this), new_id, container_prefix);
+                    });
+                }
+                else{
+                    alert('Not supported position after move!');
+                }
             }
         });
         return self;
@@ -244,7 +314,7 @@
             });
 
             p.find('.growing-add-button').on('click',function(){
-                var id = parseInt($(this).prev().attr('id').replace(/.*:(\d*)$/, '$1'));
+                var id = xmltools.get_index($(this).prev().attr('id'));
                 var new_id = id + 1;
                 var container = $(this).parent('.container');
                 var source = container.parent('.growing-container').children('.growing-source').clone();
