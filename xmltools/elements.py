@@ -72,6 +72,7 @@ class TextElement(object):
     def __init__(self, value=None):
         self.value = value
         self.attrs = {}
+        self._comment = None
 
     @classmethod
     def to_jstree_dict(cls, value=None, prefix_id=None, number=None, **kw):
@@ -113,10 +114,11 @@ class Element(object):
     sourceline = None
     #: List of allowed properties which can be defined on the objects from this
     # class
-    _allowed_items = ['attrs', 'sourceline']
+    _allowed_items = ['attrs', 'sourceline', '_comment']
 
     def __init__(self):
         self.attrs = {}
+        self._comment = None
 
     def _get_element(self, tagname):
         """Get SubElement corresponding to the given tagname

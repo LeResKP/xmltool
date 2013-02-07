@@ -204,9 +204,22 @@ class Generator(object):
             if value:
                 obj.attrs[attr_name] = value
 
+    def set_comment_to_obj(self, obj, xml):
+        comments = []
+        previous = xml
+        while True:
+            previous = previous.getprevious()
+            if previous is None:
+                break
+            if not isinstance(previous, etree._Comment):
+                break
+            comments += [previous.text]
+        obj._comment = '\n'.join(comments) or None
+        
     def generate_obj(self, xml):
         obj = self.create_obj(xml.tag)
         self.set_attrs_to_obj(obj, xml)
+        self.set_comment_to_obj(obj, xml)
         obj.sourceline = xml.sourceline
 
         if isinstance(obj, TextElement):
@@ -273,6 +286,8 @@ class Generator(object):
                     if len(e) or e.text or element.required:
                         if e.text:
                             e.text = clear_value(e.text)
+                        if v._comment:
+                            xml.append(etree.Comment(v._comment))
                         xml.append(e)
             else:
                 value = getattr(obj, key, None)
@@ -282,8 +297,12 @@ class Generator(object):
                 if len(e) or e.text or element.required or empty_elt:
                     if e.text:
                         e.text = clear_value(e.text)
+                    if value and value._comment:
+                        xml.append(etree.Comment(value._comment))
                     xml.append(e)
 
+        if obj._comment:
+            xml.addprevious(etree.Comment(obj._comment))
         return xml
 
     def obj_to_jstree_dict(self, obj, prefix_id=None, index=None):

@@ -67,6 +67,59 @@ MOVIE_XML_TITANIC = '''<?xml version='1.0' encoding='UTF-8'?>
 </Movie>
 '''
 
+MOVIE_XML_TITANIC_COMMENTS = '''<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Movie SYSTEM "test.dtd">
+<!-- Movie comment -->
+<Movie>
+  <!-- name comment -->
+  <name>Titanic</name>
+  <!-- year comment -->
+  <year>1997</year>
+  <!-- directors comment -->
+  <directors>
+    <!-- director comment -->
+    <director>
+      <!-- director name comment -->
+      <name>Cameron</name>
+      <!-- director firstname comment -->
+      <firstname>James</firstname>
+    </director>
+  </directors>
+  <!-- actors comment -->
+  <actors>
+    <!-- actor 1 comment -->
+    <actor>
+      <!-- actor 1 name comment -->
+      <name>DiCaprio</name>
+      <!-- actor 1 firstname comment -->
+      <firstname>Leonardo</firstname>
+    </actor>
+    <!-- actor 2 comment -->
+    <actor>
+      <!-- actor 2 name comment -->
+      <name>Winslet</name>
+      <!-- actor 2 firstname comment -->
+      <firstname>Kate</firstname>
+    </actor>
+    <!-- actor 3 comment -->
+    <actor>
+      <!-- actor 3 name comment -->
+      <name>Zane</name>
+      <!-- actor 3 firstname comment -->
+      <firstname>Billy</firstname>
+    </actor>
+  </actors>
+  <!-- resume comment -->
+  <resume>
+     Resume of the movie
+  </resume>
+  <!-- critique 1 comment -->
+  <critique>critique1</critique>
+  <!-- critique 2 comment -->
+  <critique>critique2</critique>
+</Movie>
+'''
+
 EXERCISE_DTD = '''
 <!ELEMENT Exercise (question, test)>
 <!ELEMENT question (#PCDATA)>
@@ -469,6 +522,24 @@ class TestGenerator1(TestCase):
         gen.set_attrs_to_obj(elt, root)
         self.assertEqual(elt.attrs, root.attrib)
 
+    def test_set_comment_to_obj(self):
+        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
+        root = etree.Element('root')
+        class Fake(object): pass
+        obj = Fake()
+        obj._comment = None
+        gen.set_comment_to_obj(obj, root)
+        self.assertEqual(obj._comment, None)
+
+        root.addprevious(etree.Comment('comment 1'))
+        gen.set_comment_to_obj(obj, root)
+        self.assertEqual(obj._comment, 'comment 1')
+
+        obj._comment = None
+        root.addprevious(etree.Comment('comment 2'))
+        gen.set_comment_to_obj(obj, root)
+        self.assertEqual(obj._comment, 'comment 2\ncomment 1')
+
     def test_generate_obj(self):
         root = etree.fromstring(MOVIE_XML_TITANIC)
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
@@ -493,6 +564,55 @@ class TestGenerator1(TestCase):
         self.assertEqual(obj.actors.actor[2].firstname.value, 'Billy')
         self.assertEqual(obj.directors.director[0].name.value, 'Cameron')
         self.assertEqual(obj.directors.director[0].firstname.value, 'James')
+
+    def test_generate_obj_comments(self):
+        root = etree.fromstring(MOVIE_XML_TITANIC_COMMENTS)
+        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
+        obj = gen.generate_obj(root)
+        self.assertEqual(obj.sourceline, 4)
+        self.assertEqual(obj.name.value, 'Titanic')
+        self.assertEqual(obj.name._comment, ' name comment ')
+        self.assertEqual(obj.name.sourceline, 6)
+        self.assertEqual(obj.resume.value, '\n     Resume of the movie\n  ')
+        self.assertEqual(obj.resume._comment, ' resume comment ')
+        self.assertEqual(obj.resume.sourceline, 44)
+        self.assertEqual(obj.year.value, '1997')
+        self.assertEqual(obj.year._comment, ' year comment ')
+        self.assertEqual(obj.year.sourceline, 8)
+        self.assertEqual([c.value for c in obj.critique], ['critique1', 'critique2'])
+        self.assertEqual(obj.critique[0]._comment, ' critique 1 comment ')
+        self.assertEqual(obj.critique[1]._comment, ' critique 2 comment ')
+        self.assertEqual(len(obj.actors.actor), 3)
+        self.assertEqual(len(obj.directors.director), 1)
+        self.assertEqual(obj.actors._comment, ' actors comment ')
+        self.assertEqual(obj.actors.actor[0].sourceline, 22)
+        self.assertEqual(obj.actors.actor[0]._comment, ' actor 1 comment ')
+        self.assertEqual(obj.actors.actor[0].name.value, 'DiCaprio')
+        self.assertEqual(obj.actors.actor[0].name._comment,
+                         ' actor 1 name comment ')
+        self.assertEqual(obj.actors.actor[0].name.sourceline, 24)
+        self.assertEqual(obj.actors.actor[0].firstname.value, 'Leonardo')
+        self.assertEqual(obj.actors.actor[0].firstname._comment,
+                         ' actor 1 firstname comment ')
+        self.assertEqual(obj.actors.actor[1].name.value, 'Winslet')
+        self.assertEqual(obj.actors.actor[1].name._comment,
+                         ' actor 2 name comment ')
+        self.assertEqual(obj.actors.actor[1].firstname.value, 'Kate')
+        self.assertEqual(obj.actors.actor[1].firstname._comment,
+                         ' actor 2 firstname comment ')
+        self.assertEqual(obj.actors.actor[2].name.value, 'Zane')
+        self.assertEqual(obj.actors.actor[2].name._comment,
+                         ' actor 3 name comment ')
+        self.assertEqual(obj.actors.actor[2].firstname.value, 'Billy')
+        self.assertEqual(obj.actors.actor[2].firstname._comment,
+                         ' actor 3 firstname comment ')
+        self.assertEqual(obj.directors._comment, ' directors comment ')
+        self.assertEqual(obj.directors.director[0].name.value, 'Cameron')
+        self.assertEqual(obj.directors.director[0].name._comment,
+                         ' director name comment ')
+        self.assertEqual(obj.directors.director[0].firstname.value, 'James')
+        self.assertEqual(obj.directors.director[0].firstname._comment,
+                         ' director firstname comment ')
 
     def test_get_key_from_obj(self):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
@@ -529,7 +649,6 @@ class TestGenerator1(TestCase):
         gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
         obj = gen.generate_obj(root)
         xml = gen.obj_to_xml(obj)
-        s = etree.tostring(xml, pretty_print=True, xml_declaration=True)
         docinfo = root.getroottree().docinfo
         s = etree.tostring(
                 xml,
@@ -538,6 +657,20 @@ class TestGenerator1(TestCase):
                 encoding=docinfo.encoding,
                 doctype=docinfo.doctype)
         self.assertEqual(MOVIE_XML_TITANIC, s)
+
+    def test_obj_to_xml_comments(self):
+        root = etree.fromstring(MOVIE_XML_TITANIC_COMMENTS)
+        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
+        obj = gen.generate_obj(root)
+        xml = gen.obj_to_xml(obj)
+        docinfo = root.getroottree().docinfo
+        s = etree.tostring(
+                xml.getroottree(),
+                pretty_print=True,
+                xml_declaration=True,
+                encoding=docinfo.encoding,
+                doctype=docinfo.doctype)
+        self.assertEqual(MOVIE_XML_TITANIC_COMMENTS, s)
 
     def test_obj_to_xml_with_empty(self):
         root = etree.fromstring(MOVIE_XML_TITANIC)
@@ -888,7 +1021,7 @@ class TestGenerator3(TestCase):
         obj = gen.generate_obj(root)
         del obj.test[0].mqm[0].choice
         xml = gen.obj_to_xml(obj)
-        s = etree.tostring(xml, pretty_print=True)
+        s = etree.tostring(xml.getroottree(), pretty_print=True)
         expected = '''<Exercise idexercise="1">
   <number>1</number>
   <test idtest="1" name="color">
