@@ -214,7 +214,7 @@ class TextAreaField(Field):
     def _set_value(self, value):
         super(TextAreaField, self)._set_value(value)
         num = self.value and self.value.count('\n') or 0
-        self.rows = max(num + 1, 2)
+        self.rows = num + 1
 
     def _display(self):
         html = []

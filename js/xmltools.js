@@ -353,6 +353,10 @@
                 
             });
         }
+        
+        p.find('textarea').focus(function(){
+            $(this).autosize();
+        });
 
         p.find('select.conditional').on('change', function(){
                 if ($(this).val()){

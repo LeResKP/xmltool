@@ -154,7 +154,7 @@ class TestTextAreaField(TestCase):
         self.assertEqual(field.rows, None)
         field.set_value(u'Hello')
         self.assertEqual(field.value, u'Hello')
-        self.assertEqual(field.rows, 2)
+        self.assertEqual(field.rows, 1)
         field.set_value(u'Hello\nWorld\n!')
         self.assertEqual(field.value, u'Hello\nWorld\n!')
         self.assertEqual(field.rows, 3)
@@ -175,7 +175,7 @@ class TestTextAreaField(TestCase):
             <a class="delete-button">Delete test</a>
             <a class="comment-button has-comment" title="my comment">Comment</a>
             <textarea name="test:_comment" id="test:_comment" class="_comment">my comment</textarea>
-            <textarea name="test:value" id="test" class="test" rows="2">Hello</textarea>
+            <textarea name="test:value" id="test" class="test" rows="1">Hello</textarea>
            </div>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
@@ -228,7 +228,7 @@ class TestTextAreaField(TestCase):
             <a class="delete-button">Delete test</a>
             <a class="comment-button">Comment</a>
             <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
-            <textarea name="test:value" id="test" class="test" rows="2">
+            <textarea name="test:value" id="test" class="test" rows="1">
             </textarea>
           </div>
         </div>'''
@@ -257,7 +257,7 @@ class TestTextAreaField(TestCase):
           <label>test</label>
           <a class="comment-button">Comment</a>
           <textarea name="test:_comment" id="test:_comment" class="_comment">
-          <textarea name="test:value" id="test" class="test" rows="2">Hello World</textarea>
+          <textarea name="test:value" id="test" class="test" rows="1">Hello World</textarea>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
 
@@ -408,7 +408,7 @@ class TestFieldset(TestCase):
                 <a class="delete-button">Delete sub1</a>
                 <a class="comment-button">Comment</a>
                 <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
-                <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">textarea 1</textarea>
+                <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="1">textarea 1</textarea>
               </div>
             </div>
             <div class="container">
@@ -419,7 +419,7 @@ class TestFieldset(TestCase):
                 <a class="delete-button">Delete sub2</a>
                 <a class="comment-button">Comment</a>
                 <textarea name="test:sub2:_comment" id="test:sub2:_comment" class="_comment"></textarea>
-                <textarea name="test:sub2:value" id="test:sub2" class="sub2" rows="2">textarea 2</textarea>
+                <textarea name="test:sub2:value" id="test:sub2" class="sub2" rows="1">textarea 2</textarea>
               </div>
             </div>
           </fieldset>
@@ -652,7 +652,7 @@ class TestConditionalContainer(TestCase):
               <a class="delete-button">Delete sub1</a>
               <a class="comment-button">Comment</a>
               <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
-              <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">first textarea</textarea>
+              <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="1">first textarea</textarea>
             </div>
           </div>
           <div class="container deleted conditional-option test:sub2:option:1 inline">
@@ -733,7 +733,7 @@ class TestConditionalContainer(TestCase):
               <a class="growing-delete-button">Delete None</a>
               <a class="comment-button">Comment</a>
               <textarea name="growing1:textarea_child1:0:_comment" id="growing1:textarea_child1:0:_comment" class="_comment"></textarea>
-              <textarea name="growing1:textarea_child1:0:value" id="growing1:textarea_child1:0" rows="2"></textarea>
+              <textarea name="growing1:textarea_child1:0:value" id="growing1:textarea_child1:0" rows="1"></textarea>
               <a class="growing-add-button">New growing1</a>
             </div>
           </div>
@@ -743,7 +743,7 @@ class TestConditionalContainer(TestCase):
               <a class="growing-delete-button">Delete None</a>
               <a class="comment-button">Comment</a>
               <textarea name="growing2:textarea_child2:0:_comment" id="growing2:textarea_child2:0:_comment" class="_comment"></textarea>
-              <textarea name="growing2:textarea_child2:0:value" id="growing2:textarea_child2:0" rows="2"></textarea>
+              <textarea name="growing2:textarea_child2:0:value" id="growing2:textarea_child2:0" rows="1"></textarea>
               <a class="growing-add-button">New growing2</a>
             </div>
           </div>
@@ -802,7 +802,7 @@ class TestGrowingContainer(TestCase):
             <a class="growing-delete-button">Delete test</a>
             <a class="comment-button">Comment</a>
             <textarea name="test:textarea_child:0:_comment" id="test:textarea_child:0:_comment" class="_comment"></textarea>
-            <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
+            <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="1"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
         </div>
@@ -818,7 +818,7 @@ class TestGrowingContainer(TestCase):
             <a class="growing-delete-button">Delete test</a>
             <a class="comment-button">Comment</a>
             <textarea name="test:textarea_child:0:_comment" id="test:textarea_child:0:_comment" class="_comment"></textarea>
-            <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
+            <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="1"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
           <div class="container">
@@ -826,7 +826,7 @@ class TestGrowingContainer(TestCase):
             <a class="growing-delete-button">Delete test</a>
             <a class="comment-button">Comment</a>
             <textarea name="test:textarea_child:1:_comment" id="test:textarea_child:1:_comment" class="_comment"></textarea>
-            <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2"></textarea>
+            <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="1"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
         </div>
@@ -849,7 +849,7 @@ class TestGrowingContainer(TestCase):
             <a class="growing-delete-button">Delete test</a>
             <a class="comment-button">Comment</a>
             <textarea name="test:textarea_child:0:_comment" id="test:textarea_child:0:_comment" class="_comment"></textarea>
-            <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
+            <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="1"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
           <div class="container">
@@ -858,7 +858,7 @@ class TestGrowingContainer(TestCase):
             <a class="growing-delete-button">Delete test</a>
             <a class="comment-button">Comment</a>
             <textarea name="test:textarea_child:1:_comment" id="test:textarea_child:1:_comment" class="_comment"></textarea>
-            <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2">hello</textarea>
+            <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="1">hello</textarea>
             <a class="growing-add-button">New test</a>
           </div>
           <div class="container">
@@ -867,7 +867,7 @@ class TestGrowingContainer(TestCase):
             <a class="growing-delete-button">Delete test</a>
             <a class="comment-button">Comment</a>
             <textarea name="test:textarea_child:2:_comment" id="test:textarea_child:2:_comment" class="_comment"></textarea>
-            <textarea name="test:textarea_child:2:value" id="test:textarea_child:2" class="test" rows="2">world</textarea>
+            <textarea name="test:textarea_child:2:value" id="test:textarea_child:2" class="test" rows="1">world</textarea>
             <a class="growing-add-button">New test</a>
           </div>
         </div>'''
