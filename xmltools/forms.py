@@ -48,7 +48,9 @@ class Field(object):
         dic = {
             'key': None,
             'name': None,
+            'title': None,
             'value': None,
+            'comment': None,
             'parent': None,
             'required': None,
             'empty': False,
@@ -106,6 +108,7 @@ class Field(object):
                         add_value_str=False,
                         css_classes=['attr'],
                         value=v)]
+                self.comment = value._comment or ''
         self._set_value(value)
 
     def _set_value(self, value):
@@ -168,6 +171,13 @@ class InputField(Field):
         return '<input type="text" value="%s"%s />' % (self.get_value(),
                                                     self.get_attrs())
 
+class CommentField(Field):
+
+    def _display(self):
+        return '<textarea%s>%s</textarea>' % (
+            self.get_attrs(),
+            self.get_value())
+
 class RootInputField(InputField):
     """Basically the same object than InputField but the HTML name is never
     prefix by the names of its parents.
@@ -178,6 +188,7 @@ class RootInputField(InputField):
 
 
 class LinkField(Field):
+    html_attrs = ['title']
 
     def display(self):
         """
@@ -235,7 +246,26 @@ class TextAreaField(Field):
             delete_button = LinkField(value='Delete %s' % self.key,
                                         css_classes=css_classes)
             html += [delete_button.display()]
-        html += ['<textarea%s>%s</textarea>' % (self.get_attrs(), self.get_value())]
+
+        comment_field = CommentField(
+            key='_comment',
+            name='_comment',
+            parent=self,
+            add_value_str=False,
+            css_classes=['_comment'],
+            value=self.comment
+            )
+
+        button_css_classes = ['comment-button']
+        if self.comment:
+            button_css_classes += ['has-comment']
+        comment_button = LinkField(value='Comment',
+                                   title=self.comment or '',
+                                   css_classes=button_css_classes)
+        html += [comment_button.display()]
+        html += [comment_field._display()]
+        html += ['<textarea%s>%s</textarea>' % (self.get_attrs(),
+                                                self.get_value())]
         if not self.required and not parent_is_growing:
             html += ['</div>']
         if parent_is_growing:
@@ -285,7 +315,7 @@ class Fieldset(MultipleField):
             if not self.value and not self.empty:
                 show_container = False
 
-        legend = self.legend
+        legend = self.legend or ''
         parent_is_growing = isinstance(self.parent, GrowingContainer)
         if not self.required or parent_is_growing:
             css_classes=['fieldset-delete-button']
@@ -306,8 +336,20 @@ class Fieldset(MultipleField):
 
         if not show_container:
             self.css_classes += ['deleted']
+        comment_field = CommentField(
+            key='_comment',
+            name='_comment',
+            parent=self,
+            add_value_str=False,
+            css_classes=['_comment'],
+            value=self.comment
+            )
+        comment_button = LinkField(value='Comment',
+                                   css_classes=['comment-button'])
+        legend += comment_button.display()
         html += ['<fieldset%s>' % self.get_attrs()]
         html += ['<legend>%s</legend>' % legend]
+        html += [comment_field._display()]
 
         html.extend(child_html)
         html += ['</fieldset>']

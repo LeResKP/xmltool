@@ -9,6 +9,7 @@ generate_javascript = False
 
 class cls(object):
     attrs = {}
+    _comment = None
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -127,10 +128,12 @@ class TestField(TestCase):
         self.assertEqual(field.empty, True)
         o = cls()
         o.value = 'my value'
-        field = forms.Field(name='test')
+        o._comment = 'my comment'
+        field = forms.Field(name='test', key='test')
         field.set_value(o)
         self.assertEqual(field.value, 'my value')
         self.assertEqual(field.empty, False)
+        self.assertEqual(field.comment, 'my comment')
 
     def test_get_value(self):
         field = forms.Field(name='test')
@@ -161,6 +164,7 @@ class TestTextAreaField(TestCase):
         o = cls()
         o.value = 'Hello'
         o.attrs = {'id': 1}
+        o._comment = 'my comment'
         field.set_value(o)
         expected = '''
         <div class="container">
@@ -169,6 +173,8 @@ class TestTextAreaField(TestCase):
           <div>
             <label>None</label>
             <a class="delete-button">Delete test</a>
+            <a class="comment-button has-comment" title="my comment">Comment</a>
+            <textarea name="test:_comment" id="test:_comment" class="_comment">my comment</textarea>
             <textarea name="test:value" id="test" class="test" rows="2">Hello</textarea>
            </div>
         </div>'''
@@ -187,6 +193,8 @@ class TestTextAreaField(TestCase):
           <div>
             <label>None</label>
             <a class="delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
             <textarea name="test:value" id="test" class="test" rows="3">Hello\nWorld\n!</textarea>
           </div>
         </div>
@@ -201,6 +209,8 @@ class TestTextAreaField(TestCase):
           <div class="deleted">
             <label>test</label>
             <a class="delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
             <textarea name="test:value" id="test" class="test"></textarea>
           </div>
         </div>'''
@@ -216,6 +226,8 @@ class TestTextAreaField(TestCase):
           <div>
             <label>test</label>
             <a class="delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
             <textarea name="test:value" id="test" class="test" rows="2">
             </textarea>
           </div>
@@ -228,6 +240,8 @@ class TestTextAreaField(TestCase):
         expected = '''
         <div class="container">
           <label>test</label>
+          <a class="comment-button">Comment</a>
+          <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
           <textarea name="test:value" id="test" class="test">
           </textarea>
         </div>'''
@@ -241,6 +255,8 @@ class TestTextAreaField(TestCase):
         expected = '''
         <div class="container">
           <label>test</label>
+          <a class="comment-button">Comment</a>
+          <textarea name="test:_comment" id="test:_comment" class="_comment">
           <textarea name="test:value" id="test" class="test" rows="2">Hello World</textarea>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
@@ -253,9 +269,19 @@ class TestTextAreaField(TestCase):
         <div class="container">
           <label>test</label>
           <a class="growing-delete-button">Delete test</a>
+          <a class="comment-button">Comment</a>
+          <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
           <textarea name="test:value" id="test" class="test"></textarea>
           <a class="growing-add-button">New test</a>
         </div>'''
+        tw2test.assert_eq_xml(field.display(), expected)
+
+
+class TestCommentField(TestCase):
+
+    def test_display(self):
+        field = forms.CommentField()
+        expected = '<textarea></textarea>'
         tw2test.assert_eq_xml(field.display(), expected)
 
 
@@ -363,6 +389,7 @@ class TestFieldset(TestCase):
         o.sub2.value = 'textarea 2'
         o.sub2.attrs = {'id': '2'}
         o.attrs = {'id': 'idfieldset'}
+        o._comment = 'my comment'
         field.set_value(o)
         expected = '''
         <div class="container">
@@ -370,13 +397,17 @@ class TestFieldset(TestCase):
           <a class="add-button hidden">Add test</a>
           <fieldset id="test" class="test">
             <legend>test<a class="fieldset-delete-button">Delete test</a>
+              <a class="comment-button">Comment</a>
             </legend>
+            <textarea name="test:_comment" id="test:_comment" class="_comment">my comment</textarea>
             <div class="container">
               <input type="text" value="1" name="test:sub1:attrs:id" id="test:sub1:attrs:id" class="attr id">
               <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub1</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">textarea 1</textarea>
               </div>
             </div>
@@ -386,6 +417,8 @@ class TestFieldset(TestCase):
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub2</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="test:sub2:_comment" id="test:sub2:_comment" class="_comment"></textarea>
                 <textarea name="test:sub2:value" id="test:sub2" class="sub2" rows="2">textarea 2</textarea>
               </div>
             </div>
@@ -404,12 +437,16 @@ class TestFieldset(TestCase):
           <a class="add-button">Add test</a>
           <fieldset id="test" class="test deleted">
             <legend>test<a class="fieldset-delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
             </legend>
+            <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
             <div class="container">
               <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub1</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
@@ -426,12 +463,15 @@ class TestFieldset(TestCase):
         expected = '''
         <div class="container">
           <fieldset id="test" class="test">
-            <legend>test</legend>
+            <legend>test<a class="comment-button">Comment</a></legend>
+            <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
             <div class="container">
               <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub1</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
@@ -451,12 +491,16 @@ class TestFieldset(TestCase):
         <div class="container">
           <fieldset id="test" class="test">
             <legend>test<a class="growing-fieldset-delete-button">Delete test</a>
+                <a class="comment-button">Comment</a>
             </legend>
+            <textarea name="test:_comment" id="test:_comment" class="_comment"></textarea>
             <div class="container">
               <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub1</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
                 <textarea name="test:sub1:value" id="test:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
@@ -484,12 +528,17 @@ class TestFormField(TestCase):
           <input type="text" value="" name="_root_tag" id="_root_tag" class="_root_tag">
           <input type="text" value="" name="_filename" id="_filename" class="_filename" />
           <fieldset id="form">
-            <legend>None</legend>
+            <legend>
+              <a class="comment-button">Comment</a>
+            </legend>
+            <textarea name="form:_comment" id="form:_comment" class="_comment"></textarea>
             <div class="container">
               <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub1</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="form:sub1:_comment" id="form:sub1:_comment" class="_comment"></textarea>
                 <textarea name="form:sub1:value" id="form:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
@@ -498,6 +547,8 @@ class TestFormField(TestCase):
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub2</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="form:sub2:_comment" id="form:sub2:_comment" class="_comment"></textarea>
                 <textarea name="form:sub2:value" id="form:sub2" class="sub2">textarea 2</textarea>
               </div>
             </div>
@@ -524,12 +575,17 @@ class TestFormField(TestCase):
           <input type="text" value="" name="_root_tag" id="_root_tag" class="_root_tag">
           <input type="text" value="file.xml" name="_filename" id="_filename" class="_filename" />
           <fieldset id="form">
-            <legend>None</legend>
+            <legend>
+              <a class="comment-button">Comment</a>
+            </legend>
+            <textarea name="form:_comment" id="form:_comment" class="_comment"></textarea>
             <div class="container">
               <a class="add-button hidden">Add sub1</a>
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub1</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="form:sub1:_comment" id="form:sub1:_comment" class="_comment"></textarea>
                 <textarea name="form:sub1:value" id="form:sub1" class="sub1">textarea 1</textarea>
               </div>
             </div>
@@ -538,6 +594,8 @@ class TestFormField(TestCase):
               <div>
                 <label>None</label>
                 <a class="delete-button">Delete sub2</a>
+                <a class="comment-button">Comment</a>
+                <textarea name="form:sub2:_comment" id="form:sub2:_comment" class="_comment"></textarea>
                 <textarea name="form:sub2:value" id="form:sub2" class="sub2">textarea 2</textarea>
               </div>
             </div>
@@ -592,6 +650,8 @@ class TestConditionalContainer(TestCase):
             <div>
               <label>None</label>
               <a class="delete-button">Delete sub1</a>
+              <a class="comment-button">Comment</a>
+              <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
               <textarea name="test:sub1:value" id="test:sub1" class="sub1" rows="2">first textarea</textarea>
             </div>
           </div>
@@ -600,6 +660,8 @@ class TestConditionalContainer(TestCase):
             <div class="deleted">
               <label>None</label>
               <a class="delete-button">Delete sub2</a>
+              <a class="comment-button">Comment</a>
+              <textarea name="test:sub2:_comment" id="test:sub2:_comment" class="_comment"></textarea>
               <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
             </div>
           </div>
@@ -626,6 +688,8 @@ class TestConditionalContainer(TestCase):
             <div class="deleted">
               <label>None</label>
               <a class="delete-button">Delete sub1</a>
+              <a class="comment-button">Comment</a>
+              <textarea name="test:sub1:_comment" id="test:sub1:_comment" class="_comment"></textarea>
               <textarea name="test:sub1:value" id="test:sub1" class="sub1"></textarea>
             </div>
           </div>
@@ -634,6 +698,8 @@ class TestConditionalContainer(TestCase):
             <div class="deleted">
               <label>None</label>
               <a class="delete-button">Delete sub2</a>
+              <a class="comment-button">Comment</a>
+              <textarea name="test:sub2:_comment" id="test:sub2:_comment" class="_comment"></textarea>
               <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
             </div>
           </div>
@@ -665,6 +731,8 @@ class TestConditionalContainer(TestCase):
             <div class="container growing-source" id="growing1:textarea_child1">
               <label>None</label>
               <a class="growing-delete-button">Delete None</a>
+              <a class="comment-button">Comment</a>
+              <textarea name="growing1:textarea_child1:0:_comment" id="growing1:textarea_child1:0:_comment" class="_comment"></textarea>
               <textarea name="growing1:textarea_child1:0:value" id="growing1:textarea_child1:0" rows="2"></textarea>
               <a class="growing-add-button">New growing1</a>
             </div>
@@ -673,6 +741,8 @@ class TestConditionalContainer(TestCase):
             <div class="container growing-source" id="growing2:textarea_child2">
               <label>None</label>
               <a class="growing-delete-button">Delete None</a>
+              <a class="comment-button">Comment</a>
+              <textarea name="growing2:textarea_child2:0:_comment" id="growing2:textarea_child2:0:_comment" class="_comment"></textarea>
               <textarea name="growing2:textarea_child2:0:value" id="growing2:textarea_child2:0" rows="2"></textarea>
               <a class="growing-add-button">New growing2</a>
             </div>
@@ -730,6 +800,8 @@ class TestGrowingContainer(TestCase):
           <div class="container growing-source" id="test:textarea_child">
             <label>None</label>
             <a class="growing-delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:textarea_child:0:_comment" id="test:textarea_child:0:_comment" class="_comment"></textarea>
             <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
@@ -744,12 +816,16 @@ class TestGrowingContainer(TestCase):
           <div class="container growing-source" id="test:textarea_child">
             <label>None</label>
             <a class="growing-delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:textarea_child:0:_comment" id="test:textarea_child:0:_comment" class="_comment"></textarea>
             <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
           <div class="container">
             <label>None</label>
             <a class="growing-delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:textarea_child:1:_comment" id="test:textarea_child:1:_comment" class="_comment"></textarea>
             <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
@@ -771,6 +847,8 @@ class TestGrowingContainer(TestCase):
           <div class="container growing-source" id="test:textarea_child">
             <label>None</label>
             <a class="growing-delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:textarea_child:0:_comment" id="test:textarea_child:0:_comment" class="_comment"></textarea>
             <textarea name="test:textarea_child:0:value" id="test:textarea_child:0" class="test" rows="2"></textarea>
             <a class="growing-add-button">New test</a>
           </div>
@@ -778,6 +856,8 @@ class TestGrowingContainer(TestCase):
             <input type="text" value="test0" name="test:textarea_child:1:attrs:idtest" id="test:textarea_child:1:attrs:idtest" class="attr idtest">
             <label>None</label>
             <a class="growing-delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:textarea_child:1:_comment" id="test:textarea_child:1:_comment" class="_comment"></textarea>
             <textarea name="test:textarea_child:1:value" id="test:textarea_child:1" class="test" rows="2">hello</textarea>
             <a class="growing-add-button">New test</a>
           </div>
@@ -785,6 +865,8 @@ class TestGrowingContainer(TestCase):
             <input type="text" value="test1" name="test:textarea_child:2:attrs:idtest" id="test:textarea_child:2:attrs:idtest" class="attr idtest">
             <label>None</label>
             <a class="growing-delete-button">Delete test</a>
+            <a class="comment-button">Comment</a>
+            <textarea name="test:textarea_child:2:_comment" id="test:textarea_child:2:_comment" class="_comment"></textarea>
             <textarea name="test:textarea_child:2:value" id="test:textarea_child:2" class="test" rows="2">world</textarea>
             <a class="growing-add-button">New test</a>
           </div>

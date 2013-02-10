@@ -1247,13 +1247,15 @@ class TestGenerator3(TestCase):
 
         dic = {
             'value': 'choice value',
-            'attrs': {'id': '1'}
+            'attrs': {'id': '1'},
+            '_comment': 'My comment',
         }
         obj = gen.dict_to_obj('choice', dic)
         self.assertTrue(isinstance(obj, gen.dtd_classes['choice']))
         self.assertEqual(obj.value, 'choice value')
         # Bad attribute name
         self.assertEqual(obj.attrs, {})
+        self.assertEqual(obj._comment, 'My comment')
 
         dic = {'choice': [{'value': 'choice1',
                            'attrs': {'idchoice': '1'}},

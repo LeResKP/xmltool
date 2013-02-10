@@ -442,6 +442,8 @@ class Generator(object):
             if attr_name in attrs:
                 obj.attrs[attr_name] = attrs[attr_name]
 
+        obj._comment = dic.get('_comment') or None
+
         if isinstance(obj, TextElement):
             value = dic.get('value')
             if value == '':
