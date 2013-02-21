@@ -6,6 +6,7 @@ import re
 from StringIO import StringIO
 from dtd_parser import Generator
 import utils
+import elements
 
 xml_declaration_re = re.compile(r'(<\?xml [^>]*\?>)')
 
@@ -117,6 +118,18 @@ def get_jstree_node_data(dtd_url, elt_id):
     """
     gen = Generator(dtd_url=dtd_url)
     cls, ident, parent_id = gen.split_id(elt_id)
+    splitted = gen.split_id_v2(elt_id)
+    current = splitted.pop()
+    parent = splitted.pop()
+    cls1 = current['elt']
+    assert cls == cls1
+    parent_id1 = parent['id_with_index']
+    assert parent_id == parent_id1
+    elt_id1 = current['id_with_index']
+    assert elt_id == elt_id1
+    ident1 = current['index']
+    assert ident == ident1
+    
     elt = cls.to_jstree_dict(prefix_id=parent_id, number=ident)
     previous = gen.get_previous_element_for_jstree(elt_id)
     return {

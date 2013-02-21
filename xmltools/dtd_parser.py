@@ -2,7 +2,14 @@ import re
 from lxml import etree
 import forms
 import utils
-from elements import Element, SubElement, TextElement, ElementList, generate_id
+from elements import (
+    Element,
+    SubElement,
+    TextElement,
+    ElementList,
+    generate_id,
+    MultipleElementList
+)
 import simplejson as json
 
 
@@ -166,8 +173,10 @@ class Generator(object):
             lis = [SubElement(element) for element in splitted]
             child_tagnames = []
             for elt in lis:
-                tagnames = elt._conditional_names or [elt.tagname]
-                child_tagnames += tagnames
+                if elt._conditional_names and not elt.islist:
+                    child_tagnames += elt._conditional_names
+                else:
+                    child_tagnames += [elt.tagname]
             cls = type(tagname, (Element,), {
                 '_sub_elements': lis,
                 'child_tagnames': child_tagnames,
@@ -215,6 +224,16 @@ class Generator(object):
                 break
             comments += [previous.text]
         obj._comment = '\n'.join(comments) or None
+
+    def get_sub_element(self, obj, xml):
+        for element in obj._sub_elements:
+            if not element._conditional_names:
+                if element.tagname == xml.tag:
+                    return element
+            else:
+                for tagname in element._conditional_names:
+                    if tagname == xml.tag:
+                        return element
         
     def generate_obj(self, xml):
         obj = self.create_obj(xml.tag)
@@ -229,24 +248,48 @@ class Generator(object):
             obj.value = text
             return obj
 
-        for element in obj._sub_elements:
-            key = self.get_key_from_xml(element, xml)
-            if not key:
+        for child in xml:
+            element = self.get_sub_element(obj, child)
+            if not element:
+                # When it can arrived?
                 continue
             if element.islist:
-                children = get_children(key, xml)
-                lis = ElementList(self.dtd_classes[key])
-                lis.extend([self.generate_obj(c) for c in children])
-                setattr(obj, key, lis)
+                newo = getattr(obj, element.tagname, None)
+                if newo is None:
+                    if element._conditional_names:
+                        classes = [self.dtd_classes[name]
+                                   for name in element._conditional_names]
+                        newo = MultipleElementList(classes)
+                    else:
+                        newo = ElementList(self.dtd_classes[element.tagname])
+                    setattr(obj, element.tagname, newo)
+                newo.append(self.generate_obj(child))
             else:
-                child = get_child(key, xml)
-                value = (child is not None) and self.generate_obj(child) or None
-                setattr(obj, key, value)
+                value = self.generate_obj(child)
+                setattr(obj, child.tag, value)
 
+        _marker = object()
+        # Make sure all the property are defined.
+        for element in obj._sub_elements:
+            tagname = element.tagname
+            if getattr(obj, tagname, _marker) == _marker:
+                if element.islist:
+                    if element._conditional_names:
+                        classes = [self.dtd_classes[name]
+                                   for name in element._conditional_names]
+                        lis = MultipleElementList(classes)
+                    else:
+                        lis = ElementList(self.dtd_classes[tagname])
+
+                    setattr(obj, tagname, lis)
+                else:
+                    if not element._conditional_names:
+                        setattr(obj, tagname, None)
+                    
         return obj
 
     def get_key_from_obj(self, element, obj):
-        if not element._conditional_names:
+        if not element._conditional_names or element.islist:
             return element.tagname
 
         for tagname in element._conditional_names:
@@ -281,7 +324,7 @@ class Generator(object):
             if element.islist:
                 value = getattr(obj, key, [])
                 for v in value:
-                    e = etree.Element(key)
+                    e = etree.Element(v.tagname)
                     self.obj_to_xml(v, e)
                     if len(e) or e.text or element.required:
                         if e.text:
@@ -316,7 +359,6 @@ class Generator(object):
             return obj.to_jstree_dict(clear_value(obj.value), prefix_id, index)
 
         dic =  obj.to_jstree_dict(prefix_id, index, skip_children=True)
-
         ident = dic['metadata']['id']
         children = []
         for element in obj._sub_elements:
@@ -325,10 +367,17 @@ class Generator(object):
                 continue
             if element.islist:
                 value = getattr(obj, key, [])
-                for i, v in enumerate(value):
-                    d = self.obj_to_jstree_dict(v, ident, (i + 1))
-                    if d:
-                        children += [d]
+                if element._conditional_names:
+                    tmp_ident = '%s:%s' % (ident, key)
+                    for i, v in enumerate(value):
+                        d = self.obj_to_jstree_dict(v, '%s:%i' % (tmp_ident, i+1))
+                        if d:
+                            children += [d]
+                else:
+                    for i, v in enumerate(value):
+                        d = self.obj_to_jstree_dict(v, ident, (i + 1))
+                        if d:
+                            children += [d]
             else:
                 value = getattr(obj, key, None)
                 d = self.obj_to_jstree_dict(value, ident)
@@ -343,11 +392,23 @@ class Generator(object):
 
     def generate_form_child(self, element, parent):
         if element._conditional_names:
-            field = forms.ConditionalContainer(parent=parent,
+            key=None
+            if element.islist:
+                key = element.tagname
+                parent = forms.GrowingContainer(
+                        key=key,
+                        parent=parent,
+                        required=element.required,
+                        )
+            field = forms.ConditionalContainer(name=key,
+                                               parent=parent,
                                                required=element.required)
             for elt in element.conditional_sub_elements:
                 field.possible_children += [self.generate_form_child(elt,
                                                                      field)]
+            if element.islist:
+                parent.child = field
+                return parent
             return field
 
         key = element.tagname
@@ -424,7 +485,7 @@ class Generator(object):
         return parent
 
     def get_key_from_dict(self, element, dic):
-        if not element._conditional_names:
+        if not element._conditional_names or element.islist:
             return element.tagname
 
         for tagname in element._conditional_names:
@@ -462,12 +523,26 @@ class Generator(object):
             if element.islist:
                 value = value or []
                 assert isinstance(value, list)
-                lis = ElementList(self.dtd_classes[key])
-                for v in value:
-                    sub_obj = self.dict_to_obj(key, v, element.required)
-                    if sub_obj:
-                        lis += [sub_obj]
-                setattr(obj, key, lis)
+                if element._conditional_names:
+                    classes = [self.dtd_classes[name]
+                               for name in element._conditional_names]
+                    lis = MultipleElementList(classes)
+                    for v in value:
+                        ks = v.keys()
+                        assert len(ks) == 1, ks
+                        k = ks[0]
+                        subv = v[k]
+                        sub_obj = self.dict_to_obj(k, subv, element.required)
+                        if sub_obj:
+                            lis += [sub_obj]
+                    setattr(obj, key, lis)
+                else:
+                    lis = ElementList(self.dtd_classes[key])
+                    for v in value:
+                        sub_obj = self.dict_to_obj(key, v, element.required)
+                        if sub_obj:
+                            lis += [sub_obj]
+                    setattr(obj, key, lis)
                 isempty = False
             else:
                 res = self.dict_to_obj(key, value, element.required)
@@ -499,6 +574,53 @@ class Generator(object):
         cls = self.dtd_classes[eltname]
         return cls, index, ':'.join(splitted)
 
+    def split_id_v2(self, ident):
+        splitted = ident.split(':')
+        # splitted.reverse()
+        root_elt = self.dtd_classes[splitted.pop(0)]
+        res = [{
+            'elt': root_elt,
+            'index': None,
+        }]
+        for eltname in splitted:
+            last_elt = res[-1]['elt']
+            index = utils.to_int(eltname)
+            if index is not None:
+                res[-1]['index'] = index
+                continue
+            if isinstance(last_elt, SubElement):
+                elts = last_elt.conditional_sub_elements
+            else:
+                elts = last_elt._sub_elements
+            for elt in elts:
+                eltnames = []
+                if elt._conditional_names:
+                    eltnames = elt._conditional_names
+                if eltname == elt.tagname or eltname in eltnames:
+                    if eltname in self.dtd_classes:
+                        res += [{
+                            'elt': self.dtd_classes[eltname],
+                            'index': None,
+                        }]
+                    else:
+                        res += [{
+                            'elt': elt,
+                            'index': None,
+                        }]
+                    break
+
+        parent_id = ''
+        for dic in res:
+            if parent_id != '':
+                parent_id += ':'
+            parent_id += dic['elt'].tagname
+            dic['id'] = parent_id
+            dic['id_with_index'] = parent_id
+            if dic['index'] is not None:
+                dic['id_with_index'] = '%s:%i' % (parent_id, dic['index'])
+                parent_id += ':%i' % dic['index']
+        return res
+
     def get_previous_element_for_jstree(self, ident):
         """Find the previous element from the given ident. We also get the
         position where this element should be inserted in the tree.
@@ -508,40 +630,80 @@ class Generator(object):
         :return: the list of the previous elements and the position
         :rtype: list of tuple
         """
-        cls, ident, parent_id = self.split_id(ident)
-        parent_cls, parent_ident, parent_parent_id = self.split_id(parent_id)
-
+        splitted = self.split_id_v2(ident)
         lis = []
-        found = False
+        current = splitted.pop()
+        cls = current['elt']
+
+        parent = splitted.pop()
+        parent_cls = parent['elt']
+
+        if isinstance(parent_cls, SubElement):
+            if parent_cls.islist and parent['index'] is not None and parent['index'] > 1:
+                for i in range(parent['index'] -1, 0, -1):
+                    new_ident = '#tree_%s' % parent['id']
+                    new_ident += ':%i' % i
+                    for e in parent_cls._conditional_names:
+                        lis += [(new_ident + ':%s' % e, 'after')]
+
+            current = parent
+            cls = current['elt']
+            parent = splitted.pop()
+            parent_cls = parent['elt']
+
+        tmp_list = []
         for elt in parent_cls._sub_elements:
-            for tn in (elt._conditional_names or [elt.tagname]):
-                if cls.tagname == tn:
-                    found = True
-
-                subcls = self.dtd_classes[tn]
-                selector = None
-                if elt.islist:
-                    if found:
-                        if ident > 1:
-                            selector = ('#tree_%s' % generate_id(
-                                subcls, parent_id, ident-1), 'after')
-                    else:
-                        selector = ('.tree_%s' % generate_id(subcls, parent_id),
-                                'after')
-                elif not found:
-                    selector = ('#tree_%s' % generate_id(subcls, parent_id),
-                                'after')
-
-                if selector:
-                    lis += [selector]
-            if found:
+            if elt._conditional_names:
+                if cls.tagname in elt._conditional_names:
+                    break
+            if elt.tagname  == cls.tagname and not elt.islist:
                 break
 
-        lis.reverse()
-        ident = generate_id(parent_cls, parent_parent_id, parent_ident)
-        # Also add the parent in case there is no child!
-        if parent_ident is not None:
-            lis += [('#tree_%s' % ident, 'inside')]
-        else:
-            lis += [('.tree_%s' % ident, 'inside')]
+            if elt.islist:
+                if elt.tagname == cls.tagname:
+                    if not elt._conditional_names and current['index'] is not None and current['index'] > 1:
+                        for i in range(1, current['index']):
+                            new_ident = '#tree_%s' % current['id']
+                            new_ident += ':%i' % i
+                            tmp_list += [(new_ident, 'after')]
+                else:
+                    if elt._conditional_names and not elt.islist:
+                        for tagname in elt._conditional_names:
+                            new_ident = '.tree_%s' % parent['id']
+                            if parent['index'] is not None:
+                                new_ident += ':%i' % parent['index']
+                            new_ident += ':%s' % tagname
+                            tmp_list += [(new_ident, 'after')]
+                    else:
+                        new_ident = '.tree_%s' % parent['id']
+                        if parent['index'] is not None:
+                            new_ident += ':%i' % parent['index']
+                        new_ident += ':%s' % elt.tagname
+                        tmp_list += [(new_ident, 'after')]
+            else:
+                if not elt._conditional_names:
+                    new_ident = '#tree_%s' % parent['id']
+                    if parent['index'] is not None:
+                        new_ident += ':%i' % parent['index']
+                    new_ident += ':%s' % elt.tagname
+                    tmp_list += [(new_ident, 'after')]
+                else:
+                    for tagname in elt._conditional_names:
+                        new_ident = '#tree_%s' % parent['id']
+                        if parent['index'] is not None:
+                            new_ident += ':%i' % parent['index']
+                        new_ident += ':%s' % tagname
+                        tmp_list += [(new_ident, 'after')]
+
+            if elt.tagname  == cls.tagname:
+                break
+
+        tmp_list.reverse()
+        lis.extend(tmp_list)
+        
+        new_ident = '#tree_%s' % parent['id']
+        if parent['index'] is not None:
+            new_ident += ':%i' % parent['index']
+        lis += [(new_ident, 'inside')]
+        
         return lis

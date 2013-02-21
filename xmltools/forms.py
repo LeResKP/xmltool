@@ -424,32 +424,54 @@ class ConditionalContainer(Field):
     def __init__(self, **kwargs):
         self.possible_children = []
         super(ConditionalContainer, self).__init__(**kwargs)
+        self.container_css_classes = ['conditional-container']
 
     def get_children(self):
-        for c in self.possible_children:
-            if hasattr(self.value, c.key):
-                c.set_value(getattr(self.value, c.key, None))
-                return [c]
+        # TODO: check if this function is used!
+        if type(self.parent) == GrowingContainer:
+            for c in self.possible_children:
+                if c.key == self.value.tagname:
+                    c.set_value(self.value)
+                    return [c]
+        else:
+            for c in self.possible_children:
+                if hasattr(self.value, c.key):
+                    c.set_value(getattr(self.value, c.key, None))
+                    return [c]
         return []
 
     def get_child(self):
-        for c in self.possible_children:
-            if hasattr(self.value, c.key):
-                c.set_value(getattr(self.value, c.key, None))
-                return c
+        if self.value is None:
+            return None
+        if type(self.parent) == GrowingContainer:
+            for c in self.possible_children:
+                if c.key == self.value.tagname:
+                    c.set_value(self.value)
+                    return c
+        else:
+            for c in self.possible_children:
+                if hasattr(self.value, c.key):
+                    c.set_value(getattr(self.value, c.key, None))
+                    return c
         return None
 
     def _display(self):
         if not self.possible_children:
             return ''
 
+        # TODO: perhaps we should only add the id if self.name is defined to
+        # make sure we never have duplicate id.
         child = self.get_child()
-        html = ['<div class="conditional-container">']
-        if child:
-            html += ['<select class="hidden conditional">']
+        html = ['<div class="%s" id="%s">' % (
+            ' '.join(self.container_css_classes),
+            self.get_id())
+        ]
+        html_select = []
+        if child and type(self.parent) != GrowingContainer:
+            html_select += ['<select class="hidden conditional">']
         else:
-            html += ['<select class="conditional">']
-        html += ['<option value="">Add new</option>']
+            html_select += ['<select class="conditional">']
+        html_select += ['<option value="">Add new</option>']
         children_html = []
         for index, c in enumerate(self.possible_children):
             lis = c.css_classes
@@ -465,9 +487,10 @@ class ConditionalContainer(Field):
             lis += ['conditional-option']
             lis += [option]
             children_html += [c.display()]
-            html += ['<option value="%s">%s</option>' % (option, c.key)]
-        html += ['</select>']
+            html_select += ['<option value="%s">%s</option>' % (option, c.key)]
+        html_select += ['</select>']
         html += children_html
+        html += html_select
         html += ['</div>']
         return '\n'.join(html)
 
@@ -492,7 +515,7 @@ class GrowingContainer(MultipleField):
             repetitions = len(values)
         else:
             repetitions = self.repetitions
-            if self.required and type(self.parent) != ConditionalContainer:
+            if self.required and type(self.parent) != ConditionalContainer and type(self.child) != ConditionalContainer:
                 repetitions += 1
 
         children = []

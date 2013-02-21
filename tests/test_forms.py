@@ -639,12 +639,7 @@ class TestConditionalContainer(TestCase):
         o.sub1.value = 'first textarea'
         field.set_value(o)
         expected = '''
-        <div class="conditional-container">
-          <select class="hidden conditional">
-            <option value="">Add new</option>
-            <option value="test:sub1:option:0">sub1</option>
-            <option value="test:sub2:option:1">sub2</option>
-          </select>
+        <div class="conditional-container" id="test">
           <div class="container conditional-option test:sub1:option:0">
             <a class="add-button hidden">Add sub1</a>
             <div>
@@ -665,6 +660,11 @@ class TestConditionalContainer(TestCase):
               <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
             </div>
           </div>
+          <select class="hidden conditional">
+            <option value="">Add new</option>
+            <option value="test:sub1:option:0">sub1</option>
+            <option value="test:sub2:option:1">sub2</option>
+          </select>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
 
@@ -677,12 +677,7 @@ class TestConditionalContainer(TestCase):
         field.possible_children = [sub1, sub2]
 
         expected = '''
-        <div class="conditional-container">
-          <select class="conditional">
-            <option value="">Add new</option>
-            <option value="test:sub1:option:0">sub1</option>
-            <option value="test:sub2:option:1">sub2</option>
-          </select>
+        <div class="conditional-container" id="test">
           <div class="container deleted conditional-option test:sub1:option:0 inline">
             <a class="add-button">Add sub1</a>
             <div class="deleted">
@@ -703,6 +698,11 @@ class TestConditionalContainer(TestCase):
               <textarea name="test:sub2:value" id="test:sub2" class="sub2"></textarea>
             </div>
           </div>
+          <select class="conditional">
+            <option value="">Add new</option>
+            <option value="test:sub1:option:0">sub1</option>
+            <option value="test:sub2:option:1">sub2</option>
+          </select>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
 
@@ -721,12 +721,7 @@ class TestConditionalContainer(TestCase):
         field.possible_children = [growing1, growing2]
 
         expected = '''
-        <div class="conditional-container">
-          <select class="conditional">
-            <option value="">Add new</option>
-            <option value="growing1:option:0">growing1</option>
-            <option value="growing2:option:1">growing2</option>
-          </select>
+        <div class="conditional-container" id="">
           <div class="deleted conditional-option growing1:option:0 growing-container">
             <div class="container growing-source" id="growing1:textarea_child1">
               <label>None</label>
@@ -747,6 +742,11 @@ class TestConditionalContainer(TestCase):
               <a class="growing-add-button">New growing2</a>
             </div>
           </div>
+          <select class="conditional">
+            <option value="">Add new</option>
+            <option value="growing1:option:0">growing1</option>
+            <option value="growing2:option:1">growing2</option>
+          </select>
         </div>'''
         tw2test.assert_eq_xml(field.display(), expected)
 

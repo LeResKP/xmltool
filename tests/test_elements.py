@@ -5,7 +5,9 @@ from lxml import etree
 import os.path
 from xmltools import dtd_parser, utils, factory
 from xmltools.elements import TextElement, generate_id
-from test_dtd_parser import BOOK_XML, BOOK_DTD, EXERCISE_XML_2, EXERCISE_DTD_2
+from test_dtd_parser import (
+    BOOK_XML, BOOK_DTD, EXERCISE_XML_2, EXERCISE_DTD_2, EXERCISE_DTD
+)
 import simplejson as json
 
 
@@ -14,15 +16,15 @@ class TestFunction(TestCase):
     def test_generate_id(self):
         class Comment(TextElement):
             tagname = 'comment'
-        result = generate_id(Comment)
+        result = generate_id(Comment.tagname)
         expected = 'comment'
         self.assertEqual(result, expected)
 
-        result = generate_id(Comment, prefix_id='prefix')
+        result = generate_id(Comment.tagname, prefix_id='prefix')
         expected = 'prefix:comment'
         self.assertEqual(result, expected)
 
-        result = generate_id(Comment, prefix_id='prefix', index=10)
+        result = generate_id(Comment.tagname, prefix_id='prefix', index=10)
         expected = 'prefix:comment:10'
         self.assertEqual(result, expected)
 
@@ -37,8 +39,16 @@ class TestTextElement(TestCase):
         self.assertEqual(elt.value, 'my value')
 
     def test_to_jstree_dict(self):
+        dtd_str = '''
+        <!ELEMENT prefix (prefix2*)>
+        <!ELEMENT prefix2 (comment)>
+        <!ELEMENT comment (#PCDATA)>
+        '''
+        gen = dtd_parser.Generator(dtd_str=dtd_str)
+
         class Comment(TextElement):
             tagname = 'comment'
+            _generator = gen
 
         elt = Comment(value='my comment')
         self.assertEqual(elt.value, 'my comment')
@@ -48,7 +58,10 @@ class TestTextElement(TestCase):
             'attr': {
                 'id': 'tree_comment',
                 'class': 'tree_comment'},
-            'metadata': {'id': 'comment'}}
+            'metadata': {
+                'id': 'comment',
+                'replace_id': 'comment'
+            }}
         result = elt.to_jstree_dict()
         self.assertEqual(result, expected)
 
@@ -57,7 +70,10 @@ class TestTextElement(TestCase):
             'attr': {
                 'id': 'tree_comment',
                 'class': 'tree_comment'},
-            'metadata': {'id': 'comment'}}
+            'metadata': {
+                'id': 'comment',
+                'replace_id': 'comment'
+            }}
         result = elt.to_jstree_dict(value=elt.value)
         self.assertEqual(result, expected)
 
@@ -66,7 +82,10 @@ class TestTextElement(TestCase):
             'attr': {
                 'id': 'tree_prefix:prefix2:1:comment',
                 'class': 'tree_prefix:prefix2:1:comment'},
-            'metadata': {'id': 'prefix:prefix2:1:comment'}}
+            'metadata': {
+                'id': 'prefix:prefix2:1:comment',
+                'replace_id': 'prefix:prefix2:1:comment'
+            }}
         result = elt.to_jstree_dict(
             value=elt.value, prefix_id='prefix:prefix2:1')
         self.assertEqual(result, expected)
@@ -76,11 +95,37 @@ class TestTextElement(TestCase):
             'attr': {
                 'id': 'tree_prefix:prefix2:1:comment:4',
                 'class': 'tree_prefix:prefix2:1:comment'},
-            'metadata': {'id': 'prefix:prefix2:1:comment:4'}}
+            'metadata': {
+                'id': 'prefix:prefix2:1:comment:4',
+                'replace_id': 'prefix:prefix2:1:comment:4'
+            }}
         result = elt.to_jstree_dict(
             value=elt.value,
             prefix_id='prefix:prefix2:1',
             number=4)
+        self.assertEqual(result, expected)
+
+        dtd_str = '''
+        <!ELEMENT prefix (prefix2*)>
+        <!ELEMENT prefix2 ((positive-comment|negative-comment)*)>
+        <!ELEMENT positive-comment (#PCDATA)>
+        <!ELEMENT negative-comment (#PCDATA)>
+        '''
+        gen = dtd_parser.Generator(dtd_str=dtd_str)
+        Comment._generator = gen
+        expected = {
+            'data': 'comment (%s)' % elt.value,
+            'attr': {
+                'id': 'tree_prefix:prefix2:1:_positive-comment_negative-comment:4:comment',
+                'class': 'tree_prefix:prefix2:1:_positive-comment_negative-comment:4'},
+            'metadata': {
+                'id': 'prefix:prefix2:1:_positive-comment_negative-comment:4:comment',
+                'replace_id': 'prefix:prefix2:1:_positive-comment_negative-comment'
+            }}
+        result = elt.to_jstree_dict(
+            value=elt.value,
+            prefix_id='prefix:prefix2:1:_positive-comment_negative-comment:4',
+            )
         self.assertEqual(result, expected)
 
     def test_to_jstree_json(self):
@@ -101,7 +146,7 @@ class TestElement(TestCase):
         obj = gen.generate_obj(root)
         self.assertEqual(obj.child_tagnames, ['number', 'test'])
         self.assertEqual(obj.test[0].child_tagnames,
-                         ['question', 'qcm', 'mqm', 'comments'])
+                         ['question', '_qcm_mqm', 'comments'])
 
     def test__get_element(self):
         root = etree.fromstring(BOOK_XML)
@@ -117,7 +162,9 @@ class TestElement(TestCase):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         obj = gen.generate_obj(root)
         result = obj.test[0]._get_element('qcm')
-        self.assertEqual(result.tagname, '(qcm|mqm)')
+        self.assertEqual(result, None)
+        result = obj.test[0]._get_element('_qcm_mqm')
+        self.assertEqual(result.tagname, '_qcm_mqm')
 
     def test_getitem(self):
         root = etree.fromstring(BOOK_XML)
@@ -292,20 +339,17 @@ class TestElement(TestCase):
         self.assertEqual(xml_str, expected)
 
     def test_create_exercise(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD)
         exercise = gen.create_obj('Exercise')
-        test_list = exercise.create('test')
-        test1 = test_list.add()
-        test1.create('question', 'my question')
-        qcm_list = test1.create('qcm')
-        qcm1 = qcm_list.add()
+        exercise.create('question', 'my question')
+        test = exercise.create('test')
+        qcm1 = test.create('qcm')
         choice_list = qcm1.create('choice')
         choice_list.add('choice 1')
         choice_list.add('choice 2')
         expected = '''<Exercise>
-  <number/>
+  <question>my question</question>
   <test>
-    <question>my question</question>
     <qcm>
       <choice>choice 1</choice>
       <choice>choice 2</choice>
@@ -316,16 +360,15 @@ class TestElement(TestCase):
         self.assertEqual(exercise.to_xml(), expected)
 
     def test_create_exercise_conditional(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD)
         exercise = gen.create_obj('Exercise')
-        test_list = exercise.create('test')
-        test1 = test_list.add()
-        test1.create('question', 'my question')
-        qcm_list = test1.create('qcm')
+        exercise.create('question', 'my question')
+        test = exercise.create('test')
+        qcm = test.create('qcm')
 
         try:
-            mqm_list = test1.create('mqm')
-            assert0
+            mqm = test.create('mqm')
+            assert 0
         except Exception, e:
             self.assertEqual(str(e), "You can't add a mqm since it already contains a qcm")
 
@@ -335,75 +378,102 @@ class TestElement(TestCase):
             'children': [
                 {'data': 'comment',
                  'attr': {
-                     'id': 'tree_Excerice:comments:comment:1',
-                     'class': 'tree_Excerice:comments:comment'},
-                 'metadata': {'id': 'Excerice:comments:comment:1'}}],
+                     'id': 'tree_Exercise:comments:comment:1',
+                     'class': 'tree_Exercise:comments:comment'},
+                 'metadata': {
+                     'id': 'Exercise:comments:comment:1',
+                     'replace_id': 'Exercise:comments:comment:1'
+                 }}],
             'data': 'comments',
             'attr': {
-                'id': 'tree_Excerice:comments',
-                'class': 'tree_Excerice:comments'},
-            'metadata': {'id': 'Excerice:comments'}}
-        result = gen.dtd_classes['comments'].to_jstree_dict('Excerice')
+                'id': 'tree_Exercise:comments',
+                'class': 'tree_Exercise:comments'},
+            'metadata': {
+                'id': 'Exercise:comments',
+                'replace_id': 'Exercise:comments'
+            }}
+        result = gen.dtd_classes['comments'].to_jstree_dict('Exercise')
         self.assertEqual(result, expected)
 
         expected = {
-            'data': 'question (Excerice)',
+            'data': 'question (Exercise)',
             'attr': {
                 'id': 'tree_question',
                 'class': 'tree_question'},
-            'metadata': {'id': 'question'}}
-        result = gen.dtd_classes['question'].to_jstree_dict('Excerice')
+            'metadata': {
+                'id': 'question',
+                'replace_id': 'question'
+            }}
+        result = gen.dtd_classes['question'].to_jstree_dict('Exercise')
         self.assertEqual(result, expected)
 
         expected = {
             'children': [
                 {'data': 'question',
-                 'attr': {'id': 'tree_Excerice:test:question',
-                          'class': 'tree_Excerice:test:question'},
-                 'metadata': {'id': 'Excerice:test:question'}}],
+                 'attr': {'id': 'tree_Exercise:test:question',
+                          'class': 'tree_Exercise:test:question'},
+                 'metadata': {
+                     'id': 'Exercise:test:question',
+                     'replace_id': 'Exercise:test:question'
+                 }}],
             'data': 'test',
             'attr': {
-                'id': 'tree_Excerice:test',
-                'class': 'tree_Excerice:test'},
-            'metadata': {'id': 'Excerice:test'}}
-        result = gen.dtd_classes['test'].to_jstree_dict('Excerice')
+                'id': 'tree_Exercise:test',
+                'class': 'tree_Exercise:test'},
+            'metadata': {
+                'id': 'Exercise:test',
+                'replace_id': 'Exercise:test'
+            }}
+        result = gen.dtd_classes['test'].to_jstree_dict('Exercise')
         self.assertEqual(result, expected)
 
         expected = {
             'children': [
                 {'data': 'choice',
                  'attr': {
-                     'id': 'tree_Excerice:qcm:choice:1',
-                     'class': 'tree_Excerice:qcm:choice'},
-                 'metadata': {'id': 'Excerice:qcm:choice:1'}}],
+                     'id': 'tree_Exercise:qcm:choice:1',
+                     'class': 'tree_Exercise:qcm:choice'},
+                 'metadata': {
+                     'id': 'Exercise:qcm:choice:1',
+                     'replace_id': 'Exercise:qcm:choice:1'
+                 }}],
             'data': 'qcm',
             'attr': {
-                'id': 'tree_Excerice:qcm',
-                'class': 'tree_Excerice:qcm'},
-            'metadata': {'id': 'Excerice:qcm'}}
-        result = gen.dtd_classes['qcm'].to_jstree_dict('Excerice')
+                'id': 'tree_Exercise:qcm',
+                'class': 'tree_Exercise:qcm'},
+            'metadata': {
+                'id': 'Exercise:qcm',
+                'replace_id': 'Exercise:qcm'
+            }}
+        result = gen.dtd_classes['qcm'].to_jstree_dict('Exercise')
         self.assertEqual(result, expected)
 
         expected = {
             'children': [
                 {'data': 'choice',
                  'attr': {
-                     'id': 'tree_Excerice:qcm:0:choice:1',
-                     'class': 'tree_Excerice:qcm:0:choice'},
-                 'metadata': {'id': 'Excerice:qcm:0:choice:1'}}],
+                     'id': 'tree_Exercise:qcm:0:choice:1',
+                     'class': 'tree_Exercise:qcm:0:choice'},
+                 'metadata': {
+                     'id': 'Exercise:qcm:0:choice:1',
+                     'replace_id': 'Exercise:qcm:0:choice:1'
+                 }}],
             'data': 'qcm',
             'attr': {
-                'id': 'tree_Excerice:qcm:0',
-                'class': 'tree_Excerice:qcm'},
-            'metadata': {'id': 'Excerice:qcm:0'}}
-        result = gen.dtd_classes['qcm'].to_jstree_dict('Excerice', number=0)
+                'id': 'tree_Exercise:qcm:0',
+                'class': 'tree_Exercise:qcm'},
+            'metadata': {
+                'id': 'Exercise:qcm:0',
+                'replace_id': 'Exercise:qcm:0'
+            }}
+        result = gen.dtd_classes['qcm'].to_jstree_dict('Exercise', number=0)
         self.maxDiff = None
         self.assertEqual(result, expected)
 
     def test_to_jstree_json(self):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        json_result = gen.dtd_classes['qcm'].to_jstree_json('Excerice', number=0)
-        dict_result = gen.dtd_classes['qcm'].to_jstree_dict('Excerice', number=0)
+        json_result = gen.dtd_classes['qcm'].to_jstree_json('Exercise', number=0)
+        dict_result = gen.dtd_classes['qcm'].to_jstree_dict('Exercise', number=0)
         self.assertEqual(json_result, json.dumps(dict_result))
 
     def test_write(self):
@@ -447,47 +517,27 @@ class TestElementList(TestCase):
 
         test1 = test.add()
         test1.create('question', 'question 1')
-        qcms = test1.create('qcm')
-        qcm1 = qcms.add()
-        choices1 = qcm1.create('choice')
-        choices1.add(text='choice1')
-        choices1.add(text='choice2')
-        choices1.add(text='choice3', position=1)
-        qcm2 = qcms.add()
-        choices2 = qcm2.create('choice')
-        choices2.add(text='choice4')
-        choices2.add(text='choice5')
-        choices2.add(text='choice6', position=1)
+        comment = test1.create('comments').create('comment')
+        comment.add(text='comment1')
+        comment.add(text='comment2')
+        comment.add(text='comment3', position=1)
 
         test2 = test.add()
         test2.create('question', 'question 2')
-        mqms = test2.create('mqm')
-        mqm1 = mqms.add()
-        mqm1.attrs['idmqm'] = '1'
-        choices1 = mqm1.create('choice')
-        choices1.add(text='choice1')
 
         expected = '''<?xml version='1.0' encoding='UTF-8'?>
 <Exercise>
   <number/>
   <test>
     <question>question 1</question>
-    <qcm>
-      <choice>choice1</choice>
-      <choice>choice3</choice>
-      <choice>choice2</choice>
-    </qcm>
-    <qcm>
-      <choice>choice4</choice>
-      <choice>choice6</choice>
-      <choice>choice5</choice>
-    </qcm>
+    <comments>
+      <comment>comment1</comment>
+      <comment>comment3</comment>
+      <comment>comment2</comment>
+    </comments>
   </test>
   <test>
     <question>question 2</question>
-    <mqm idmqm="1">
-      <choice>choice1</choice>
-    </mqm>
   </test>
 </Exercise>
 '''
@@ -504,11 +554,144 @@ class TestElementList(TestCase):
         gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
         obj = gen.generate_obj(root)
 
-        mqm3 = obj.test[0].mqm.add(position=0)
+        test3 = obj.test.add(position=0)
+        comment = test3.create('comments').create('comment')
+        comment.add(text='comment 3').attrs['idcomment'] = '11'
+
+        comment = obj.test[2]['comments']['comment']
+        comment.add(text='comment 4', position=0)
+
+        expected = '''<?xml version='1.0' encoding='UTF-8'?>
+<Exercise idexercise="1">
+  <number>1</number>
+  <test>
+    <question/>
+    <comments>
+      <comment idcomment="11">comment 3</comment>
+    </comments>
+  </test>
+  <test idtest="1" name="color">
+    <question idquestion="1">What is your favorite color?</question>
+    <mqm idmqm="1">
+      <choice idchoice="1">blue</choice>
+      <choice idchoice="2">red</choice>
+      <choice idchoice="3">black</choice>
+    </mqm>
+    <mqm idmqm="2">
+      <choice idchoice="4">magenta</choice>
+      <choice idchoice="5">orange</choice>
+      <choice idchoice="6">yellow</choice>
+    </mqm>
+  </test>
+  <test idtest="2">
+    <question idquestion="2">Have you got a pet?</question>
+    <qcm idqcm="1">
+      <choice idchoice="7">yes</choice>
+      <choice idchoice="8">no</choice>
+    </qcm>
+    <qcm idqcm="2">
+      <choice idchoice="9">yes</choice>
+      <choice idchoice="10">no</choice>
+    </qcm>
+    <comments idcomments="1">
+      <comment>comment 4</comment>
+      <comment idcomment="1">My comment 1</comment>
+      <comment idcomment="2">My comment 2</comment>
+    </comments>
+  </test>
+</Exercise>
+'''
+        xml = gen.obj_to_xml(obj)
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding='UTF-8')
+        self.assertEqual(xml_str, expected)
+
+    def test_add_text_not_allowed(self):
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        exercise = gen.create_obj('Exercise')
+        test = exercise.create('test')
+        try:
+            test.add(text='text')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e),"Can't set value to non TextElement")
+
+
+class TestMultipleElementList(TestCase):
+
+    # TODO: fix code to make this test passes
+    # def test_add(self):
+    #     gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+    #     exercise = gen.create_obj('Exercise')
+    #     test = exercise.create('test')
+
+    #     test1 = test.add()
+    #     test1.create('question', 'question 1')
+    #     qcms = test1.create('_qcm_mqm')
+    #     qcm1 = qcms.add()
+    #     choices1 = qcm1.create('choice')
+    #     choices1.add(text='choice1')
+    #     choices1.add(text='choice2')
+    #     choices1.add(text='choice3', position=1)
+    #     qcm2 = qcms.add()
+    #     choices2 = qcm2.create('choice')
+    #     choices2.add(text='choice4')
+    #     choices2.add(text='choice5')
+    #     choices2.add(text='choice6', position=1)
+
+    #     test2 = test.add()
+    #     test2.create('question', 'question 2')
+    #     mqms = test2.create('mqm')
+    #     mqm1 = mqms.add()
+    #     mqm1.attrs['idmqm'] = '1'
+    #     choices1 = mqm1.create('choice')
+    #     choices1.add(text='choice1')
+
+    #     expected = '''<?xml version='1.0' encoding='UTF-8'?>
+    # <Exercise>
+    #   <number/>
+    #   <test>
+    #     <question>question 1</question>
+    #     <qcm>
+    #       <choice>choice1</choice>
+    #       <choice>choice3</choice>
+    #       <choice>choice2</choice>
+    #     </qcm>
+    #     <qcm>
+    #       <choice>choice4</choice>
+    #       <choice>choice6</choice>
+    #       <choice>choice5</choice>
+    #     </qcm>
+    #   </test>
+    #   <test>
+    #     <question>question 2</question>
+    #     <mqm idmqm="1">
+    #       <choice>choice1</choice>
+    #     </mqm>
+    #   </test>
+    # </Exercise>
+    # '''
+    #     xml = gen.obj_to_xml(exercise)
+    #     xml_str = etree.tostring(
+    #         xml.getroottree(),
+    #         pretty_print=True,
+    #         xml_declaration=True,
+    #         encoding='UTF-8')
+    #     self.assertEqual(xml_str, expected)
+
+    def test_add_on_existing_obj(self):
+        root = etree.fromstring(EXERCISE_XML_2)
+        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
+        obj = gen.generate_obj(root)
+
+        mqm3 = obj.test[0]._qcm_mqm.add('mqm', position=0)
         choices = mqm3.create('choice')
         choices.add(text='choice 3').attrs['idchoice'] = '11'
 
-        choices1 = obj.test[0].mqm[1].choice
+        choices1 = obj.test[0]._qcm_mqm[1].choice
         choices1.add(text='choice 4', position=0)
 
         expected = '''<?xml version='1.0' encoding='UTF-8'?>
@@ -556,12 +739,3 @@ class TestElementList(TestCase):
             encoding='UTF-8')
         self.assertEqual(xml_str, expected)
 
-    def test_add_text_not_allowed(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        exercise = gen.create_obj('Exercise')
-        test = exercise.create('test')
-        try:
-            test.add(text='text')
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e),"Can't set value to non TextElement")

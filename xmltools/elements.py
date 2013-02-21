@@ -5,15 +5,15 @@ import utils
 import simplejson as json
 
 
-def generate_id(cls, prefix_id=None, index=None):
+def generate_id(tagname, prefix_id=None, index=None):
     """Get the id put on the form objects (input, textarea, ...)
 
-    :param cls: the class we want to get the HTML id
-    :type cls: Element, TextElement
+    :param tagname: the tagname we want to get the HTML id
+    :type tagname: str
     :return: the id of the given obj
     :rtype: str
     """
-    lis = [prefix_id, cls.tagname, index]
+    lis = [prefix_id, tagname, index]
     lis = map(str, filter(lambda x: x not in [None, ''],  lis))
     return ':'.join(lis)
 
@@ -45,12 +45,19 @@ class SubElement(object):
             tagnames= text.split('|')
             for tagname in tagnames:
                 elt = type(self)(tagname)
+                # We can't put the required on the element, it should be on the
+                # list container.
+                # TODO: Add this when the test are ok!
+                # elt.required = False
+
                 # If the conditional element is a list, the conditionals
                 # are also a list
                 # TODO: add test for islist
-                elt.islist = self.islist
+                # elt.islist = self.islist
                 self.conditional_sub_elements += [elt]
                 self._conditional_names += [elt.tagname]
+        if self._conditional_names:
+            self.tagname = '_%s' % '_'.join(self._conditional_names)
 
     def __repr__(self):
         return '<tagname=%(tagname)s required=%(required)s islist=%(islist)s>' % vars(self)
@@ -76,8 +83,21 @@ class TextElement(object):
 
     @classmethod
     def to_jstree_dict(cls, value=None, prefix_id=None, number=None, **kw):
-        ident = generate_id(cls, prefix_id, number)
-        css_class = generate_id(cls, prefix_id)
+        ident = generate_id(cls.tagname, prefix_id, number)
+        replace_id = ident
+        css_class = generate_id(cls.tagname, prefix_id)
+
+        # TODO: We have the same logic in Element.to_jstree_dict, find a way to
+        # share it!
+        if prefix_id:
+            splitted = cls._generator.split_id_v2(prefix_id)
+            parent = splitted.pop()
+            parent_elt = parent['elt']
+
+            if isinstance(parent_elt, SubElement) and parent_elt.islist:
+                replace_id = parent['id']
+                css_class = parent['id_with_index']
+
         data = cls.tagname
         if value:
             data = '%s (%s)' % (cls.tagname, utils.truncate(value))
@@ -89,6 +109,7 @@ class TextElement(object):
             },
             'metadata': {
                 'id': ident,
+                'replace_id': replace_id,
             },
         }
 
@@ -129,10 +150,11 @@ class Element(object):
         :rtype: SubElement
         """
         for elt in self._sub_elements:
-            tagnames = elt._conditional_names or [elt.tagname]
-            for n in tagnames:
-                if n == tagname:
+            if elt._conditional_names and not elt.islist:
+                if tagname in elt._conditional_names:
                     return elt
+            elif elt.tagname == tagname:
+                return elt
         return None
 
     def __getitem__(self, item):
@@ -213,16 +235,17 @@ class Element(object):
 
         cls = self._generator.dtd_classes[tagname]
         elt = self._get_element(tagname)
+
+        if elt._conditional_names:
+            other_tagnames = [tn for tn in elt._conditional_names if
+                     tn != tagname]
+            for tn in other_tagnames:
+                if tn in self:
+                    raise Exception("You can't add a %s since it "
+                                    "already contains a %s" % (
+                                        tagname,
+                                        tn))
         if elt.islist:
-            if elt._conditional_names:
-                other_tagnames = [tn for tn in elt._conditional_names if
-                         tn != tagname]
-                for tn in other_tagnames:
-                    if tn in self:
-                        raise Exception("You can't add a %s since it "
-                                        "already contains a %s" % (
-                                            tagname,
-                                            tn))
             obj = ElementList(cls)
         else:
             cls = self._generator.dtd_classes.get(tagname)
@@ -253,8 +276,18 @@ class Element(object):
 
     @classmethod
     def to_jstree_dict(cls, prefix_id=None, number=None, skip_children=False):
-        ident = generate_id(cls, prefix_id, number)
-        css_class = generate_id(cls, prefix_id)
+        ident = generate_id(cls.tagname, prefix_id, number)
+        css_class = generate_id(cls.tagname, prefix_id)
+        replace_id = ident
+
+        if prefix_id:
+            splitted = cls._generator.split_id_v2(prefix_id)
+            parent = splitted.pop()
+            parent_elt = parent['elt']
+
+            if isinstance(parent_elt, SubElement) and parent_elt.islist:
+                replace_id = parent['id_with_index']
+                css_class = parent['id']
 
         if not skip_children:
             children = []
@@ -276,6 +309,7 @@ class Element(object):
             },
             'metadata': {
                 'id': ident,
+                'replace_id': replace_id,
             },
         }
         if not skip_children:
@@ -356,3 +390,40 @@ class ElementList(list):
             self.append(obj)
         return obj
 
+class MultipleElementList(list):
+
+    def __init__(self, classes):
+        super(MultipleElementList, self).__init__()
+        self.classes = classes
+
+    def add(self, tagname, text=None, position=None):
+        """Add element in this list object
+
+        :param tagname: The element tagname we want to insert
+        :type tagname: str
+        :param text: if element is a :class: `TextElement` we set the value
+        :type text: str
+        :param position: the position in the list we want to insert the object
+        :type position: int
+        :rtype: instance of TextElement or Element
+        """
+        cls = None
+        for c in self.classes:
+            if c.tagname == tagname:
+                cls = c
+                break
+
+        if not cls:
+            raise Exception("%s is not allowed" % tagname)
+
+        obj = cls()
+        if text:
+            if isinstance(obj, TextElement):
+                obj.value = text
+            else:
+                raise Exception("Can't set value to non TextElement")
+        if position is not None:
+            self.insert(position, obj)
+        else:
+            self.append(obj)
+        return obj

@@ -87,16 +87,17 @@ class TestFactory(TestCase):
 
     def test_get_jstree_node_data(self):
         dtd_url = 'http://xml-tools.lereskp.fr/static/exercise.dtd'
-        elt_id = 'Exercise:question'
+        elt_id = 'Exercise:test:0:question'
         dic = factory.get_jstree_node_data(dtd_url, elt_id)
         self.assertEqual(len(dic), 2)
         expected_elt = {
-            'data': 'question', 
-            'attr': {'id': 'tree_Exercise:question',
-                     'class': 'tree_Exercise:question'},
-            'metadata': {'id': 'Exercise:question'}}
+            'data': 'question',
+            'attr': {'id': 'tree_Exercise:test:0:question',
+                     'class': 'tree_Exercise:test:0:question'},
+            'metadata': {
+                'id': 'Exercise:test:0:question',
+                'replace_id': 'Exercise:test:0:question'
+            }}
         self.assertEqual(dic['elt'], expected_elt)
-        expected_previous = [('.tree_Exercise:test', 'after'),
-                             ('#tree_Exercise:number', 'after'),
-                             ('.tree_Exercise', 'inside')]
+        expected_previous = [('#tree_Exercise:test:0', 'inside')]
         self.assertEqual(dic['previous'], expected_previous)
