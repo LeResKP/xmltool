@@ -1,6 +1,7 @@
 (function(exports) {
 
-    var re_id = new RegExp('^(.*):(\\d*)$');
+    var re_id = new RegExp('^(.*):(\\d+)$');
+    var re_no_id = new RegExp('^(.*):([^:]+)$');
 
     functions = {
         replace_id: function(container, new_id, container_id){
@@ -8,6 +9,13 @@
             var regex = new RegExp('^('+container_id+':)\\d*');
             var id = container_id.replace(regex, '$1') + ':' + new_id;
             $(container).each(function(){
+                if ($(this).is('[id^="'+container_id+':"]')){
+                    // Replace the id of the container
+                    var v_id = $(this).attr('id');
+                    if(typeof(v_id) != 'undefined'){
+                        $(this).attr('id', v_id.replace(regex, id));
+                    }
+                }
                 $(this).find('[id^="'+container_id+':"]').each(function(){
                     var v_id = $(this).attr('id');
                     if(typeof(v_id) != 'undefined'){
@@ -20,6 +28,23 @@
                         $(this).attr('name', v_name.replace(regex, id));
                     }
                 });
+                $(this).find('option[value^="'+container_id+':"]').each(function(){
+                    var v_name = $(this).attr('value');
+                    $(this).attr('value', v_name.replace(regex, id));
+                });
+                
+                $(this).find('[class*=" '+container_id+':"]').each(function(){
+                    var new_classes = [];
+                    var classes = $(this).attr('class').split(' ');
+                    for(index in classes){
+                        var c = classes[index];
+                        c = c.replace(regex, id);
+                        new_classes.push(c);
+                    }
+                    $(this).attr('class', new_classes.join(' '));
+                });
+
+
             });
         },
         has_field: function(container){
@@ -74,7 +99,7 @@
             return parseInt(id.replace(re_id, '$2'));
         },
         get_prefix: function(id){
-            return id.replace(re_id, '$1');
+            return id.replace(re_no_id, '$1');
         }
     }
 
@@ -92,6 +117,10 @@
                 node.data('id', id);
                 node.attr('id', 'tree_' + id);
 
+                var replace_id = node.data('replace_id');
+                replace_id = replace_id.replace(re_id, new_id);
+                node.data('replace_id', replace_id);
+
                 // We assume we just need to update the first class
                 classes = node.attr('class').split(' ');
                 classes.reverse()
@@ -103,21 +132,26 @@
                 node.attr('class', classes.join(' '));
             },
             update_node_and_children: function(node, new_id){
-                var old_id = node.data('id')
+                var old_id = node.data('replace_id')
                 self.update_node(node, old_id, new_id);
                 node.find('li').each(function(){
-                    self.update_node($(this), old_id, new_id); 
+                    self.update_node($(this), old_id, new_id);
                 });
             },
             increment_id: function(node){
-                var id = $(node).data('id');
+                var id = $(node).data('replace_id');
                 var index = xmltools.get_index(id);
                 var prefix_id = xmltools.get_prefix(id);
+                if (isNaN(index)){
+                    index = xmltools.get_index(prefix_id);
+                    prefix_id = xmltools.get_prefix(prefix_id);
+                }
                 var siblings = node.find('~ .' + xmltools.escape_id(xmltools.get_first_class(node)));
                 for(var i=0; i < siblings.length; i++){
                     var elt = siblings[i];
                     index ++;
-                    self.update_node_and_children($(elt), prefix_id + ':' + index);
+                    var new_id = prefix_id + ':' + index;
+                    self.update_node_and_children($(elt), new_id);
                 }
             },
             create_nodes: function(tree, data, parentobj, position){
@@ -196,27 +230,71 @@
                 var reference_node = data.rslt.r; // The reference where we are moving the node
                 var reference_node_id = reference_node.data('id');
                 if(position == 'before'){
-                    xmltools.jstree.update_node_and_children(drag_node, reference_node_id);
+                    xmltools.jstree.update_node_and_children(drag_node, reference_node.data('replace_id'));
                     xmltools.jstree.increment_id(drag_node);
-                    var old_e = $('#' + xmltools.escape_id(drag_node_id)).parent('.container');
-                    var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container');
+
+                    var is_conditional = false;
+                    var tmp_e = $('#' + xmltools.escape_id(drag_node_id));
+                    if (tmp_e.parent('.container').parent().hasClass('conditional-container')){
+                        is_conditional = true;
+                        var old_e = tmp_e.parent('.container').parent();
+                        var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container').parent();
+                    }
+                    else{
+                        var old_e = tmp_e.parent('.container');
+                        var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container');
+                    }
                     new_e.before(old_e);
                     var container_prefix = xmltools.get_prefix(drag_node_id);
                     var new_id = xmltools.get_index(reference_node_id);
+                    if (isNaN(new_id)){
+                        var tmp_prefix = xmltools.get_prefix(reference_node_id);
+                        new_id = xmltools.get_index(tmp_prefix);
+                        container_prefix = xmltools.get_prefix(container_prefix);
+                    }
+
                     xmltools.replace_id(old_e, new_id, container_prefix);
-                    old_e.nextAll('.container').each(function(){
+                    if (is_conditional){
+                        var nexts = old_e.nextAll('.conditional-container');
+                    }
+                    else{
+                        var nexts = old_e.nextAll('.container');
+                    }
+                    nexts.each(function(){
                         new_id += 1;
                         xmltools.replace_id($(this), new_id, container_prefix);
                     });
                 }
                 else if (position == 'after'){
-                    var old_e = $('#' + xmltools.escape_id(drag_node_id)).parent('.container');
-                    var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container');
+                    var is_conditional = false;
+                    var tmp_e = $('#' + xmltools.escape_id(drag_node_id));
+                    if (tmp_e.parent('.container').parent().hasClass('conditional-container')){
+                        is_conditional = true;
+                        var old_e = tmp_e.parent('.container').parent();
+                        var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container').parent();
+                    }
+                    else{
+                        var old_e = tmp_e.parent('.container');
+                        var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container');
+                    }
+                    // var old_e = $('#' + xmltools.escape_id(drag_node_id)).parent('.container');
+                    // var new_e = $('#' + xmltools.escape_id(reference_node_id)).parent('.container');
                     xmltools.jstree.increment_id(reference_node);
                     new_e.after(old_e);
                     var new_id = xmltools.get_index(reference_node_id);
                     var container_prefix = xmltools.get_prefix(drag_node_id);
-                    new_e.nextAll('.container').each(function(){
+                    if (isNaN(new_id)){
+                        var tmp_prefix = xmltools.get_prefix(reference_node_id);
+                        new_id = xmltools.get_index(tmp_prefix);
+                        container_prefix = xmltools.get_prefix(container_prefix);
+                    }
+                    if (is_conditional){
+                        var nexts = new_e.nextAll('.conditional-container');
+                    }
+                    else{
+                        var nexts = new_e.nextAll('.container');
+                    }
+                    nexts.each(function(){
                         new_id += 1;
                         xmltools.replace_id($(this), new_id, container_prefix);
                     });
@@ -281,7 +359,7 @@
                     var container = $(this).parent();
                     container.addClass('deleted');
                     xmltools.update_conditional_container(container);
-                    on_delete($(this).next());
+                    on_delete($(this).nextAll(':not(".comment-button"):not("._comment"):first'));
                 }
             });
             p.find('.fieldset-delete-button').on('click', function(){
@@ -326,7 +404,7 @@
                 source.removeAttr('id');
                 var child = source.children('fieldset');
                 if (!child.length)
-                    child = source.children('textarea');
+                    child = source.children("textarea:not('._comment')");
                 on_add($(child[0]));
                 source.nextAll('.container').each(function(){
                     new_id += 1;
@@ -360,22 +438,46 @@
 
         p.find('select.conditional').on('change', function(){
                 if ($(this).val()){
-                    var cls = xmltools.escape_id($(this).val());
-                    var container = $(this).parent().find('.' + cls);
-                    container.removeClass('deleted');
-                    var growing_source = container.children('.growing-source');
-                    if (growing_source.length){
-                        growing_source.children('.growing-add-button').trigger('click');
+                    if ($(this).parent().parent().hasClass('growing-container')){
+                        var id = xmltools.get_index($(this).parent().attr('id'));
+                        var new_id = id + 1;
+                        var growing_container = $(this).parent().parent();
+                        var source = growing_container.children('.growing-source').clone();
+                        source.removeClass('deleted').removeClass('growing-source');
+                        var prefix = xmltools.get_prefix(source.attr('id'));
+                        source.attr('id', prefix + ':' + new_id);
+                        var regex = new RegExp('^('+prefix+':)\\d*');
+                        var cls = xmltools.escape_id($(this).val().replace(regex, prefix + ':' + new_id));
+                        xmltools.replace_id(source, new_id, prefix);
+                        source.find('.' + cls).removeClass('deleted');
+                        set_btn_event(source);
+                        $(this).parent().after(source);
+                        source.nextAll('.conditional-container').each(function(){
+                            new_id += 1;
+                            $(this).attr('id', prefix + ':' + new_id);
+                            xmltools.replace_id($(this), new_id, prefix);
+                        });
+                        on_add(source.find('.' + cls));
                     }
                     else{
-                        var button = container.children('.add-button');
-                        if (button.length)
-                            button.trigger('click');
-                        else
-                            // Make sure the tree (if present) is up to date!
-                            on_add(container);
+                        var cls = xmltools.escape_id($(this).val());
+                        var container = $(this).parent().find('.' + cls);
+                        container.removeClass('deleted');
+                        var growing_source = container.children('.growing-source');
+                        if (growing_source.length){
+                            growing_source.children('.growing-add-button').trigger('click');
+                        }
+                        else{
+                            var button = container.children('.add-button');
+                            if (button.length)
+                                button.trigger('click');
+                            else
+                                // Make sure the tree (if present) is up to date!
+                                on_add(container);
+                        }
+                        $(this).addClass('hidden');
                     }
-                    $(this).addClass('hidden');
+                    $(this).val('');
                 }
             });
 

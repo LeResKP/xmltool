@@ -665,6 +665,7 @@ test("xmltools.jstree.update_node", function() {
     expect(6);
     var node = $('<li class="tree_test:old:1 class1 class2" />');
     node.data('id', 'test:old:1');
+    node.data('replace_id', 'test:old:1');
     xmltools.jstree.update_node(node, 'test:old:1', 'test:new:1');
     equal(node.attr('id'), 'tree_test:new:1', 'id updated');
     equal(node.data('id'), 'test:new:1', 'data id updated');
@@ -672,6 +673,7 @@ test("xmltools.jstree.update_node", function() {
 
     var node = $('<li class="tree_test:old:1:question class1 class2" />');
     node.data('id', 'test:old:1:question');
+    node.data('replace_id', 'test:old:1:question');
     xmltools.jstree.update_node(node, 'test:old:1', 'test:new:1');
     equal(node.attr('id'), 'tree_test:new:1:question', 'id updated');
     equal(node.data('id'), 'test:new:1:question', 'data id updated');
@@ -689,6 +691,7 @@ test("xmltools.jstree.update_node_and_children", function() {
         '</li>'
         ].join(''));
     node.data('id', 'test:old:1');
+    node.data('replace_id', 'test:old:1');
     node.find('li').each(function(index){
         $(this).data('id', 'test:old:1:children' + index);
     });
@@ -718,7 +721,9 @@ test("xmltools.jstree.increment_id", function() {
     var obj = $(html);
     var lis = obj.find('li');
     obj.find('li').each(function(){
-        $(this).data('id', $(this).attr('id').replace('tree_', ''));
+        var data_id = $(this).attr('id').replace('tree_', '');
+        $(this).data('id', data_id);
+        $(this).data('replace_id', data_id);
     });
     var node = obj.find('li:first');
     xmltools.jstree.increment_id(node);
@@ -751,7 +756,9 @@ test("xmltools.jstree.increment_id with children", function() {
     var obj = $(html);
     var lis = obj.find('li');
     obj.find('li').each(function(){
-        $(this).data('id', $(this).attr('id').replace('tree_', ''));
+        var data_id = $(this).attr('id').replace('tree_', '')
+        $(this).data('id', data_id);
+        $(this).data('replace_id', data_id);
     });
     var node = obj.find('li:first');
     xmltools.jstree.increment_id(node);
@@ -799,7 +806,8 @@ test("xmltools.jstree.create_nodes", function() {
             'class': 'tree_class'
         },
         metadata:{
-            'id': 'id:1'
+            'id': 'id:1',
+            'replace_id': 'id:1'
         },
         children: [{
             data: 'node 2',
@@ -809,6 +817,7 @@ test("xmltools.jstree.create_nodes", function() {
             },
             metadata: {
                 'id': 'id2',
+                'replace_id': 'id2',
             }
         }]
     }
@@ -838,6 +847,7 @@ test("xmltools.jstree.create_nodes", function() {
         },
         metadata:{
             'id': 'id:1',
+            'replace_id': 'id:1',
         }
     }
     xmltools.jstree.create_nodes(tree, node, tree, 'inside');
