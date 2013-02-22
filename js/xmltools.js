@@ -412,26 +412,27 @@
                 });
             });
 
-        
+
         if (tree && tree.length){
             p.find('textarea').focus(function(){
                 var id = xmltools.escape_id($(this).attr('id'));
                 tree.jstree('hover_node', $('#tree_' + id));
             }).blur(function(){
                 var id = xmltools.escape_id($(this).attr('id'));
-                var elt = $('#tree_' + id).find('a')
-                var text = elt.html();
-                text = text.replace(/\(.*/, '');
+                var a = $('#tree_' + id).find('a');
+                var elt = a.find('._tree_text');
+                if (elt.length == 0){
+                    elt = $('<span class="_tree_text"/>').appendTo(a);
+                }
                 if($(this).val()){
-                    elt.html(text + ' (' + xmltools.truncate($(this).val(), 30) + ')');
+                    elt.text(' (' + xmltools.truncate($(this).val(), 30) + ')');
                 }
                 else{
-                    elt.html(text);
+                    elt.text('');
                 }
-                
             });
         }
-        
+
         p.find('textarea').focus(function(){
             $(this).autosize();
         });

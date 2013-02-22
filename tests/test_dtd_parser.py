@@ -763,13 +763,13 @@ class TestGenerator1(TestCase):
         dic = gen.obj_to_jstree_dict(obj)
         expected = {'attr': {'class': 'tree_Movie', 'id': 'tree_Movie'},
  'children': [{'attr': {'class': 'tree_Movie:name', 'id': 'tree_Movie:name'},
-               'data': 'name (Titanic)',
+               'data': 'name <span class="_tree_text">(Titanic)</span>',
                'metadata': {
                    'id': 'Movie:name',
                    'replace_id': 'Movie:name'
                }},
               {'attr': {'class': 'tree_Movie:year', 'id': 'tree_Movie:year'},
-               'data': 'year (1997)',
+               'data': 'year <span class="_tree_text">(1997)</span>',
                'metadata': {
                    'id': 'Movie:year',
                    'replace_id': 'Movie:year'
@@ -780,14 +780,14 @@ class TestGenerator1(TestCase):
                                       'id': 'tree_Movie:directors:director:1'},
                              'children': [{'attr': {'class': 'tree_Movie:directors:director:1:name',
                                                     'id': 'tree_Movie:directors:director:1:name'},
-                                           'data': 'name (Cameron)',
+                                           'data': 'name <span class="_tree_text">(Cameron)</span>',
                                            'metadata': {
                                                'id': 'Movie:directors:director:1:name',
                                                'replace_id': 'Movie:directors:director:1:name'
                                            }},
                                           {'attr': {'class': 'tree_Movie:directors:director:1:firstname',
                                                     'id': 'tree_Movie:directors:director:1:firstname'},
-                                           'data': 'firstname (James)',
+                                           'data': 'firstname <span class="_tree_text">(James)</span>',
                                            'metadata': {
                                                'id': 'Movie:directors:director:1:firstname',
                                                'replace_id': 'Movie:directors:director:1:firstname'
@@ -808,14 +808,14 @@ class TestGenerator1(TestCase):
                                       'id': 'tree_Movie:actors:actor:1'},
                              'children': [{'attr': {'class': 'tree_Movie:actors:actor:1:name',
                                                     'id': 'tree_Movie:actors:actor:1:name'},
-                                           'data': 'name (DiCaprio)',
+                                           'data': 'name <span class="_tree_text">(DiCaprio)</span>',
                                            'metadata': {
                                                'id': 'Movie:actors:actor:1:name',
                                                'replace_id': 'Movie:actors:actor:1:name'
                                            }},
                                           {'attr': {'class': 'tree_Movie:actors:actor:1:firstname',
                                                     'id': 'tree_Movie:actors:actor:1:firstname'},
-                                           'data': 'firstname (Leonardo)',
+                                           'data': 'firstname <span class="_tree_text">(Leonardo)</span>',
                                            'metadata': {
                                                'id': 'Movie:actors:actor:1:firstname',
                                                'replace_id': 'Movie:actors:actor:1:firstname'
@@ -829,14 +829,14 @@ class TestGenerator1(TestCase):
                                       'id': 'tree_Movie:actors:actor:2'},
                              'children': [{'attr': {'class': 'tree_Movie:actors:actor:2:name',
                                                     'id': 'tree_Movie:actors:actor:2:name'},
-                                           'data': 'name (Winslet)',
+                                           'data': 'name <span class="_tree_text">(Winslet)</span>',
                                            'metadata': {
                                                'id': 'Movie:actors:actor:2:name',
                                                'replace_id': 'Movie:actors:actor:2:name'
                                            }},
                                           {'attr': {'class': 'tree_Movie:actors:actor:2:firstname',
                                                     'id': 'tree_Movie:actors:actor:2:firstname'},
-                                           'data': 'firstname (Kate)',
+                                           'data': 'firstname <span class="_tree_text">(Kate)</span>',
                                            'metadata': {
                                                'id': 'Movie:actors:actor:2:firstname',
                                                'replace_id': 'Movie:actors:actor:2:firstname'
@@ -850,14 +850,14 @@ class TestGenerator1(TestCase):
                                       'id': 'tree_Movie:actors:actor:3'},
                              'children': [{'attr': {'class': 'tree_Movie:actors:actor:3:name',
                                                     'id': 'tree_Movie:actors:actor:3:name'},
-                                           'data': 'name (Zane)',
+                                           'data': 'name <span class="_tree_text">(Zane)</span>',
                                            'metadata': {
                                                'id': 'Movie:actors:actor:3:name',
                                                'replace_id': 'Movie:actors:actor:3:name'
                                            }},
                                           {'attr': {'class': 'tree_Movie:actors:actor:3:firstname',
                                                     'id': 'tree_Movie:actors:actor:3:firstname'},
-                                           'data': 'firstname (Billy)',
+                                           'data': 'firstname <span class="_tree_text">(Billy)</span>',
                                            'metadata': {
                                                'id': 'Movie:actors:actor:3:firstname',
                                                'replace_id': 'Movie:actors:actor:3:firstname'
@@ -874,21 +874,21 @@ class TestGenerator1(TestCase):
                }},
               {'attr': {'class': 'tree_Movie:resume',
                         'id': 'tree_Movie:resume'},
-               'data': 'resume (\n     Resume of the movie\n  )',
+               'data': 'resume <span class="_tree_text">(\n     Resume of the movie\n  )</span>',
                'metadata': {
                    'id': 'Movie:resume',
                    'replace_id': 'Movie:resume'
                }},
               {'attr': {'class': 'tree_Movie:critique',
                         'id': 'tree_Movie:critique:1'},
-               'data': 'critique (critique1)',
+               'data': 'critique <span class="_tree_text">(critique1)</span>',
                'metadata': {
                    'id': 'Movie:critique:1',
                    'replace_id': 'Movie:critique:1'
                }},
               {'attr': {'class': 'tree_Movie:critique',
                         'id': 'tree_Movie:critique:2'},
-               'data': 'critique (critique2)',
+               'data': 'critique <span class="_tree_text">(critique2)</span>',
                'metadata': {
                    'id': 'Movie:critique:2',
                    'replace_id': 'Movie:critique:2'
@@ -954,7 +954,7 @@ class TestGenerator2(TestCase):
  'children': [{'attr': {'id': 'tree_Exercise:question',
                         'class': 'tree_Exercise:question',
                        },
-               'data': 'question (What is your favorite color?)',
+               'data': 'question <span class="_tree_text">(What is your favorite color?)</span>',
                'metadata': {
                    'id': 'Exercise:question',
                    'replace_id': 'Exercise:question'
@@ -967,7 +967,7 @@ class TestGenerator2(TestCase):
                                  'id': 'tree_Exercise:test:mqm:choice:1',
                                  'class': 'tree_Exercise:test:mqm:choice',
                              },
-                                           'data': 'choice (blue)',
+                                           'data': 'choice <span class="_tree_text">(blue)</span>',
                                            'metadata': {
                                                'id': 'Exercise:test:mqm:choice:1',
                                                'replace_id': 'Exercise:test:mqm:choice:1'
@@ -976,7 +976,7 @@ class TestGenerator2(TestCase):
                                               'id': 'tree_Exercise:test:mqm:choice:2',
                                               'class': 'tree_Exercise:test:mqm:choice',
                                           },
-                                           'data': 'choice (red)',
+                                           'data': 'choice <span class="_tree_text">(red)</span>',
                                            'metadata': {
                                                'id': 'Exercise:test:mqm:choice:2',
                                                'replace_id': 'Exercise:test:mqm:choice:2'
@@ -985,7 +985,7 @@ class TestGenerator2(TestCase):
                                               'id': 'tree_Exercise:test:mqm:choice:3',
                                               'class': 'tree_Exercise:test:mqm:choice',
                                           },
-                                           'data': 'choice (black)',
+                                           'data': 'choice <span class="_tree_text">(black)</span>',
                                            'metadata': {
                                                'id': 'Exercise:test:mqm:choice:3',
                                                'replace_id': 'Exercise:test:mqm:choice:3'
@@ -1170,7 +1170,7 @@ class TestGenerator3(TestCase):
         expected = {'attr': {'class': 'tree_Exercise', 'id': 'tree_Exercise'},
  'children': [{'attr': {'class': 'tree_Exercise:number',
                         'id': 'tree_Exercise:number'},
-               'data': 'number (1)',
+               'data': 'number <span class="_tree_text">(1)</span>',
                'metadata': {
                     'id': 'Exercise:number',
                     'replace_id': 'Exercise:number'
@@ -1179,7 +1179,7 @@ class TestGenerator3(TestCase):
                         'id': 'tree_Exercise:test:1'},
                'children': [{'attr': {'class': 'tree_Exercise:test:1:question',
                                       'id': 'tree_Exercise:test:1:question'},
-                             'data': 'question (What is your favorite color?)',
+                             'data': 'question <span class="_tree_text">(What is your favorite color?)</span>',
                              'metadata': {
                                 'id': 'Exercise:test:1:question',
                                 'replace_id': 'Exercise:test:1:question'
@@ -1188,21 +1188,21 @@ class TestGenerator3(TestCase):
                                       'id': 'tree_Exercise:test:1:_qcm_mqm:1:mqm'},
                              'children': [{'attr': {'class': 'tree_Exercise:test:1:_qcm_mqm:1:mqm:choice',
                                                     'id': 'tree_Exercise:test:1:_qcm_mqm:1:mqm:choice:1'},
-                                           'data': 'choice (blue)',
+                                           'data': 'choice <span class="_tree_text">(blue)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:1:_qcm_mqm:1:mqm:choice:1',
                                                 'replace_id': 'Exercise:test:1:_qcm_mqm:1:mqm:choice:1'
                                             }},
                                           {'attr': {'class': 'tree_Exercise:test:1:_qcm_mqm:1:mqm:choice',
                                                     'id': 'tree_Exercise:test:1:_qcm_mqm:1:mqm:choice:2'},
-                                           'data': 'choice (red)',
+                                           'data': 'choice <span class="_tree_text">(red)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:1:_qcm_mqm:1:mqm:choice:2',
                                                 'replace_id': 'Exercise:test:1:_qcm_mqm:1:mqm:choice:2'
                                             }},
                                           {'attr': {'class': 'tree_Exercise:test:1:_qcm_mqm:1:mqm:choice',
                                                     'id': 'tree_Exercise:test:1:_qcm_mqm:1:mqm:choice:3'},
-                                           'data': 'choice (black)',
+                                           'data': 'choice <span class="_tree_text">(black)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:1:_qcm_mqm:1:mqm:choice:3',
                                                 'replace_id': 'Exercise:test:1:_qcm_mqm:1:mqm:choice:3'
@@ -1216,21 +1216,21 @@ class TestGenerator3(TestCase):
                                       'id': 'tree_Exercise:test:1:_qcm_mqm:2:mqm'},
                              'children': [{'attr': {'class': 'tree_Exercise:test:1:_qcm_mqm:2:mqm:choice',
                                                     'id': 'tree_Exercise:test:1:_qcm_mqm:2:mqm:choice:1'},
-                                           'data': 'choice (magenta)',
+                                           'data': 'choice <span class="_tree_text">(magenta)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:1:_qcm_mqm:2:mqm:choice:1',
                                                 'replace_id': 'Exercise:test:1:_qcm_mqm:2:mqm:choice:1'
                                             }},
                                           {'attr': {'class': 'tree_Exercise:test:1:_qcm_mqm:2:mqm:choice',
                                                     'id': 'tree_Exercise:test:1:_qcm_mqm:2:mqm:choice:2'},
-                                           'data': 'choice (orange)',
+                                           'data': 'choice <span class="_tree_text">(orange)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:1:_qcm_mqm:2:mqm:choice:2',
                                                 'replace_id': 'Exercise:test:1:_qcm_mqm:2:mqm:choice:2'
                                            }},
                                           {'attr': {'class': 'tree_Exercise:test:1:_qcm_mqm:2:mqm:choice',
                                                     'id': 'tree_Exercise:test:1:_qcm_mqm:2:mqm:choice:3'},
-                                           'data': 'choice (yellow)',
+                                           'data': 'choice <span class="_tree_text">(yellow)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:1:_qcm_mqm:2:mqm:choice:3',
                                                 'replace_id': 'Exercise:test:1:_qcm_mqm:2:mqm:choice:3'
@@ -1249,7 +1249,7 @@ class TestGenerator3(TestCase):
                         'id': 'tree_Exercise:test:2'},
                'children': [{'attr': {'class': 'tree_Exercise:test:2:question',
                                       'id': 'tree_Exercise:test:2:question'},
-                             'data': 'question (Have you got a pet?)',
+                             'data': 'question <span class="_tree_text">(Have you got a pet?)</span>',
                              'metadata': {
                                 'id': 'Exercise:test:2:question',
                                 'replace_id': 'Exercise:test:2:question',
@@ -1258,14 +1258,14 @@ class TestGenerator3(TestCase):
                                       'id': 'tree_Exercise:test:2:_qcm_mqm:1:qcm'},
                              'children': [{'attr': {'class': 'tree_Exercise:test:2:_qcm_mqm:1:qcm:choice',
                                                     'id': 'tree_Exercise:test:2:_qcm_mqm:1:qcm:choice:1'},
-                                           'data': 'choice (yes)',
+                                           'data': 'choice <span class="_tree_text">(yes)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:2:_qcm_mqm:1:qcm:choice:1',
                                                 'replace_id': 'Exercise:test:2:_qcm_mqm:1:qcm:choice:1'
                                           }},
                                           {'attr': {'class': 'tree_Exercise:test:2:_qcm_mqm:1:qcm:choice',
                                                     'id': 'tree_Exercise:test:2:_qcm_mqm:1:qcm:choice:2'},
-                                           'data': 'choice (no)',
+                                           'data': 'choice <span class="_tree_text">(no)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:2:_qcm_mqm:1:qcm:choice:2',
                                                 'replace_id': 'Exercise:test:2:_qcm_mqm:1:qcm:choice:2'
@@ -1279,14 +1279,14 @@ class TestGenerator3(TestCase):
                                       'id': 'tree_Exercise:test:2:_qcm_mqm:2:qcm'},
                              'children': [{'attr': {'class': 'tree_Exercise:test:2:_qcm_mqm:2:qcm:choice',
                                                     'id': 'tree_Exercise:test:2:_qcm_mqm:2:qcm:choice:1'},
-                                           'data': 'choice (yes)',
+                                           'data': 'choice <span class="_tree_text">(yes)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:2:_qcm_mqm:2:qcm:choice:1',
                                                 'replace_id': 'Exercise:test:2:_qcm_mqm:2:qcm:choice:1'
                                             }},
                                           {'attr': {'class': 'tree_Exercise:test:2:_qcm_mqm:2:qcm:choice',
                                                     'id': 'tree_Exercise:test:2:_qcm_mqm:2:qcm:choice:2'},
-                                           'data': 'choice (no)',
+                                           'data': 'choice <span class="_tree_text">(no)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:2:_qcm_mqm:2:qcm:choice:2',
                                                 'replace_id': 'Exercise:test:2:_qcm_mqm:2:qcm:choice:2'
@@ -1300,14 +1300,14 @@ class TestGenerator3(TestCase):
                                       'id': 'tree_Exercise:test:2:comments'},
                              'children': [{'attr': {'class': 'tree_Exercise:test:2:comments:comment',
                                                     'id': 'tree_Exercise:test:2:comments:comment:1'},
-                                           'data': 'comment (My comment 1)',
+                                           'data': 'comment <span class="_tree_text">(My comment 1)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:2:comments:comment:1',
                                                 'replace_id': 'Exercise:test:2:comments:comment:1'
                                             }},
                                           {'attr': {'class': 'tree_Exercise:test:2:comments:comment',
                                                     'id': 'tree_Exercise:test:2:comments:comment:2'},
-                                           'data': 'comment (My comment 2)',
+                                           'data': 'comment <span class="_tree_text">(My comment 2)</span>',
                                            'metadata': {
                                                 'id': 'Exercise:test:2:comments:comment:2',
                                                 'replace_id': 'Exercise:test:2:comments:comment:2'

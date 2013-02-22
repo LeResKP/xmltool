@@ -100,7 +100,8 @@ class TextElement(object):
 
         data = cls.tagname
         if value:
-            data = '%s (%s)' % (cls.tagname, utils.truncate(value))
+            data = '%s <span class="_tree_text">(%s)</span>' % (
+                cls.tagname, utils.truncate(value))
         return {
             'data': data,
             'attr': {

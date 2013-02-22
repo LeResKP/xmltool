@@ -66,7 +66,7 @@ class TestTextElement(TestCase):
         self.assertEqual(result, expected)
 
         expected = {
-            'data': 'comment (%s)' % elt.value,
+            'data': 'comment <span class="_tree_text">(%s)</span>' % elt.value,
             'attr': {
                 'id': 'tree_comment',
                 'class': 'tree_comment'},
@@ -78,7 +78,7 @@ class TestTextElement(TestCase):
         self.assertEqual(result, expected)
 
         expected = {
-            'data': 'comment (%s)' % elt.value,
+            'data': 'comment <span class="_tree_text">(%s)</span>' % elt.value,
             'attr': {
                 'id': 'tree_prefix:prefix2:1:comment',
                 'class': 'tree_prefix:prefix2:1:comment'},
@@ -91,7 +91,7 @@ class TestTextElement(TestCase):
         self.assertEqual(result, expected)
 
         expected = {
-            'data': 'comment (%s)' % elt.value,
+            'data': 'comment <span class="_tree_text">(%s)</span>' % elt.value,
             'attr': {
                 'id': 'tree_prefix:prefix2:1:comment:4',
                 'class': 'tree_prefix:prefix2:1:comment'},
@@ -114,7 +114,7 @@ class TestTextElement(TestCase):
         gen = dtd_parser.Generator(dtd_str=dtd_str)
         Comment._generator = gen
         expected = {
-            'data': 'comment (%s)' % elt.value,
+            'data': 'comment <span class="_tree_text">(%s)</span>' % elt.value,
             'attr': {
                 'id': 'tree_prefix:prefix2:1:_positive-comment_negative-comment:4:comment',
                 'class': 'tree_prefix:prefix2:1:_positive-comment_negative-comment:4'},
@@ -396,7 +396,7 @@ class TestElement(TestCase):
         self.assertEqual(result, expected)
 
         expected = {
-            'data': 'question (Exercise)',
+            'data': 'question <span class="_tree_text">(Exercise)</span>',
             'attr': {
                 'id': 'tree_question',
                 'class': 'tree_question'},
