@@ -352,7 +352,8 @@
                 container.parent('.container').addClass('inline');
                 container.prev().removeClass('hidden');
                 xmltools.update_conditional_container(container);
-                on_delete($(this).next());
+                // Because of the comment button and textarea
+                on_delete($(this).next().next().next());
             });
             p.find('.growing-delete-button').on('click', function(){
                 if(xmltools.confirm_delete($(this))){
@@ -387,7 +388,7 @@
                 $(this).parent('.container').removeClass('inline');
                 var child = $(this).next();
                 if (child[0].nodeName != 'FIELDSET')
-                    child = child.children('textarea');
+                    child = child.children("textarea:not('._comment')");
                 on_add(child);
             });
 
