@@ -98,7 +98,7 @@ class Field(object):
         return s
 
     def set_value(self, value):
-        if value and (self.key or type(self) is FormField):
+        if value and (self.key or isinstance(self, FormField)):
             if not isinstance(value, list) :
                 for k, v in value.attrs.items():
                     self.attrs_children += [InputField(
@@ -428,7 +428,7 @@ class ConditionalContainer(Field):
 
     def get_children(self):
         # TODO: check if this function is used!
-        if type(self.parent) == GrowingContainer:
+        if isinstance(self.parent, GrowingContainer):
             for c in self.possible_children:
                 if c.key == self.value.tagname:
                     c.set_value(self.value)
@@ -443,7 +443,7 @@ class ConditionalContainer(Field):
     def get_child(self):
         if self.value is None:
             return None
-        if type(self.parent) == GrowingContainer:
+        if isinstance(self.parent, GrowingContainer):
             for c in self.possible_children:
                 if c.key == self.value.tagname:
                     c.set_value(self.value)
@@ -467,7 +467,7 @@ class ConditionalContainer(Field):
             self.get_id())
         ]
         html_select = []
-        if child and type(self.parent) != GrowingContainer:
+        if child and isinstance(self.parent, GrowingContainer):
             html_select += ['<select class="hidden conditional">']
         else:
             html_select += ['<select class="conditional">']
@@ -515,7 +515,7 @@ class GrowingContainer(MultipleField):
             repetitions = len(values)
         else:
             repetitions = self.repetitions
-            if self.required and type(self.parent) != ConditionalContainer and type(self.child) != ConditionalContainer:
+            if self.required and isinstance(self.parent, ConditionalContainer) and isinstance(self.child,  ConditionalContainer):
                 repetitions += 1
 
         children = []
