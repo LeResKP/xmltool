@@ -1,430 +1,588 @@
 #!/usr/bin/env python
 
 from lxml import etree
-import utils
 import simplejson as json
+import dtd_parser
 
 
-def generate_id(tagname, prefix_id=None, index=None):
-    """Get the id put on the form objects (input, textarea, ...)
-
-    :param tagname: the tagname we want to get the HTML id
-    :type tagname: str
-    :return: the id of the given obj
-    :rtype: str
-    """
-    lis = [prefix_id, tagname, index]
-    lis = map(str, filter(lambda x: x not in [None, ''],  lis))
-    return ':'.join(lis)
-
-
-class SubElement(object):
-    _attrs = []
-
-    def __init__(self, text):
-        self.tagname = text
-        self.required = True
-        self.islist = False
-        self.conditional_sub_elements = []
-        self._conditional_names = []
-        self.attrs = {}
-
-        if text.endswith('+'):
-            self.tagname = text[:-1]
-            self.islist = True
-        elif text.endswith('*'):
-            self.tagname = text[:-1]
-            self.islist = True
-            self.required = False
-        elif text.endswith('?'):
-            self.tagname = text[:-1]
-            self.required = False
-
-        if '|' in self.tagname:
-            text = self.tagname.replace('(', '').replace(')', '')
-            tagnames= text.split('|')
-            for tagname in tagnames:
-                elt = type(self)(tagname)
-                # We can't put the required on the element, it should be on the
-                # list container.
-                # TODO: Add this when the test are ok!
-                # elt.required = False
-
-                # If the conditional element is a list, the conditionals
-                # are also a list
-                # TODO: add test for islist
-                # elt.islist = self.islist
-                self.conditional_sub_elements += [elt]
-                self._conditional_names += [elt.tagname]
-        if self._conditional_names:
-            self.tagname = '_%s' % '_'.join(self._conditional_names)
-
-    def __repr__(self):
-        return '<tagname=%(tagname)s required=%(required)s islist=%(islist)s>' % vars(self)
-
-
-class TextElement(object):
-
-    #: The XML tag name corresponding to this class
-    tagname = None
-    #: The object :class: `Generator` used to generate the classes
-    _generator = None
-    #: List of dtd attributes
-    _attrs = []
-    # if True the tag is not a PCDATA type, it's a EMPTY type
-    empty = False
-    #: The source line if load from an xml file
-    sourceline = None
-
-    def __init__(self, value=None):
-        self.value = value
-        self.attrs = {}
-        self._comment = None
-
-    @classmethod
-    def to_jstree_dict(cls, value=None, prefix_id=None, number=None, **kw):
-        ident = generate_id(cls.tagname, prefix_id, number)
-        replace_id = ident
-        css_class = generate_id(cls.tagname, prefix_id)
-
-        # TODO: We have the same logic in Element.to_jstree_dict, find a way to
-        # share it!
-        if prefix_id:
-            splitted = cls._generator.split_id_v2(prefix_id)
-            parent = splitted.pop()
-            parent_elt = parent['elt']
-
-            if isinstance(parent_elt, SubElement) and parent_elt.islist:
-                replace_id = parent['id']
-                css_class = parent['id_with_index']
-
-        data = cls.tagname
-        if value:
-            data = '%s <span class="_tree_text">(%s)</span>' % (
-                cls.tagname, utils.truncate(value))
-        return {
-            'data': data,
-            'attr': {
-                'id': 'tree_%s' % ident,
-                'class': 'tree_%s' % css_class,
-            },
-            'metadata': {
-                'id': ident,
-                'replace_id': replace_id,
-            },
-        }
-
-    @classmethod
-    def to_jstree_json(cls, *args, **kw):
-        return json.dumps(cls.to_jstree_dict(*args, **kw))
-
-
-class Element(object):
+class ElementV2(object):
     """After reading a dtd file we construct some Element
     """
-    #: The XML tag name corresponding to this class
-    tagname = None
-    #: The object :class: `Generator` used to generate the classess
-    _generator = None
-    #: List of dtd attributes
-    _attrs = []
-    #: List of :class:`SubElement`
-    _sub_elements = []
-    #: List of str containing the possible child tag names
-    child_tagnames = []
-    #: The source line if load from an xml file
-    sourceline = None
-    #: List of allowed properties which can be defined on the objects from this
-    # class
-    _allowed_items = ['attrs', 'sourceline', '_comment']
+    _tagname = None
+    _attribute_names = None
+    _attributes = None
+    _sub_elements = None
+    _required = False
+    _parent = None
+    _sourceline = None
+    _comment = None
+    _is_choice = False
 
-    def __init__(self):
-        self.attrs = {}
-        self._comment = None
 
-    def _get_element(self, tagname):
-        """Get SubElement corresponding to the given tagname
+    @classmethod
+    def _get_allowed_tagnames(cls):
+        return [cls._tagname]
 
-        :param tagname: the tag name to find
-        :type tagname: str
-        :return: The matching SubElement or None
-        :rtype: SubElement
-        """
+    @classmethod
+    def _get_sub_element(cls, tagname):
+        for e in cls._sub_elements:
+            for tg in e._get_allowed_tagnames():
+                if tg == tagname:
+                    return e
+
+    @classmethod
+    def _get_value_from_parent(cls, parent_obj):
+        return getattr(parent_obj, cls._tagname, None)
+
+    @classmethod
+    def _get_sub_value(cls, parent_obj):
+        v = cls._get_value_from_parent(parent_obj)
+        if not v and cls._required:
+            v = cls()
+        return v
+
+    def _has_value(self):
         for elt in self._sub_elements:
-            if elt._conditional_names and not elt.islist:
-                if tagname in elt._conditional_names:
-                    return elt
-            elif elt.tagname == tagname:
-                return elt
-        return None
+            v = elt._get_value_from_parent(self)
+            if v is not None:
+                return True
+        return False
 
-    def __getitem__(self, item):
-        """Be able to get the property as a dict.
+    @classmethod
+    def _get_prefixes(cls, prefixes, index, name=None):
+        tmp_prefixes = list(prefixes or [])
+        if index is not None:
+            tmp_prefixes.append(str(index))
+        tmp_prefixes.append(cls._tagname)
+        if name is not None:
+            tmp_prefixes.append(name)
+        return tmp_prefixes
 
-        :param item: the property name to get
-        :type item: str
-        :return: the value of the property named item
-        :rtype: :class: `Element`, :class: `TextElement` or list
-        """
-        return getattr(self, item)
+    @classmethod
+    def _get_str_prefix(cls, prefixes, index, name=None):
+        tmp_prefixes = cls._get_prefixes(prefixes, index, name)
+        return ':'.join(tmp_prefixes)
 
-    def __setitem__(self, item, value):
-        """Set the value for the given property item as a dict
+    @classmethod
+    def _add(cls, tagname, parent_obj):
+        value = getattr(parent_obj, tagname, None)
+        if value:
+            raise Exception('%s already defined' % tagname)
+        tmpobj = cls()
+        setattr(parent_obj, tagname, tmpobj)
+        tmpobj._parent = parent_obj
+        return tmpobj
 
-        :param item: the property name to set
-        :type item: str
-        :param value: the value to set
-        :type value; str
-        """
-        setattr(self, item, value)
+    def add(self, tagname):
+        cls = self._get_sub_element(tagname)
 
-    def __contains__(self, item):
-        """Check item if defined
-
-        :param item: the property name to check
-        :type item: str
-        :return: True of item is defined in self
-        :rtype: bool
-        """
-        res = getattr(self, item, None)
-        if res is None:
-            return False
-        return True
-
-    def __setattr__(self, item, value):
-        """Set the value for the given property item
-
-        :param item: the property name to set
-        :type item: str
-        :param value: the value to set
-        :type value: str
-        """
-        if item in self.child_tagnames:
-            elt = self._get_element(item)
-            if not elt:
-                raise Exception('Invalid child %s' % item)
-            if elt.islist:
-                cls = list
-            else:
-                cls = self._generator.dtd_classes.get(item)
-            if not cls:
-                raise Exception('Invalid child %s' % item)
-            if value is not None and not isinstance(value, cls):
-                raise Exception('Wrong type for %s' % item)
-        elif item not in self._allowed_items:
-            raise Exception('Invalid child %s' % item)
-        super(Element, self).__setattr__(item, value)
-
-    def create(self, tagname, text=None):
-        """Create an element
-
-        :param tagname: the tag name to create
-        :type tagname: str
-        :param text: if element is a :class: `TextElement` we set the value
-        :type text: str
-        :return: the create object
-        :rtype: instance of TextElement or Element
-        """
-        if tagname not in self.child_tagnames:
+        if cls is None:
             raise Exception('Invalid child %s' % tagname)
 
-        if getattr(self, tagname, None) is not None:
-            raise Exception('%s already defined' % tagname)
-
-        if tagname not in self._generator.dtd_classes:
-            raise Exception('Unexisting tagname %s' % tagname)
-
-        cls = self._generator.dtd_classes[tagname]
-        elt = self._get_element(tagname)
-
-        if elt._conditional_names:
-            other_tagnames = [tn for tn in elt._conditional_names if
-                     tn != tagname]
-            for tn in other_tagnames:
-                if tn in self:
-                    raise Exception("You can't add a %s since it "
-                                    "already contains a %s" % (
-                                        tagname,
-                                        tn))
-        if elt.islist:
-            obj = ElementList(cls)
-        else:
-            cls = self._generator.dtd_classes.get(tagname)
-            if not cls:
-                raise Exception('Invalid child %s' % tagname)
-            obj = cls()
-
-        if text:
-            if isinstance(obj, TextElement):
-                obj.value = text
-            else:
-                raise Exception("Can't set value to non TextElement")
-        setattr(self, tagname, obj)
+        obj = cls._add(tagname, self)
         return obj
+
+    def add_attribute(self, name, value):
+        if name not in self._attribute_names:
+            raise Exception('Invalid attribute name: %s' % name)
+        self._attributes = self._attributes or {}
+        self._attributes[name] = value
+
+    def _load_attributes_from_xml(self, xml):
+        for k, v in xml.attrib.items():
+            self.add_attribute(k,v)
+
+    def _load_attributes_from_dict(self, dic):
+        if not dic:
+            return
+        attrs = dic.pop('_attrs', None)
+        if not attrs:
+            return
+        for k, v in attrs.items():
+            self.add_attribute(k,v)
+
+    def _attributes_to_xml(self, xml):
+        if not self._attributes:
+            return
+        for k, v in self._attributes.items():
+            xml.attrib[k] = v
+
+    def _attributes_to_html(self, prefixes, index):
+        if not self._attributes:
+            return ''
+        html = []
+        name = self._get_str_prefix(prefixes, index)
+        for k, v in self._attributes.items():
+            html += ['<input value="%s" name="%s" id="%s" class="_attrs" />' % (
+                v,
+                '%s:_attrs:%s' % (name, k),
+                '%s:_attrs:%s' % (name, k),
+            )]
+        return ''.join(html)
+
+    def _load_comment_from_xml(self, xml):
+        previous = xml
+        comments = []
+        while True:
+            previous = previous.getprevious()
+            if previous is None:
+                break
+            if not isinstance(previous, etree._Comment):
+                break
+            comments += [previous.text]
+
+        comments.reverse()
+        end_comments = []
+        nextelt = xml
+        # Only get the comment after the tag if we don't have any other tag
+        while True:
+            # TODO: add test for this
+            nextelt = nextelt.getnext()
+            if nextelt is None:
+                break
+            if not isinstance(nextelt, etree._Comment):
+                end_comments = []
+                break
+            end_comments += [nextelt.text]
+        comments += end_comments
+        self._comment = '\n'.join(comments) or None
+
+    def _load_comment_from_dict(self, dic):
+        self._comment = dic.pop('_comment', None)
+
+    def _comment_to_xml(self, xml):
+        if not self._comment:
+            return None
+        elt = etree.Comment(self._comment)
+        xml.addprevious(elt)
+
+    def _comment_to_html(self, prefixes, index):
+        name = self._get_str_prefix(prefixes, index, name='_comment')
+        if not self._comment:
+            return (
+                '<a data-comment-name="%s" class="btn-comment">'
+                'Comment</a>') % name
+        else:
+            return (
+                '<a data-comment-name="{name}" class="btn-comment">'
+                'Comment</a>'
+                '<textarea class="_comment" name="{name}">{comment}</textarea>'
+            ).format(
+                name=name,
+                comment=self._comment
+            )
+
+    def _load_extra_from_xml(self, xml):
+        self._load_attributes_from_xml(xml)
+        self._load_comment_from_xml(xml)
+        self._sourceline = xml.sourceline
+
+    def load_from_xml(self, xml):
+        self._load_extra_from_xml(xml)
+        for child in xml:
+            if isinstance(child, etree._Comment):
+                # The comments are loaded when we load the object
+                continue
+            obj = self.add(child.tag)
+            obj.load_from_xml(child)
+
+    def _load_extra_from_dict(self, data):
+        self._load_attributes_from_dict(data)
+        self._load_comment_from_dict(data)
+
+    def load_from_dict(self, dic):
+        data = dic.get(self._tagname)
+        if not data:
+            return
+        self._load_extra_from_dict(data)
+        for key, value in data.items():
+            if isinstance(value, list):
+                for d in value:
+                    assert(len(d) == 1)
+                    obj = self.add(d.keys()[0])
+                    obj.load_from_dict(d)
+            else:
+                obj = self.add(key)
+                obj.load_from_dict(data)
 
     def to_xml(self):
-        """Generate the XML string for this object
+        xml = etree.Element(self._tagname)
+        self._comment_to_xml(xml)
+        self._attributes_to_xml(xml)
+        for elt in self._sub_elements:
+            v = elt._get_sub_value(self)
 
-        :return: The XML as string
-        :rtype: str
-        """
-        gen = self._generator
-        xml = gen.obj_to_xml(self)
-
-        return etree.tostring(
-            xml.getroottree(),
-            pretty_print=True)
-
-    @classmethod
-    def to_jstree_dict(cls, prefix_id=None, number=None, skip_children=False):
-        ident = generate_id(cls.tagname, prefix_id, number)
-        css_class = generate_id(cls.tagname, prefix_id)
-        replace_id = ident
-
-        if prefix_id:
-            splitted = cls._generator.split_id_v2(prefix_id)
-            parent = splitted.pop()
-            parent_elt = parent['elt']
-
-            if isinstance(parent_elt, SubElement) and parent_elt.islist:
-                replace_id = parent['id_with_index']
-                css_class = parent['id']
-
-        if not skip_children:
-            children = []
-            for c in cls._sub_elements:
-                if c.required:
-                    if c.tagname not in cls._generator.dtd_classes:
-                        continue
-                    k = cls._generator.dtd_classes[c.tagname]
-                    i = None
-                    if c.islist:
-                        i = 1
-                    children += [k.to_jstree_dict(prefix_id=ident, number=i)]
-
-        dic = {
-            'data': cls.tagname,
-            'attr': {
-                'id': 'tree_%s' % ident,
-                'class': 'tree_%s' % css_class,
-            },
-            'metadata': {
-                'id': ident,
-                'replace_id': replace_id,
-            },
-        }
-        if not skip_children:
-            dic.update({
-                'children': children
-            })
-        return dic
+            if v is not None:
+                e = v.to_xml()
+                if isinstance(e, list):
+                    xml.extend(e)
+                else:
+                    xml.append(e)
+                    # NOTE: the attributes are already set but we need to add
+                    # the comment here.
+                    v._comment_to_xml(e)
+        return xml
 
     @classmethod
-    def to_jstree_json(cls, *args, **kw):
-        return json.dumps(cls.to_jstree_dict(*args, **kw))
+    def _get_html_add_button(cls, prefixes, index=None, css_class=None):
+        if cls._is_choice:
+            return cls._parent._get_html_add_button(prefixes, index, css_class)
 
-    def write(self, xml_filename, encoding='UTF-8', validate_xml=True,
-              transform=None):
-        """Update the file named xml_filename with obj.
+        value = cls._get_str_prefix(prefixes, index)
+        css_classes = ['btn btn-add-ajax']
+        if css_class:
+            css_classes += [css_class]
+        return ('<a class="%s" data-id="%s">'
+                'Add %s</a>') % (
+                    ' '.join(css_classes),
+                    value,
+                    cls._tagname)
 
-        :param xml_filename: the XML filename we should update
-        :type xml_filename: str
-        :param encoding: the encoding to use when writing the XML file.
-        :type encoding: str
-        :param validate_xml: validate the updated XML before writing it.
-        :type validate_xml: bool
-        :param transform: function to transform the XML string just before
-            writing it.
-        :type transform: function
-        :return: self
-        :rtype: :class:`Element`
-        """
-        gen = self._generator
-        xml = gen.obj_to_xml(self)
+    @classmethod
+    def _to_html(cls, parent_obj, prefixes=None, index=None):
+        v = cls._get_value_from_parent(parent_obj)
+        if not v:
+            # We always want an object since we need at least a add button.
+            v = cls()
+        return v.to_html(prefixes, index)
 
-        if validate_xml:
-            dtd_str = utils.get_dtd_content(gen._dtd_url)
-            utils.validate_xml(xml, dtd_str)
+    def to_html(self, prefixes=None, index=None, delete_btn=False,
+                add_btn=True,  partial=False):
 
-        doctype = ('<!DOCTYPE %(root_tag)s PUBLIC '
-                   '"%(dtd_url)s" '
-                   '"%(dtd_url)s">' % {
-                       'root_tag': self.tagname,
-                       'dtd_url': gen._dtd_url,
-                   })
+        if not self._has_value() and not self._required and self._parent and not partial:
+            # Add button!
+            return self._get_html_add_button(prefixes, index)
 
-        xml_str = etree.tostring(
-            xml.getroottree(),
-            pretty_print=True,
-            xml_declaration=True,
-            encoding=encoding,
-            doctype=doctype)
-        if transform:
-            xml_str = transform(xml_str)
-        open(xml_filename, 'w').write(xml_str)
+        tmp_prefixes = self._get_prefixes(prefixes, index)
+        sub_html = [self._attributes_to_html(prefixes, index)]
+        for elt in self._sub_elements:
+            tmp = elt._to_html(self, tmp_prefixes)
+            if tmp:
+                sub_html += [tmp]
+
+        css_classes = [self._tagname]
+        if len(tmp_prefixes) > 1:
+            css_classes += [':'.join(tmp_prefixes)]
+        legend = self._tagname
+        # Don't allow to delete root element!
+        if (not self._required and self._parent and add_btn) or self._is_choice:
+            legend += self._get_html_add_button(prefixes or [], index, 'hidden')
+        if (not self._required and self._parent) or delete_btn or partial:
+            legend += '<a class="btn-delete-fieldset">Delete</a>'
+        legend += self._comment_to_html(prefixes, index)
+        html = ['<fieldset class="%s"><legend>%s</legend>' % (
+            ' '.join(css_classes),
+            legend)]
+        html.extend(sub_html)
+        html += ['</fieldset>']
+        return ''.join(html)
 
 
-class ElementList(list):
+class TextElementV2(ElementV2):
+    _value = None
 
-    def __init__(self, cls):
-        super(ElementList, self).__init__()
-        self.cls = cls
+    def __repr__(self):
+        return '<TextElementV2 %s "%s">' % (
+            self._tagname,
+            (self._value or '').strip())
 
-    def add(self, text=None, position=None):
-        """Add element in this list object
+    def load_from_xml(self, xml):
+        self._load_extra_from_xml(xml)
+        self._value = xml.text
 
-        :param text: if element is a :class: `TextElement` we set the value
-        :type text: str
-        :param position: the position in the list we want to insert the object
-        :type position: int
-        :rtype: instance of TextElement or Element
-        """
-        obj = self.cls()
-        if text:
-            if isinstance(obj, TextElement):
-                obj.value = text
-            else:
-                raise Exception("Can't set value to non TextElement")
-        if position is not None:
-            self.insert(position, obj)
+    def load_from_dict(self, dic):
+        data = dic[self._tagname]
+        self._load_extra_from_dict(data)
+        self._value = data.get('_value')
+
+    def to_xml(self):
+        xml = etree.Element(self._tagname)
+        # We comment can't be added here since we don't always have the parent
+        # defined.
+        self._attributes_to_xml(xml)
+        xml.text = self._value
+        return xml
+
+    def _get_html_attrs(self, prefixes, index=None):
+        prefixes = list(prefixes or [])
+        if index is not None:
+            # Don't add the index to the css_class
+            css_class = ':'.join(prefixes)
+            prefixes += [str(index)]
         else:
-            self.append(obj)
-        return obj
+            css_class = ':'.join(prefixes + [self._tagname])
+        prefixes += [self._tagname]
+        html_id =  ':'.join(prefixes)
+        prefixes += ['_value']
+        name = ':'.join(prefixes)
+        attrs = [
+            ('name', name),
+            ('id', html_id),
+            ('class', css_class),
+        ]
+        attr = ' '.join(['%s="%s"' % (attrname, value)
+                         for attrname, value in attrs])
+        return ' ' + attr
 
-class MultipleElementList(list):
+    def to_html(self, prefixes=None, index=None, delete_btn=False,
+                add_btn=True, partial=False):
 
-    def __init__(self, classes):
-        super(MultipleElementList, self).__init__()
-        self.classes = classes
+        if not self._value and not self._required and not partial:
+            return self._get_html_add_button(prefixes, index)
 
-    def add(self, tagname, text=None, position=None):
-        """Add element in this list object
+        parent_is_list = isinstance(self._parent, ElementListV2)
+        add_button = ''
+        if (not parent_is_list and not self._required) or self._is_choice:
+            add_button = self._get_html_add_button(prefixes, index, 'hidden')
 
-        :param tagname: The element tagname we want to insert
-        :type tagname: str
-        :param text: if element is a :class: `TextElement` we set the value
-        :type text: str
-        :param position: the position in the list we want to insert the object
-        :type position: int
-        :rtype: instance of TextElement or Element
-        """
-        cls = None
-        for c in self.classes:
-            if c.tagname == tagname:
-                cls = c
-                break
-
-        if not cls:
-            raise Exception("%s is not allowed" % tagname)
-
-        obj = cls()
-        if text:
-            if isinstance(obj, TextElement):
-                obj.value = text
+        delete_button = ''
+        if delete_btn or not self._required or self._is_choice or parent_is_list:
+            if parent_is_list:
+                delete_button = '<a class="btn-delete-list">Delete</a>'
             else:
-                raise Exception("Can't set value to non TextElement")
-        if position is not None:
-            self.insert(position, obj)
-        else:
-            self.append(obj)
-        return obj
+                delete_button = '<a class="btn-delete">Delete</a>'
+
+        return (
+            '<div><label>{label}</label>'
+            '{add_button}'
+            '{delete_button}'
+            '{comment}'
+            '{xmlattrs}'
+            '<textarea{attrs}>{value}</textarea></div>').format(
+                label=self._tagname,
+                add_button=add_button,
+                delete_button=delete_button,
+                comment=self._comment_to_html(prefixes, index),
+                attrs=self._get_html_attrs(prefixes, index),
+                value=self._value or '',
+                xmlattrs=self._attributes_to_html(prefixes, index),
+            )
+
+
+class MultipleMixin(object):
+    _elts = None
+
+    @classmethod
+    def _get_sub_element(cls, tagname):
+        for e in cls._elts:
+            if e._tagname == tagname:
+                return e
+
+
+class ElementListV2(list, MultipleMixin, ElementV2):
+
+    @classmethod
+    def _get_allowed_tagnames(cls):
+        lis = [cls._tagname]
+        for e in cls._elts:
+            lis += [e._tagname]
+        return lis
+
+    @classmethod
+    def _add(cls, tagname, parent_obj):
+        elt = cls._get_sub_element(tagname)
+        tg = cls._tagname
+        if len(cls._elts) == 1:
+            tg = tagname
+
+        lis = getattr(parent_obj, tg, None)
+        if not lis:
+            lis = cls()
+            lis._parent = parent_obj
+            setattr(parent_obj, tg, lis)
+        tmpobj = elt()
+        tmpobj._parent = lis
+        lis.append(tmpobj)
+        return tmpobj
+
+    def to_xml(self):
+        lis = []
+        if not len(self) and self._required:
+            if len(self._elts) == 1:
+                e = self.add(self._elts[0]._tagname)
+                self.append(e)
+
+        for e in self:
+            if e._comment:
+                elt = etree.Comment(e._comment)
+                lis += [elt]
+            lis += [e.to_xml()]
+        return lis
+
+    @classmethod
+    def _get_html_add_button(cls, prefixes, index=None, css_class=None):
+        if index is None:
+            # This element is a list, we should always have an index.
+            index = 0
+        if len(cls._elts) == 1:
+            css_classes = ['btn btn-add-ajax-list']
+            if css_class:
+                css_classes += [css_class]
+
+            tmp_prefixes = list(prefixes or []) + [
+                cls._tagname, index, cls._elts[0]._tagname]
+            data_id = ':'.join(
+                map(str, filter((lambda x: x is not None), tmp_prefixes)))
+            button = ('<a class="%s" '
+                      'data-id="%s">New %s</a>') % (
+                          ' '.join(css_classes),
+                          data_id,
+                          cls._elts[0]._tagname)
+            return button
+
+        assert not css_class
+        button = '<select class="btn btn-add-ajax-choice-list">'
+        options = '/'.join([e._tagname for e in cls._elts])
+        button += '<option>New %s</option>' % options
+
+        tmp_prefixes = list(prefixes or [])
+        tmp_prefixes.append(cls._tagname)
+        tmp_prefixes.append(str(index))
+        prefix_str = ':'.join(tmp_prefixes)
+        for e in cls._elts:
+            button += '<option value="%s:%s">%s</option>' % (
+                prefix_str,
+                e._tagname,
+                e._tagname)
+        button += '</select>'
+        return button
+
+    @classmethod
+    def _get_value_from_parent(cls, parent_obj):
+        tg = cls._tagname
+        if len(cls._elts) == 1:
+            tg = cls._elts[0]._tagname
+        return getattr(parent_obj, tg, None)
+
+    def to_html(self, prefixes=None, index=None, delete_btn=False,
+                add_btn=True, partial=False, offset=0):
+
+        # We should not have the following parameter for this object
+        assert self._attributes is None
+        assert index is None
+
+        if not len(self) and (self._required or partial):
+            if len(self._elts) == 1:
+                e = self.add(self._elts[0]._tagname)
+                self.append(e)
+
+        i = -1
+        lis = []
+        for i, e in enumerate(self):
+            if not partial:
+                lis += [self._get_html_add_button(prefixes, (i+offset))]
+            force = False
+            if i == 0 and (partial or self._required):
+                force = True
+            lis += [e.to_html(((prefixes or [])+[self._tagname]),
+                              (i+offset),
+                              delete_btn=True,
+                              partial=force,
+                              add_btn=False)]
+
+        lis += [self._get_html_add_button(prefixes, i+offset+1)]
+
+        if partial:
+            return ''.join(lis)
+        return '<div class="list-container">%s</div>' % ''.join(lis)
+
+
+class MultipleElementV2(MultipleMixin, ElementV2):
+
+    @classmethod
+    def _get_allowed_tagnames(cls):
+        lis = []
+        for e in cls._elts:
+            lis += [e._tagname]
+        return lis
+
+    @classmethod
+    def _add(cls, tagname, parent_obj):
+        for elt in cls._elts:
+            if hasattr(parent_obj, elt._tagname):
+                raise Exception('%s already defined' % elt._tagname)
+
+        elt = cls._get_sub_element(tagname)
+        tmpobj = elt()
+        tmpobj._parent = parent_obj
+        setattr(parent_obj, tagname, tmpobj)
+        return tmpobj
+
+    @classmethod
+    def _get_html_add_button(cls, prefixes, index=None, css_class=None):
+        """
+        ..note:: index is not used here since we never have list of this
+        element.
+        """
+        css_classes = ['btn', 'btn-add-ajax-choice']
+        if css_class:
+            css_classes += [css_class]
+
+        button = '<select class="%s">' % ' '.join(css_classes)
+        button += '<option>New %s</option>' % '/'.join([e._tagname for e in cls._elts])
+        for e in cls._elts:
+            button += '<option value="%s">%s</option>' % (
+                e._get_str_prefix(prefixes, index, None),
+                e._tagname)
+        button += '</select>'
+        return button
+
+    @classmethod
+    def _get_value_from_parent(cls, parent_obj):
+        for elt in cls._elts:
+            v = getattr(parent_obj, elt._tagname, None)
+            if v:
+                return v
+
+    @classmethod
+    def _to_html(cls, parent_obj, prefixes=None, index=None):
+        v = cls._get_value_from_parent(parent_obj)
+        if not v:
+            return cls._get_html_add_button(prefixes, index)
+        # TODO: are we sure we should pass the index?
+        return v.to_html(prefixes, index)
+
+    @classmethod
+    def _get_sub_value(cls, parent_obj):
+        # We don't know which object to insert, so do nothing if None
+        return cls._get_value_from_parent(parent_obj)
+
+
+# TODO: rename this function: get_html_from_str_id
+def get_obj_from_str(str_id, dtd_url=None, dtd_str=None):
+    # Will raise an exception if both dtd_url or dtd_str are None or set
+    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    splitted = str_id.split(':')
+    prefixes = []
+    s = splitted.pop(0)
+    prefixes += [s]
+    cls = dic[s]
+    obj = cls()
+    index = None
+    while splitted:
+        s = splitted.pop(0)
+        prefixes += [s]
+        tmp_cls = obj._get_sub_element(s)
+        if not tmp_cls:
+            raise Exception('Unsupported tag %s' % s)
+
+        if issubclass(tmp_cls, ElementListV2):
+            # Remove the id
+            index = splitted.pop(0)
+            if len(splitted) > 1:
+                prefixes += [index]
+                index = None
+            s = splitted.pop(0)
+            prefixes += [s]
+
+        obj = obj.add(s)
+
+    if isinstance(obj._parent, ElementListV2):
+        index = int(index or 0)
+        tmp = obj.to_html(prefixes[:-1], index, partial=True)
+        tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
+        return tmp
+
+    html = obj.to_html(prefixes[:-1], index, partial=True)
+    return html
+
