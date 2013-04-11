@@ -1566,6 +1566,15 @@ class TestElementWithAttributes(ElementTester):
         self.assertEqual(obj.text1[1]._attribute_names, ['idtext1'])
         self.assertEqual(obj.text1[1]._attributes, None)
 
+    def test_walk(self):
+        root = etree.fromstring(self.xml)
+        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+        lis = [e for e in obj.walk()]
+        expected = [obj.text] + obj.text1
+        self.assertEqual(lis, expected)
+
 
 class TestElementV2Comments(ElementTester):
     dtd_str = MOVIE_DTD
@@ -1663,3 +1672,79 @@ class TestElementV2Comments(ElementTester):
         self.assertEqual(obj.directors.director[0].firstname._comment,
                          ' director firstname comment ')
 
+
+class TestWalk(TestCase):
+    dtd_str = '''
+        <!ELEMENT texts (text, text1*)>
+        <!ELEMENT text (t1|t2)>
+        <!ELEMENT text1 (text11, text)>
+        <!ELEMENT t1 (#PCDATA)>
+        <!ELEMENT t2 (#PCDATA)>
+        <!ELEMENT text11 (#PCDATA)>
+
+        '''
+    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>
+    <t1>t1</t1>
+  </text>
+  <text1>
+    <text11>My text 1</text11>
+    <text>
+      <t1>t11</t1>
+    </text>
+  </text1>
+  <text1>
+    <text11>My text 2</text11>
+    <text>
+      <t2>t11</t2>
+    </text>
+  </text1>
+</texts>
+'''
+
+    def test_walk(self):
+        root = etree.fromstring(self.xml)
+        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+        lis = [e for e in obj.walk()]
+        expected = [
+            obj.text,
+            obj.text.t1,
+            obj.text1[0],
+            obj.text1[0].text11,
+            obj.text1[0].text,
+            obj.text1[0].text.t1,
+            obj.text1[1],
+            obj.text1[1].text11,
+            obj.text1[1].text,
+            obj.text1[1].text.t2,
+        ]
+        self.assertEqual(lis, expected)
+
+    def test_findall(self):
+        root = etree.fromstring(self.xml)
+        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+        lis = obj.findall('text11')
+        expected = [
+            obj.text1[0].text11,
+            obj.text1[1].text11,
+        ]
+        self.assertEqual(lis, expected)
+
+        lis = obj.findall('t1')
+        expected = [
+            obj.text.t1,
+            obj.text1[0].text.t1,
+        ]
+        self.assertEqual(lis, expected)
+
+        lis = obj.text1.findall('text11')
+        expected = [
+            obj.text1[0].text11,
+            obj.text1[1].text11,
+        ]
+        self.assertEqual(lis, expected)

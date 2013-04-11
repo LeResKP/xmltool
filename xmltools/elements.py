@@ -277,6 +277,44 @@ class ElementV2(object):
         html += ['</fieldset>']
         return ''.join(html)
 
+    def __getitem__(self, tagname):
+        v = getattr(self, tagname, None)
+        if not v:
+            raise KeyError(tagname)
+        return v
+
+    def __contains__(self, tagname):
+        return hasattr(self, tagname)
+
+    def get_or_add(self, tagname):
+        v = getattr(self, tagname, None)
+        if v:
+            return v
+        return self.add(tagname)
+
+    def walk(self):
+        for elt in self._sub_elements:
+            v = elt._get_value_from_parent(self)
+            if not v:
+                continue
+
+            if isinstance(v, list):
+                for e in v:
+                    yield e
+                    for s in e.walk():
+                        yield s
+            else:
+                yield v
+                for s in v.walk():
+                    yield s
+
+    def findall(self, tagname):
+        lis = []
+        for elt in self.walk():
+            if elt._tagname == tagname:
+                lis += [elt]
+        return lis
+
 
 class TextElementV2(ElementV2):
     _value = None
@@ -485,6 +523,15 @@ class ElementListV2(list, MultipleMixin, ElementV2):
         if partial:
             return ''.join(lis)
         return '<div class="list-container">%s</div>' % ''.join(lis)
+
+    def get_or_add(self, tagname):
+        raise NotImplementedError
+
+    def walk(self):
+        for elt in self:
+            yield elt
+            for e in elt.walk():
+                yield e
 
 
 class MultipleElementV2(MultipleMixin, ElementV2):

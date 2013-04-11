@@ -513,6 +513,70 @@ class TestElementV2(TestCase):
         html = obj.to_html()
         self.assertEqual(html, expected2)
 
+    def test___getitem__(self):
+        obj = self.cls()
+        obj.tag = 'Hello world'
+        self.assertEqual(obj['tag'], 'Hello world')
+        try:
+            self.assertEqual(obj['unexisting'], 'Hello world')
+            assert 0
+        except KeyError, e:
+            self.assertEqual(str(e), "'unexisting'")
+
+    def test___contains__(self):
+        obj = self.cls()
+        obj.tag = 'Hello world'
+        self.assertTrue('tag' in obj)
+        self.assertFalse('unexisting' in obj)
+
+    def test_get_or_add(self):
+        obj = self.cls()
+        try:
+            obj.get_or_add('unexisting')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Invalid child unexisting')
+        subtag = obj.get_or_add('subtag')
+        self.assertTrue(subtag)
+        self.assertEqual(subtag._parent, obj)
+
+        subtag1 = obj.get_or_add('subtag')
+        self.assertEqual(subtag1, subtag)
+
+    def test_walk(self):
+        parent_obj = self.cls()
+        obj = self.sub_cls()
+        obj._parent = parent_obj
+
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [])
+
+        parent_obj.subtag = obj
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [obj])
+
+        sub_sub_cls = type('SubSubCls', (TextElementV2, ),
+                       {'_tagname': 'subsub',
+                        '_sub_elements': []})
+        self.sub_cls._sub_elements = [sub_sub_cls]
+        subsub1 = sub_sub_cls()
+        obj.subsub = subsub1
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [obj, subsub1])
+
+    def test_findall(self):
+        parent_obj = self.cls()
+        obj = self.sub_cls()
+        obj._parent = parent_obj
+        lis = parent_obj.findall('subtag')
+        self.assertEqual(lis, [])
+
+        lis = parent_obj.findall('unexisting')
+        self.assertEqual(lis, [])
+
+        parent_obj.subtag = obj
+        lis = parent_obj.findall('subtag')
+        self.assertEqual(lis, [obj])
 
 class TestTextElementV2(TestCase):
 
@@ -799,6 +863,60 @@ class TestElementListV2(TestCase):
                     'data-id="list_cls:11:tag">New tag</a>'
                     '</div>')
         self.assertEqual(html, expected)
+
+    def test_walk(self):
+        sub_cls = type('SubCls', (ElementV2, ),
+                       {'_tagname': 'tag1',
+                        '_sub_elements': []})
+        self.cls._elts += [sub_cls]
+
+        parent_obj = self.cls()
+        obj1 = self.sub_cls()
+        obj1._parent = parent_obj
+        obj2 = sub_cls()
+        obj2._parent = parent_obj
+
+        parent_obj.extend([obj1, obj2])
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [obj1, obj2])
+
+        sub_sub_cls = type('SubSubCls', (TextElementV2, ),
+                       {'_tagname': 'subsub',
+                        '_sub_elements': []})
+        self.sub_cls._sub_elements = [sub_sub_cls]
+        subsub1 = sub_sub_cls()
+        obj1.subsub = subsub1
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [obj1, subsub1, obj2])
+
+    def test_walk_list(self):
+        parent_obj = type('ParentCls', (ElementV2, ),
+                       {'_tagname': 'parent',
+                        '_sub_elements': [self.cls]})()
+        sub_sub_cls = type('SubSubCls', (TextElementV2, ),
+                       {'_tagname': 'subsub',
+                        '_sub_elements': []})
+        self.sub_cls._sub_elements = [sub_sub_cls]
+        self.cls._parent = parent_obj
+        obj = self.cls()
+        parent_obj.tag = obj
+        sub1 = self.sub_cls()
+        sub2 = self.sub_cls()
+        subsub1 = sub_sub_cls()
+        sub1.subsub = subsub1
+        obj.append(sub1)
+        obj.append(sub2)
+
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [sub1, subsub1, sub2])
+
+    def test_get_or_add(self):
+        obj = self.cls()
+        try:
+            obj.get_or_add('unexisting')
+            assert 0
+        except NotImplementedError:
+            pass
 
 
 class TestMultipleElementV2(TestCase):
