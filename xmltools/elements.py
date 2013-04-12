@@ -3,6 +3,9 @@
 from lxml import etree
 import simplejson as json
 import dtd_parser
+import utils
+
+DEFAULT_ENCODING = 'UTF-8'
 
 
 class ElementV2(object):
@@ -17,6 +20,11 @@ class ElementV2(object):
     _sourceline = None
     _comment = None
     _is_choice = False
+
+    # The following attributes should be used for the root element.
+    _xml_filename = None
+    _xml_dtd_url = None
+    _xml_encoding = None
 
 
     @classmethod
@@ -314,6 +322,34 @@ class ElementV2(object):
             if elt._tagname == tagname:
                 lis += [elt]
         return lis
+
+    def write(self, filename=None, encoding=None, dtd_url=None, validate=True,
+              transform=None):
+        filename = filename or self._xml_filename
+        if not filename:
+            raise Exception('No filename given')
+        dtd_url = dtd_url or self._xml_dtd_url
+        if not dtd_url:
+            raise Exception('No dtd url given')
+        encoding = encoding or self._xml_encoding or DEFAULT_ENCODING
+        xml = self.to_xml()
+        if validate:
+            dtd_str = utils.get_dtd_content(dtd_url)
+            utils.validate_xml(xml, dtd_str)
+
+        doctype = ('<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
+                      'root_tag': self._tagname,
+                      'dtd_url': dtd_url,
+                 })
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding=encoding,
+            doctype=doctype)
+        if transform:
+            xml_str = transform(xml_str)
+        open(filename, 'w').write(xml_str)
 
 
 class TextElementV2(ElementV2):
