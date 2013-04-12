@@ -4,86 +4,106 @@ import tw2.core as twc
 from lxml import etree
 import re
 from StringIO import StringIO
-from dtd_parser import Generator
+import dtd_parser
 import utils
 import elements
+
 
 xml_declaration_re = re.compile(r'(<\?xml [^>]*\?>)')
 
 
-def load(xml_filename, validate_xml=True):
+def load(filename, validate=True):
     """Generate a python object
 
-    :param xml_filename: the XML filename we should load
-    :param validate_xml: validate the XML before generating the python object.
-    :type xml_filename: str
-    :type validate_xml: bool
+    :param filename: the XML filename we should load
+    :param validate: validate the XML before generating the python object.
+    :type filename: str
+    :type validate: bool
     :return: the generated python object
     :rtype: :class:`Element`
     """
-    tree = etree.parse(xml_filename)
+    tree = etree.parse(filename)
     dtd_url = tree.docinfo.system_url
     dtd_str = utils.get_dtd_content(dtd_url)
-    if validate_xml:
+    if validate:
         utils.validate_xml(tree, dtd_str)
 
-    gen = Generator(dtd_url=dtd_url)
-    obj = gen.generate_obj(tree.getroot())
+    dic = dtd_parser.parse(dtd_str=dtd_str)
+    root = tree.getroot()
+    obj = dic[root.tag]()
+    obj.load_from_xml(root)
+    obj._xml_filename = filename
+    obj._xml_dtd_url = dtd_url
+    obj._xml_encoding = tree.docinfo.encoding
     return obj
 
 
-def load_string(xml_str, validate_xml=True):
+def load_string(xml_str, validate=True):
     """Generate a python object
 
     :param xml_str: the XML file as string
     :type xml_str: str
-    :param validate_xml: validate the XML before generating the python object.
-    :type validate_xml: bool
+    :param validate: validate the XML before generating the python object.
+    :type validate: bool
     :return: the generated python object
     :rtype: :class:`Element`
     """
     # We remove the xml declaration since it's not supported to load xml with
     # it in lxml
     xml_str = xml_declaration_re.sub('', xml_str)
-    return load(StringIO(xml_str), validate_xml)
+    return load(StringIO(xml_str), validate)
 
 
-def generate_form(xml_filename, form_action=None, validate_xml=True, **kwargs):
-    """Generate the HTML form for the given xml_filename.
+def generate_form(filename, form_action=None, form_filename=None, validate=True):
+    """Generate the HTML form for the given filename.
 
-    :param xml_filename: the XML filename we should load
-    :type xml_filename: str
+    :param filename: the XML filename we should load
+    :type filename: str
     :param form_action: the action to put on the HTML form
     :type form_action: str
-    :param validate_xml: validate the XML before generating the form.
-    :type validate_xml: bool
-    :param kwargs: Some extra values passed to the form generator. It's usefull
-                   if you want to pass a custom _filename, for example if you
-                   work with relative filename.
-    :type kwargs: dict
+    :param validate: validate the XML before generating the form.
+    :type validate: bool
     :return: the generated HTML form
     :rtype: str
     """
-    if '_filename' not in kwargs:
-        kwargs['_filename'] = xml_filename
-    obj = load(xml_filename, validate_xml)
-    form = obj._generator.generate_form(obj.tagname, **kwargs)
-    form.set_value(obj)
+    if not form_filename:
+        form_filename = filename
+    obj = load(filename, validate)
 
+    hidden_inputs = (
+        '<input type="hidden" name="_xml_filename" '
+        'id="_xml_filename" value="%s" />'
+        '<input type="hidden" name="_xml_dtd_url" '
+        'id="_xml_dtd_url" value="%s" />'
+        '<input type="hidden" name="_xml_encoding" '
+        'id="_xml_encoding" value="%s" />'
+    ) % (
+        form_filename,
+        obj._xml_dtd_url,
+        obj._xml_encoding or elements.DEFAULT_ENCODING,
+    )
+
+    html = []
     if form_action:
-        form.action = form_action
-    return form.display()
+        html += ['<form action="%s" method="POST" '
+                 'id="xmltools-form">' % form_action]
+    else:
+        html += ['<form method="POST" id="xmltools-form">']
+    html += [hidden_inputs]
+    html += [obj.to_html()]
+    html += ['</form>']
+    return ''.join(html)
 
 
-def update_xml_file(xml_filename, data, validate_xml=True, transform=None):
-    """Update the file named xml_filename with data.
+def update(filename, data, validate=True, transform=None):
+    """Update the file named filename with data.
 
-    :param xml_filename: the XML filename we should update
+    :param filename: the XML filename we should update
     :param data: the result of the submitted data.
-    :param validate_xml: validate the updated XML before writing it.
-    :type xml_filename: str
+    :param validate: validate the updated XML before writing it.
+    :type filename: str
     :type data: dict style like: dict, webob.MultiDict, ...
-    :type validate_xml: bool
+    :type validate: bool
     :param transform: function to transform the XML string just before
         writing it.
     :type transform: function
@@ -91,48 +111,17 @@ def update_xml_file(xml_filename, data, validate_xml=True, transform=None):
     :rtype: :class:`Element`
     """
     data = twc.validation.unflatten_params(data)
+    encoding = data.pop('_xml_encoding')
+    dtd_url = data.pop('_xml_dtd_url')
 
-    encoding = data['_encoding']
-    dtd_url = data['_dtd_url']
-    root_tag = data['_root_tag']
+    if len(data) != 1:
+        raise Exception('Bad data')
 
-    # We don't need the root tag to generate the dict.
-    data = data[root_tag]
-    gen = Generator(dtd_url=dtd_url)
-    obj = gen.dict_to_obj(root_tag, data)
+    root_tag = data.keys()[0]
+    dic = dtd_parser.parse(dtd_url=dtd_url)
+    obj = dic[root_tag]()
 
-    obj.write(xml_filename, encoding, validate_xml, transform)
+    obj.load_from_dict(data)
+    obj.write(filename, encoding, dtd_url, validate, transform)
     return obj
 
-
-def get_jstree_node_data(dtd_url, elt_id):
-    """Generate the data need to add a jstree node.
-
-    :param dtd_url: the dtd url we are working on.
-    :type dtd_url: str
-    :param elt_id: the HTML id attribute of the element we are adding.
-    :type elt_id: str
-    :return: The node element and the possible previous postions where we can
-    insert it.
-    :rtype: dict
-    """
-    gen = Generator(dtd_url=dtd_url)
-    cls, ident, parent_id = gen.split_id(elt_id)
-    splitted = gen.split_id_v2(elt_id)
-    current = splitted.pop()
-    parent = splitted.pop()
-    cls1 = current['elt']
-    assert cls == cls1
-    parent_id1 = parent['id_with_index']
-    assert parent_id == parent_id1
-    elt_id1 = current['id_with_index']
-    assert elt_id == elt_id1
-    ident1 = current['index']
-    assert ident == ident1
-    
-    elt = cls.to_jstree_dict(prefix_id=parent_id, number=ident)
-    previous = gen.get_previous_element_for_jstree(elt_id)
-    return {
-        'elt': elt,
-        'previous': previous,
-    }
