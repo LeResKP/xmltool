@@ -36,6 +36,7 @@ class ElementTester(TestCase):
     expected_html = _marker
     submit_data = None
     str_to_html = _marker
+    js_selector = None
 
     def test_to_xml(self):
         if self.__class__ == ElementTester:
@@ -97,6 +98,26 @@ class ElementTester(TestCase):
                                                dtd_str=self.dtd_str)
             self.assertEqual(result, expected_html)
 
+    # TODO: add this when it works fine
+    # def test_jstree(self):
+    #     root = etree.fromstring(self.xml)
+    #     dic = dtd_parser.parse(dtd_str=self.dtd_str)
+    #     obj = dic[root.tag]()
+    #     obj.load_from_xml(root)
+    #     print obj.to_jstree_dict([])
+
+    def test__get_previous_js_selectors(self):
+        if self.__class__ == ElementTester:
+            return
+        if self.str_to_html is None:
+            return
+        for (elt_str, expected_html), selectors in zip(self.str_to_html,
+                                                       self.js_selector):
+            obj, prefixes, index = elements._get_obj_from_str_id(elt_str,
+                                               dtd_str=self.dtd_str)
+            lis = elements._get_previous_js_selectors(obj, prefixes, index)
+            self.assertEqual(lis, selectors)
+
 
 class TestElementPCDATA(ElementTester):
     dtd_str = '''
@@ -149,6 +170,11 @@ class TestElementPCDATA(ElementTester):
          'class="texts:text"></textarea>'
          '</div>'
         )
+    ]
+
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')]
     ]
 
     def test_load_from_xml(self):
@@ -240,6 +266,12 @@ class TestElementPCDATAEmpty(ElementTester):
         )
     ]
 
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')]
+    ]
+
+
 class TestElementPCDATANotRequired(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text?)>
@@ -292,6 +324,11 @@ class TestElementPCDATANotRequired(ElementTester):
         )
     ]
 
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')]
+    ]
+
 
 class TestElementPCDATAEmptyNotRequired(ElementTester):
     dtd_str = '''
@@ -333,6 +370,12 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
          '</div>'
         )
     ]
+
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')]
+    ]
+
 
 class TestElementList(ElementTester):
     dtd_str = '''
@@ -431,6 +474,12 @@ class TestElementList(ElementTester):
          '<a class="btn btn-add-ajax-list" '
          'data-id="texts:list__text:11:text">New text</a>'
         )
+    ]
+
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')],
+        [('after', '.tree_texts:list__text:9')],
     ]
 
     def test_add(self):
@@ -549,6 +598,12 @@ class TestElementListEmpty(ElementTester):
         )
     ]
 
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')],
+        [('after', '.tree_texts:list__text:9')],
+    ]
+
 
 class TestElementListNotRequired(ElementTester):
     dtd_str = '''
@@ -638,6 +693,11 @@ class TestElementListNotRequired(ElementTester):
          'data-id="texts:list__text:11:text">New text</a>'
         )
     ]
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')],
+        [('after', '.tree_texts:list__text:9')],
+    ]
 
 
 class TestElementListEmptyNotRequired(ElementTester):
@@ -702,37 +762,11 @@ class TestElementListEmptyNotRequired(ElementTester):
         )
     ]
 
-
-choice_str_to_html = [
-    ('texts',
-     '<fieldset class="texts">'
-     '<legend>texts'
-     '<a class="btn-delete-fieldset">Delete</a>'
-     '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-     '</legend>'
-     '<select class="btn btn-add-ajax-choice">'
-     '<option>New text1/text2</option>'
-     '<option value="texts:text1">text1</option>'
-     '<option value="texts:text2">text2</option>'
-     '</select>'
-     '</fieldset>'
-    ),
-    ('texts:text1',
-     '<div>'
-     '<label>text1</label>'
-     '<select class="btn btn-add-ajax-choice hidden">'
-     '<option>New text1/text2</option>'
-     '<option value="texts:text1">text1</option>'
-     '<option value="texts:text2">text2</option>'
-     '</select>'
-     '<a class="btn-delete">Delete</a>'
-     '<a data-comment-name="texts:text1:_comment" class="btn-comment">'
-     'Comment</a>'
-     '<textarea name="texts:text1:_value" id="texts:text1" '
-     'class="texts:text1"></textarea>'
-     '</div>'
-    )
-]
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')],
+        [('after', '.tree_texts:list__text:9')],
+    ]
 
 
 class TestElementListElementEmpty(ElementTester):
@@ -835,6 +869,49 @@ class TestElementListElementEmpty(ElementTester):
         )
     ]
 
+    js_selector = [
+        [],
+        [('after', '.tree_texts:list__text:0')],
+        [('after', '.tree_texts:list__text:9')],
+    ]
+
+
+choice_str_to_html = [
+    ('texts',
+     '<fieldset class="texts">'
+     '<legend>texts'
+     '<a class="btn-delete-fieldset">Delete</a>'
+     '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
+     '</legend>'
+     '<select class="btn btn-add-ajax-choice">'
+     '<option>New text1/text2</option>'
+     '<option value="texts:text1">text1</option>'
+     '<option value="texts:text2">text2</option>'
+     '</select>'
+     '</fieldset>'
+    ),
+    ('texts:text1',
+     '<div>'
+     '<label>text1</label>'
+     '<select class="btn btn-add-ajax-choice hidden">'
+     '<option>New text1/text2</option>'
+     '<option value="texts:text1">text1</option>'
+     '<option value="texts:text2">text2</option>'
+     '</select>'
+     '<a class="btn-delete">Delete</a>'
+     '<a data-comment-name="texts:text1:_comment" class="btn-comment">'
+     'Comment</a>'
+     '<textarea name="texts:text1:_value" id="texts:text1" '
+     'class="texts:text1"></textarea>'
+     '</div>'
+    )
+]
+
+choice_js_selector = [
+        [],
+        [('inside', '#tree_texts')],
+    ]
+
 
 class TestElementChoice(ElementTester):
     dtd_str = '''
@@ -873,6 +950,7 @@ class TestElementChoice(ElementTester):
     }
 
     str_to_html = choice_str_to_html
+    js_selector = choice_js_selector
 
     def test_add(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
@@ -934,6 +1012,8 @@ class TestElementChoiceEmpty(ElementTester):
 
     submit_data = {}
     str_to_html = choice_str_to_html
+    js_selector = choice_js_selector
+
 
 
 class TestElementChoiceNotRequired(ElementTester):
@@ -975,6 +1055,8 @@ class TestElementChoiceNotRequired(ElementTester):
         'texts:text1:_value': 'Tag 1',
     }
     str_to_html = choice_str_to_html
+    js_selector = choice_js_selector
+
 
 class TestElementChoiceEmptyNotRequired(ElementTester):
     dtd_str = '''
@@ -1001,6 +1083,8 @@ class TestElementChoiceEmptyNotRequired(ElementTester):
 
     submit_data = {}
     str_to_html = choice_str_to_html
+    js_selector = choice_js_selector
+
 
 
 choicelist_str_to_html = [
@@ -1052,6 +1136,11 @@ choicelist_str_to_html = [
      '</select>'
     )
 ]
+
+choice_list_js_selector = [
+        [],
+        [('inside', '#tree_texts')],
+    ]
 
 class TestElementChoiceList(ElementTester):
     dtd_str = '''
@@ -1129,6 +1218,7 @@ class TestElementChoiceList(ElementTester):
         'texts:list__text1_text2:2:text1:_value': 'Tag 3',
     }
     str_to_html = choicelist_str_to_html
+    js_selector = choice_list_js_selector
 
 
     def test_add(self):
@@ -1182,6 +1272,7 @@ class TestElementChoiceListEmpty(ElementTester):
 
     submit_data = {}
     str_to_html = choicelist_str_to_html
+    js_selector = choice_list_js_selector
 
 
 class TestElementChoiceListNotRequired(ElementTester):
@@ -1261,6 +1352,7 @@ class TestElementChoiceListNotRequired(ElementTester):
     }
 
     str_to_html = choicelist_str_to_html
+    js_selector = choice_list_js_selector
 
 
 class TestElementChoiceListEmptyNotRequired(ElementTester):
@@ -1289,6 +1381,7 @@ class TestElementChoiceListEmptyNotRequired(ElementTester):
 
     submit_data = {}
     str_to_html = choicelist_str_to_html
+    js_selector = choice_list_js_selector
 
 
 class TestElementListOfList(ElementTester):
@@ -1443,6 +1536,12 @@ class TestElementListOfList(ElementTester):
         )
     ]
 
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')],
+        [('after', '.tree_texts:list__text1:0:text1:list__text2:2')],
+    ]
+
 
 class TestElementWithAttributes(ElementTester):
     dtd_str = '''
@@ -1533,6 +1632,10 @@ class TestElementWithAttributes(ElementTester):
          'data-id="texts:list__text1:0:text1">New text1</a>'
          '</div>'
          '</fieldset>')
+    ]
+
+    js_selector = [
+        [],
     ]
 
     submit_data = {

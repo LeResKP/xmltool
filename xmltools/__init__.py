@@ -3,4 +3,5 @@ from factory import (
     load_string,
     generate_form,
     update,
+    new,
 )

@@ -272,18 +272,57 @@ class ElementV2(object):
         if len(tmp_prefixes) > 1:
             css_classes += [':'.join(tmp_prefixes)]
         legend = self._tagname
+        legend += self._comment_to_html(prefixes, index)
         # Don't allow to delete root element!
         if (not self._required and self._parent and add_btn) or self._is_choice:
             legend += self._get_html_add_button(prefixes or [], index, 'hidden')
-        if (not self._required and self._parent) or delete_btn or partial:
+        if (not self._required and self._parent) or delete_btn or partial or self._is_choice:
             legend += '<a class="btn-delete-fieldset">Delete</a>'
-        legend += self._comment_to_html(prefixes, index)
-        html = ['<fieldset class="%s"><legend>%s</legend>' % (
+        html = ['<fieldset class="%s" id="%s"><legend>%s</legend>' % (
             ' '.join(css_classes),
+            ':'.join(tmp_prefixes),
             legend)]
         html.extend(sub_html)
         html += ['</fieldset>']
         return ''.join(html)
+
+    @classmethod
+    def _to_jstree_dict(cls, parent_obj, prefixes=None, index=None):
+        v = cls._get_value_from_parent(parent_obj)
+        if not v and cls._required:
+            # We always want an object since we need at least a add button.
+            v = cls()
+        if v:
+            return v.to_jstree_dict(prefixes, index)
+
+    def to_jstree_dict(self, prefixes, index=None):
+        tmp_prefixes = self._get_prefixes(prefixes, index)
+        data = self._tagname
+        value = getattr(self, '_value', None)
+        if value:
+            data += ' <span class="_tree_text">(%s)</span>' % (
+                utils.truncate(value))
+
+        css_class = 'tree_' +  ':'.join(prefixes)
+        if index is not None:
+            css_class += ' tree_' +  ':'.join((prefixes+[str(index)]))
+        else:
+            css_class += ':' + self._tagname
+
+        dic = {
+            'data': data,
+            'attr': {
+                'id': 'tree_' +  ':'.join(tmp_prefixes),
+                'class': css_class,
+            },
+        }
+        children = []
+        for elt in self._sub_elements:
+            v = elt._to_jstree_dict(self, tmp_prefixes)
+            if v:
+                children += [v]
+        dic['children'] = children
+        return dic
 
     def __getitem__(self, tagname):
         v = getattr(self, tagname, None)
@@ -417,12 +456,13 @@ class TextElementV2(ElementV2):
                 delete_button = '<a class="btn-delete">Delete</a>'
 
         return (
-            '<div><label>{label}</label>'
+            '<div data-id="{data_id}"><label>{label}</label>'
             '{add_button}'
             '{delete_button}'
             '{comment}'
             '{xmlattrs}'
-            '<textarea{attrs}>{value}</textarea></div>').format(
+            '<textarea{attrs} rows="1">{value}</textarea></div>').format(
+                data_id=self._get_str_prefix(prefixes, index),
                 label=self._tagname,
                 add_button=add_button,
                 delete_button=delete_button,
@@ -560,6 +600,19 @@ class ElementListV2(list, MultipleMixin, ElementV2):
             return ''.join(lis)
         return '<div class="list-container">%s</div>' % ''.join(lis)
 
+    def to_jstree_dict(self, prefixes, index=None, offset=0):
+        if not len(self) and (self._required):
+            if len(self._elts) == 1:
+                e = self.add(self._elts[0]._tagname)
+                self.append(e)
+
+        lis = []
+        for i, e in enumerate(self):
+            v = e.to_jstree_dict((prefixes or [])+[self._tagname], i+offset)
+            if v:
+                lis += [v]
+        return lis
+
     def get_or_add(self, tagname):
         raise NotImplementedError
 
@@ -630,9 +683,11 @@ class MultipleElementV2(MultipleMixin, ElementV2):
         # We don't know which object to insert, so do nothing if None
         return cls._get_value_from_parent(parent_obj)
 
+    def to_jstree_dict(self, prefixes, index=None):
+        # Nothing to add in for this object
+        return {}
 
-# TODO: rename this function: get_html_from_str_id
-def get_obj_from_str(str_id, dtd_url=None, dtd_str=None):
+def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     # Will raise an exception if both dtd_url or dtd_str are None or set
     dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
     splitted = str_id.split(':')
@@ -659,13 +714,75 @@ def get_obj_from_str(str_id, dtd_url=None, dtd_str=None):
             prefixes += [s]
 
         obj = obj.add(s)
+    return obj, prefixes, index
 
+
+def _get_previous_js_selectors(obj, prefixes, index):
+    lis = []
+
+    parent = obj._parent
+    if not parent:
+        return lis
+
+    parent_is_list = isinstance(parent, ElementListV2)
+    tmp_prefixes = prefixes[:-1]
+    if parent_is_list:
+        parent = parent._parent
+        if int(index) > 0:
+            index = int(index) - 1
+            lis += [
+                ('after', '.tree_%s' % ':'.join(tmp_prefixes + [str(index)]))]
+            return lis
+        tmp_prefixes = tmp_prefixes[:-1]
+
+    sub = parent._get_sub_element(obj._tagname)
+
+    for elt in parent._sub_elements:
+        if elt == sub:
+            break
+        tmp_prefix = list(tmp_prefixes) + [elt._tagname]
+        lis += [('after', '.tree_%s' % ':'.join(tmp_prefix))]
+
+    lis.reverse()
+    # if parent_is_list:
+    #     lis += [('inside', '#tree_%s' % ':'.join(tmp_prefixes[:-1]))]
+    # else:
+    lis += [('inside', '#tree_%s' % ':'.join(tmp_prefixes))]
+    return lis
+
+
+# TODO: rename this function: get_html_from_str_id
+def get_obj_from_str(str_id, dtd_url=None, dtd_str=None):
+    obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     if isinstance(obj._parent, ElementListV2):
         index = int(index or 0)
-        tmp = obj.to_html(prefixes[:-1], index, partial=True)
+        tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
         tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
-    html = obj.to_html(prefixes[:-1], index, partial=True)
-    return html
+    return obj.to_html(prefixes[:-1], index, partial=True)
+
+def _get_html_from_obj(obj, prefixes, index):
+    if isinstance(obj._parent, ElementListV2):
+        index = int(index or 0)
+        tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
+        tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
+        return tmp
+
+    return obj.to_html(prefixes[:-1], index, partial=True)
+
+def get_jstree_json_from_str(str_id, dtd_url=None, dtd_str=None):
+    obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
+    # if isinstance(obj._parent, ElementListV2):
+    #     index = int(index or 0)
+    #     tmp = obj.to_html(prefixes[:-1], index, partial=True)
+    #     tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
+    #     return tmp
+
+    lis = []
+    return {
+        'jstree_data': obj.to_jstree_dict(prefixes[:-1], index),
+        'previous': _get_previous_js_selectors(obj, prefixes, index),
+        'html': _get_html_from_obj(obj, prefixes, index),
+    }
 

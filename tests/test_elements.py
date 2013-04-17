@@ -1083,3 +1083,56 @@ class TestFunctions(TestCase):
             'class="texts:list__list:0:list:text"></textarea>'
             '</div>')
         self.assertEqual(html, expected)
+
+    def test__get_previous_js_selectors(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts'
+        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+                                               dtd_str=dtd_str)
+        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        self.assertEqual(lis, [])
+
+        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        self.assertEqual(lis, [])
+
+        str_id = 'texts:list__list:0:list:text'
+        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+                                               dtd_str=dtd_str)
+        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        expected = [('inside', '#tree_texts:list__list:0:list')]
+        self.assertEqual(lis, expected)
+
+        str_id = 'texts:list__list:0:list'
+        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+                                               dtd_str=dtd_str)
+        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        expected = [
+            ('after', '.tree_texts:list__list:tag1'),
+            ('inside', '#tree_texts')]
+        self.assertEqual(lis, expected)
+
+        str_id = 'texts:list__list:1:list'
+        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+                                               dtd_str=dtd_str)
+        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        expected = [('after', '.tree_texts:list__list:0')]
+        self.assertEqual(lis, expected)
+
+        str_id = 'texts:tag2'
+        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+                                               dtd_str=dtd_str)
+        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        expected = [('after', '.tree_texts:list__list'),
+                    ('after', '.tree_texts:tag1'),
+                    ('inside', '#tree_texts')]
+        self.assertEqual(lis, expected)
+
+
+
+

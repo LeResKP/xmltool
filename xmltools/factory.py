@@ -125,3 +125,31 @@ def update(filename, data, validate=True, transform=None):
     obj.write(filename, encoding, dtd_url, validate, transform)
     return obj
 
+
+def new(dtd_url, root_tag, form_action=None):
+    dic = dtd_parser.parse(dtd_url=dtd_url)
+    obj = dic[root_tag]()
+
+    # Merge the following line with the function which generate the form!
+    hidden_inputs = (
+        '<input type="hidden" name="_xml_filename" '
+        'id="_xml_filename" value="" />'
+        '<input type="hidden" name="_xml_dtd_url" '
+        'id="_xml_dtd_url" value="%s" />'
+        '<input type="hidden" name="_xml_encoding" '
+        'id="_xml_encoding" value="%s" />'
+    ) % (
+        dtd_url,
+        elements.DEFAULT_ENCODING,
+    )
+
+    html = []
+    if form_action:
+        html += ['<form action="%s" method="POST" '
+                 'id="xmltools-form">' % form_action]
+    else:
+        html += ['<form method="POST" id="xmltools-form">']
+    html += [hidden_inputs]
+    html += [obj.to_html()]
+    html += ['</form>']
+    return ''.join(html)
