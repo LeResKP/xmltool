@@ -168,13 +168,14 @@ class ElementV2(object):
         name = self._get_str_prefix(prefixes, index, name='_comment')
         if not self._comment:
             return (
-                '<a data-comment-name="%s" class="btn-comment">'
-                'Comment</a>') % name
+                u'<a data-comment-name="%s" class="btn-comment">'
+                u'Comment</a>') % name
         else:
             return (
-                '<a data-comment-name="{name}" class="btn-comment">'
-                'Comment</a>'
-                '<textarea class="_comment" name="{name}">{comment}</textarea>'
+                u'<a data-comment-name="{name}" '
+                u'class="btn-comment has-comment" title="{comment}">'
+                u'Comment</a>'
+                u'<textarea class="_comment" name="{name}">{comment}</textarea>'
             ).format(
                 name=name,
                 comment=self._comment
@@ -300,7 +301,7 @@ class ElementV2(object):
         data = self._tagname
         value = getattr(self, '_value', None)
         if value:
-            data += ' <span class="_tree_text">(%s)</span>' % (
+            data += u' <span class="_tree_text">(%s)</span>' % (
                 utils.truncate(value))
 
         css_class = 'tree_' +  ':'.join(prefixes)
@@ -456,12 +457,12 @@ class TextElementV2(ElementV2):
                 delete_button = '<a class="btn-delete">Delete</a>'
 
         return (
-            '<div data-id="{data_id}"><label>{label}</label>'
-            '{add_button}'
-            '{delete_button}'
-            '{comment}'
-            '{xmlattrs}'
-            '<textarea{attrs} rows="1">{value}</textarea></div>').format(
+            u'<div data-id="{data_id}"><label>{label}</label>'
+            u'{add_button}'
+            u'{delete_button}'
+            u'{comment}'
+            u'{xmlattrs}'
+            u'<textarea{attrs} rows="1">{value}</textarea></div>').format(
                 data_id=self._get_str_prefix(prefixes, index),
                 label=self._tagname,
                 add_button=add_button,
@@ -778,8 +779,6 @@ def get_jstree_json_from_str(str_id, dtd_url=None, dtd_str=None):
     #     tmp = obj.to_html(prefixes[:-1], index, partial=True)
     #     tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
     #     return tmp
-
-    lis = []
     return {
         'jstree_data': obj.to_jstree_dict(prefixes[:-1], index),
         'previous': _get_previous_js_selectors(obj, prefixes, index),

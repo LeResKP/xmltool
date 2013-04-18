@@ -504,7 +504,44 @@ var create_nodes = function(tree, data, parentobj, position){
                 });
             });
 
-        }
+            p.find('.btn-comment').on('click', function(){
+                var self = $(this);
+                var comment_textarea = $(this).next('._comment');
+
+                if (!comment_textarea.length){
+                    comment_textarea = $('<textarea>').attr('name', self.data('comment-name')).addClass('_comment');
+                    self.after(comment_textarea);
+                }
+                // Create the dialog
+                var dialog = $("<div>");
+                var textarea = $('<textarea />').val(comment_textarea.val());
+                textarea.appendTo(dialog);
+                $('<br />').appendTo(dialog);
+                var submit = $('<input type="button" value="Update" />');
+                submit.appendTo(dialog);
+                submit.on('click', function(){
+                    var value = textarea.val();
+                    comment_textarea.val(value);
+                    dialog.dialog('close');
+
+                    self.attr('title', value);
+                    if (value){
+                        self.addClass('has-comment');
+                    }
+                    else{
+                        self.removeClass('has-comment');
+                    }
+                });
+
+                dialog.dialog({
+                    modal: true,
+                    height: 400,
+                    width: 400,
+                    title: 'Add comment'
+                });
+                return false;
+             });
+            }
         });
 
         return this.each(function(){
