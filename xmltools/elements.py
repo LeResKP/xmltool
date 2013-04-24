@@ -8,7 +8,7 @@ import utils
 DEFAULT_ENCODING = 'UTF-8'
 
 
-class ElementV2(object):
+class Element(object):
     """After reading a dtd file we construct some Element
     """
     _tagname = None
@@ -144,7 +144,6 @@ class ElementV2(object):
         nextelt = xml
         # Only get the comment after the tag if we don't have any other tag
         while True:
-            # TODO: add test for this
             nextelt = nextelt.getnext()
             if nextelt is None:
                 break
@@ -392,11 +391,11 @@ class ElementV2(object):
         open(filename, 'w').write(xml_str)
 
 
-class TextElementV2(ElementV2):
+class TextElement(Element):
     _value = None
 
     def __repr__(self):
-        return '<TextElementV2 %s "%s">' % (
+        return '<TextElement %s "%s">' % (
             self._tagname,
             (self._value or '').strip())
 
@@ -444,7 +443,7 @@ class TextElementV2(ElementV2):
         if not self._value and not self._required and not partial:
             return self._get_html_add_button(prefixes, index)
 
-        parent_is_list = isinstance(self._parent, ElementListV2)
+        parent_is_list = isinstance(self._parent, ListElement)
         add_button = ''
         if (not parent_is_list and not self._required) or self._is_choice:
             add_button = self._get_html_add_button(prefixes, index, 'hidden')
@@ -484,7 +483,7 @@ class MultipleMixin(object):
                 return e
 
 
-class ElementListV2(list, MultipleMixin, ElementV2):
+class ListElement(list, MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
@@ -624,7 +623,7 @@ class ElementListV2(list, MultipleMixin, ElementV2):
                 yield e
 
 
-class MultipleElementV2(MultipleMixin, ElementV2):
+class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
@@ -676,7 +675,6 @@ class MultipleElementV2(MultipleMixin, ElementV2):
         v = cls._get_value_from_parent(parent_obj)
         if not v:
             return cls._get_html_add_button(prefixes, index)
-        # TODO: are we sure we should pass the index?
         return v.to_html(prefixes, index)
 
     @classmethod
@@ -705,7 +703,7 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
         if not tmp_cls:
             raise Exception('Unsupported tag %s' % s)
 
-        if issubclass(tmp_cls, ElementListV2):
+        if issubclass(tmp_cls, ListElement):
             # Remove the id
             index = splitted.pop(0)
             if len(splitted) > 1:
@@ -725,7 +723,7 @@ def _get_previous_js_selectors(obj, prefixes, index):
     if not parent:
         return lis
 
-    parent_is_list = isinstance(parent, ElementListV2)
+    parent_is_list = isinstance(parent, ListElement)
     tmp_prefixes = prefixes[:-1]
     if parent_is_list:
         parent = parent._parent
@@ -745,17 +743,13 @@ def _get_previous_js_selectors(obj, prefixes, index):
         lis += [('after', '.tree_%s' % ':'.join(tmp_prefix))]
 
     lis.reverse()
-    # if parent_is_list:
-    #     lis += [('inside', '#tree_%s' % ':'.join(tmp_prefixes[:-1]))]
-    # else:
     lis += [('inside', '#tree_%s' % ':'.join(tmp_prefixes))]
     return lis
 
 
-# TODO: rename this function: get_html_from_str_id
-def get_obj_from_str(str_id, dtd_url=None, dtd_str=None):
+def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    if isinstance(obj._parent, ElementListV2):
+    if isinstance(obj._parent, ListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
         tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
@@ -764,7 +758,7 @@ def get_obj_from_str(str_id, dtd_url=None, dtd_str=None):
     return obj.to_html(prefixes[:-1], index, partial=True)
 
 def _get_html_from_obj(obj, prefixes, index):
-    if isinstance(obj._parent, ElementListV2):
+    if isinstance(obj._parent, ListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
         tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
@@ -772,7 +766,7 @@ def _get_html_from_obj(obj, prefixes, index):
 
     return obj.to_html(prefixes[:-1], index, partial=True)
 
-def get_jstree_json_from_str(str_id, dtd_url=None, dtd_str=None):
+def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     return {
         'jstree_data': obj.to_jstree_dict(prefixes[:-1], index),

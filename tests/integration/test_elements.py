@@ -7,10 +7,10 @@ import tw2.core.testbase as tw2test
 import os.path
 from xmltools import dtd_parser, utils, factory
 from xmltools.elements import (
-    ElementV2,
-    ElementListV2,
-    TextElementV2,
-    MultipleElementV2,
+    Element,
+    ListElement,
+    TextElement,
+    ChoiceElement,
 )
 import xmltools.elements as elements
 from ..test_dtd_parser import (
@@ -94,7 +94,7 @@ class ElementTester(TestCase):
         if self.str_to_html is None:
             return
         for elt_str, expected_html in self.str_to_html:
-            result = elements.get_obj_from_str(elt_str,
+            result = elements.get_obj_from_str_id(elt_str,
                                                dtd_str=self.dtd_str)
             self.assertEqual(result, expected_html)
 
@@ -377,7 +377,7 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
     ]
 
 
-class TestElementList(ElementTester):
+class TestListElement(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text+)>
         <!ELEMENT text (#PCDATA)>
@@ -510,7 +510,7 @@ class TestElementList(ElementTester):
         self.assertEqual(obj.text[1]._sourceline, 4)
 
 
-class TestElementListEmpty(ElementTester):
+class TestListElementEmpty(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text+)>
         <!ELEMENT text (#PCDATA)>
@@ -605,7 +605,7 @@ class TestElementListEmpty(ElementTester):
     ]
 
 
-class TestElementListNotRequired(ElementTester):
+class TestListElementNotRequired(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text*)>
         <!ELEMENT text (#PCDATA)>
@@ -700,7 +700,7 @@ class TestElementListNotRequired(ElementTester):
     ]
 
 
-class TestElementListEmptyNotRequired(ElementTester):
+class TestListElementEmptyNotRequired(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text*)>
         <!ELEMENT text (#PCDATA)>
@@ -769,7 +769,7 @@ class TestElementListEmptyNotRequired(ElementTester):
     ]
 
 
-class TestElementListElementEmpty(ElementTester):
+class TestListElementElementEmpty(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text+)>
         <!ELEMENT text (subtext)>
@@ -1384,7 +1384,7 @@ class TestElementChoiceListEmptyNotRequired(ElementTester):
     js_selector = choice_list_js_selector
 
 
-class TestElementListOfList(ElementTester):
+class TestListElementOfList(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text1*)>
         <!ELEMENT text1 (text2+)>
@@ -1677,7 +1677,7 @@ class TestElementWithAttributes(ElementTester):
         self.assertEqual(lis, expected)
 
 
-class TestElementV2Comments(ElementTester):
+class TestElementComments(ElementTester):
     dtd_str = MOVIE_DTD
     xml = MOVIE_XML_TITANIC_COMMENTS
 

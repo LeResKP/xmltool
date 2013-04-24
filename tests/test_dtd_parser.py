@@ -4,10 +4,10 @@ from unittest import TestCase
 from xmltools import dtd_parser
 import xmltools.utils as utils
 from xmltools.elements import (
-    TextElementV2,
-    ElementV2,
-    ElementListV2,
-    MultipleElementV2
+    TextElement,
+    Element,
+    ListElement,
+    ChoiceElement
 )
 
 
@@ -431,7 +431,7 @@ class DtdParser(TestCase):
         dic = dtd_parser._create_class_dict(dtd_dict)
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
-        self.assertTrue(issubclass(tag, TextElementV2))
+        self.assertTrue(issubclass(tag, TextElement))
         self.assertEqual(tag._tagname, 'tag')
         self.assertEqual(tag._attribute_names, ['idtag'])
         self.assertEqual(tag._sub_elements, [])
@@ -442,7 +442,7 @@ class DtdParser(TestCase):
         dic = dtd_parser._create_class_dict(dtd_dict)
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
-        self.assertTrue(issubclass(tag, TextElementV2))
+        self.assertTrue(issubclass(tag, TextElement))
         self.assertEqual(tag._tagname, 'tag')
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
@@ -456,7 +456,7 @@ class DtdParser(TestCase):
         dic = dtd_parser._create_class_dict(dtd_dict)
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
-        self.assertTrue(issubclass(tag, ElementV2))
+        self.assertTrue(issubclass(tag, Element))
         self.assertEqual(tag._tagname, 'tag')
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
@@ -467,7 +467,7 @@ class DtdParser(TestCase):
         dic = dtd_parser._create_class_dict(dtd_dict)
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
-        self.assertTrue(issubclass(tag, ElementV2))
+        self.assertTrue(issubclass(tag, Element))
         self.assertEqual(tag._tagname, 'tag')
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
@@ -479,19 +479,19 @@ class DtdParser(TestCase):
         class_dic = dtd_parser._create_class_dict(dtd_dict)
         cls = dtd_parser._create_new_class(
             class_dic, 'tag', required=False, islist=False, conditionals=[])
-        self.assertTrue(issubclass(cls, ElementV2))
+        self.assertTrue(issubclass(cls, Element))
         self.assertEqual(cls.__name__, 'tag')
         self.assertEqual(cls._required, False)
 
         cls = dtd_parser._create_new_class(
             class_dic, 'tag', required=True, islist=False, conditionals=[])
-        self.assertTrue(issubclass(cls, ElementV2))
+        self.assertTrue(issubclass(cls, Element))
         self.assertEqual(cls.__name__, 'tag')
         self.assertEqual(cls._required, True)
 
         cls = dtd_parser._create_new_class(
             class_dic, 'tag', required=True, islist=True, conditionals=[])
-        self.assertTrue(issubclass(cls, ElementListV2))
+        self.assertTrue(issubclass(cls, ListElement))
         self.assertEqual(cls.__name__, 'tagList')
         self.assertEqual(cls._required, True)
         self.assertEqual(len(cls._elts), 1)
@@ -521,7 +521,7 @@ class DtdParser(TestCase):
         cls = dtd_parser._create_new_class(
             class_dic, 'tag1_tag2', required=True, islist=False,
             conditionals=conditionals)
-        self.assertTrue(issubclass(cls, MultipleElementV2))
+        self.assertTrue(issubclass(cls, ChoiceElement))
         self.assertEqual(cls.__name__, 'tag1_tag2Choice')
         self.assertEqual(cls._required, True)
         self.assertEqual(len(cls._elts), 2)
@@ -535,7 +535,7 @@ class DtdParser(TestCase):
         cls = dtd_parser._create_new_class(
             class_dic, 'tag1_tag2', required=True, islist=True,
             conditionals=conditionals)
-        self.assertTrue(issubclass(cls, ElementListV2))
+        self.assertTrue(issubclass(cls, ListElement))
         self.assertEqual(cls.__name__, 'tag1_tag2List')
         self.assertEqual(cls._required, True)
         self.assertEqual(len(cls._elts), 2)
@@ -595,16 +595,16 @@ class DtdParser(TestCase):
         '''
         dic = dtd_parser.parse(dtd_str=dtd_str)
         self.assertEqual(len(dic), 2)
-        self.assertTrue(issubclass(dic['Exercise'], ElementV2))
-        self.assertTrue(issubclass(dic['question'], TextElementV2))
+        self.assertTrue(issubclass(dic['Exercise'], Element))
+        self.assertTrue(issubclass(dic['question'], TextElement))
         old_get_dtd_content = utils.get_dtd_content
         try:
             # We pass the content instead of the url
             utils.get_dtd_content = lambda content: content
             dic = dtd_parser.parse(dtd_url=dtd_str)
             self.assertEqual(len(dic), 2)
-            self.assertTrue(issubclass(dic['Exercise'], ElementV2))
-            self.assertTrue(issubclass(dic['question'], TextElementV2))
+            self.assertTrue(issubclass(dic['Exercise'], Element))
+            self.assertTrue(issubclass(dic['question'], TextElement))
         finally:
             utils.get_dtd_content = old_get_dtd_content
 

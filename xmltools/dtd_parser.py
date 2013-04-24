@@ -1,10 +1,10 @@
 import re
 import utils
 from elements import (
-    ElementV2,
-    TextElementV2,
-    ElementListV2,
-    MultipleElementV2,
+    Element,
+    TextElement,
+    ListElement,
+    ChoiceElement,
 )
 
 
@@ -129,13 +129,13 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
         assert not base_cls
         assert name
         if not islist:
-            parent_cls = type('%sChoice' % name, (MultipleElementV2,), {
+            parent_cls = type('%sChoice' % name, (ChoiceElement,), {
                 '_elts': [],
                 '_tagname': 'choice__%s' % name,
                 '_required': required
             })
         else:
-            parent_cls = type('%sList' % name, (ElementListV2, ), {
+            parent_cls = type('%sList' % name, (ListElement, ), {
                 '_elts': [],
                 '_tagname': 'list__%s' % name,
                 '_required': required,
@@ -158,7 +158,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
     # Always create a new cls to make sure _required is well defined
     newcls = type(cls.__name__, (cls, ), {'_required': required})
 
-    listcls = type('%sList' % cls.__name__, (ElementListV2, ), {
+    listcls = type('%sList' % cls.__name__, (ListElement, ), {
         '_elts': [newcls],
         '_required': required,
         '_tagname': 'list__%s' % name
@@ -172,11 +172,11 @@ def _create_class_dict(dtd_dict):
     for tagname, dic in dtd_dict.items():
         lis = _parse_elts(dic['elts'])
         if dic['elts'] in ['#PCDATA', 'EMPTY']:
-            c = TextElementV2
+            c = TextElement
         elif (lis[0][3] and
               lis[0][3][0][0] in ['#PCDATA', 'EMPTY']):
             # Special case with mixed content
-            c = TextElementV2
+            c = TextElement
             # TODO: find a better way to handle the mixed content
             # 
             # Make some replacements to have the same dtd than for the children
@@ -187,7 +187,7 @@ def _create_class_dict(dtd_dict):
             dic['elts'] = dic['elts'].replace('|', '?,')
             dic['elts'] = dic['elts'][1:-2] + '?' # Remove the '*' at the end
         else:
-            c = ElementV2
+            c = Element
         cls = type(tagname, (c,), {
             '_tagname': tagname,
             '_attribute_names': [tple[0] for tple in dic['attrs']],
