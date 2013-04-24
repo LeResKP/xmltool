@@ -304,7 +304,7 @@ class ElementV2(object):
             data += u' <span class="_tree_text">(%s)</span>' % (
                 utils.truncate(value))
 
-        css_class = 'tree_' +  ':'.join(prefixes)
+        css_class = 'tree_' +  ':'.join(prefixes or [])
         if index is not None:
             css_class += ' tree_' +  ':'.join((prefixes+[str(index)]))
         else:
@@ -774,11 +774,6 @@ def _get_html_from_obj(obj, prefixes, index):
 
 def get_jstree_json_from_str(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    # if isinstance(obj._parent, ElementListV2):
-    #     index = int(index or 0)
-    #     tmp = obj.to_html(prefixes[:-1], index, partial=True)
-    #     tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
-    #     return tmp
     return {
         'jstree_data': obj.to_jstree_dict(prefixes[:-1], index),
         'previous': _get_previous_js_selectors(obj, prefixes, index),
