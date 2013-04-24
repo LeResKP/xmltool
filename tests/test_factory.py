@@ -63,7 +63,7 @@ class TestFactory(TestCase):
             '<input type="hidden" name="_xml_encoding" id="_xml_encoding" '
             'value="UTF-8" />' in html)
 
-        self.assertTrue('<fieldset class="Exercise">' in html)
+        self.assertTrue('<fieldset class="Exercise" id="Exercise">' in html)
 
     def test_update(self):
         filename = 'tests/test.xml'
@@ -84,6 +84,23 @@ class TestFactory(TestCase):
 </Exercise>
 '''
             self.assertEqual(result, expected)
+            data = {
+                '_xml_encoding': 'UTF-8',
+                '_xml_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
+                'Exercise': {},
+                'fake': {},
+            }
+            try:
+                obj = factory.update(filename, data)
+                assert 0
+            except Exception, e:
+                self.assertEqual(str(e), 'Bad data')
+
+            data = {
+                '_xml_encoding': 'UTF-8',
+                '_xml_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
+                'Exercise': {},
+            }
             transform_func = lambda  txt: txt.replace('number',
                                                       'number-updated')
             obj = factory.update(filename, data, transform=transform_func)
@@ -100,3 +117,35 @@ class TestFactory(TestCase):
             if os.path.isfile(filename):
                 os.remove(filename)
 
+    def test_new(self):
+        dtd_url = 'http://xml-tools.lereskp.fr/static/exercise.dtd'
+        root_tag = 'choice'
+        result = factory.new(dtd_url, root_tag)
+        expected = ('<form method="POST" id="xmltools-form">'
+                    '<input type="hidden" name="_xml_filename" '
+                    'id="_xml_filename" value="" />'
+                    '<input type="hidden" name="_xml_dtd_url" '
+                    'id="_xml_dtd_url" '
+                    'value="http://xml-tools.lereskp.fr/static/exercise.dtd" '
+                    '/>'
+                    '<input type="hidden" name="_xml_encoding" '
+                    'id="_xml_encoding" value="UTF-8" />'
+                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    'Add choice</a>'
+                    '</form>')
+        self.assertEqual(result, expected)
+
+        result = factory.new(dtd_url, root_tag, '/submit')
+        expected = ('<form action="/submit" method="POST" id="xmltools-form">'
+                    '<input type="hidden" name="_xml_filename" '
+                    'id="_xml_filename" value="" />'
+                    '<input type="hidden" name="_xml_dtd_url" '
+                    'id="_xml_dtd_url" '
+                    'value="http://xml-tools.lereskp.fr/static/exercise.dtd" '
+                    '/>'
+                    '<input type="hidden" name="_xml_encoding" '
+                    'id="_xml_encoding" value="UTF-8" />'
+                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    'Add choice</a>'
+                    '</form>')
+        self.assertEqual(result, expected)

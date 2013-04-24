@@ -44,3 +44,4 @@ class TestUtils(TestCase):
         s = 'This text should be truncated'
         self.assertEqual(utils.truncate(s, 11), 'This text...')
         self.assertEqual(utils.truncate(s, 25), 'This text should be...')
+        self.assertEqual(utils.truncate(s, 60), s)

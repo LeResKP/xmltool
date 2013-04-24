@@ -5,7 +5,7 @@ from lxml import etree
 import tw2.core as twc
 import tw2.core.testbase as tw2test
 import os.path
-from xmltools import dtd_parser, utils, factory
+from xmltools import utils
 from xmltools.elements import (
     ElementV2,
     ElementListV2,
@@ -24,7 +24,6 @@ from test_dtd_parser import (
     MOVIE_XML_TITANIC,
     MOVIE_XML_TITANIC_COMMENTS,
 )
-import simplejson as json
 
 _marker = object()
 
@@ -252,7 +251,7 @@ class TestElementV2(TestCase):
         obj._comment = 'my comment'
         html = obj._comment_to_html(['prefix'], None)
         expected = ('<a data-comment-name="prefix:tag:_comment" '
-                    'class="btn-comment">Comment</a>'
+                    'class="btn-comment has-comment" title="my comment">Comment</a>'
                     '<textarea class="_comment" name="prefix:tag:_comment">'
                     'my comment</textarea>')
         self.assertEqual(html, expected)
@@ -467,11 +466,11 @@ class TestElementV2(TestCase):
     def test_to_html(self):
         obj = self.cls()
         html = obj.to_html()
-        expected1 = ('<fieldset class="tag"><legend>tag'
+        expected1 = ('<fieldset class="tag" id="tag"><legend>tag'
                     '<a data-comment-name="tag:_comment" class="btn-comment">'
                     'Comment</a>'
                     '</legend>'
-                    '<fieldset class="subtag tag:subtag">'
+                    '<fieldset class="subtag tag:subtag" id="tag:subtag">'
                     '<legend>subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
                     'class="btn-comment">Comment</a>'
@@ -487,15 +486,15 @@ class TestElementV2(TestCase):
         self.assertEqual(html, expected_button)
 
         html = obj.to_html(partial=True)
-        expected2 = ('<fieldset class="tag">'
+        expected2 = ('<fieldset class="tag" id="tag">'
                     '<legend>tag'
+                    '<a data-comment-name="tag:_comment" class="btn-comment">'
+                    'Comment</a>'
                     '<a class="btn btn-add-ajax hidden" data-id="tag">'
                     'Add tag</a>'
                     '<a class="btn-delete-fieldset">Delete</a>'
-                    '<a data-comment-name="tag:_comment" class="btn-comment">'
-                    'Comment</a>'
                     '</legend>'
-                    '<fieldset class="subtag tag:subtag">'
+                    '<fieldset class="subtag tag:subtag" id="tag:subtag">'
                     '<legend>subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
                     'class="btn-comment">Comment</a>'
@@ -512,6 +511,69 @@ class TestElementV2(TestCase):
         obj.subtag = self.sub_cls()
         html = obj.to_html()
         self.assertEqual(html, expected2)
+
+    def test__to_jstree_dict(self):
+        parent_obj = self.cls()
+        result = self.sub_cls._to_jstree_dict(parent_obj)
+        self.assertEqual(result, None)
+
+        self.sub_cls._required = True
+        result = self.sub_cls._to_jstree_dict(parent_obj)
+        expected = {
+            'data': 'subtag',
+            'attr': {
+                'id': 'tree_subtag',
+                'class': 'tree_:subtag'},
+            'children': []}
+        self.assertEqual(result, expected)
+
+        self.sub_cls._required = False
+        parent_obj.subtag = self.sub_cls()
+        parent_obj.subtag._parent = parent_obj
+        expected = {
+            'data': 'subtag',
+            'attr': {
+                'id': 'tree_subtag',
+                'class': 'tree_:subtag'},
+            'children': []}
+        self.assertEqual(result, expected)
+
+    def test_to_jstree_dict(self):
+        obj = self.cls()
+        result = obj.to_jstree_dict([])
+        expected = {
+            'data': 'tag',
+            'attr': {
+                'id': 'tree_tag',
+                'class': 'tree_:tag'},
+            'children': []}
+        self.assertEqual(result, expected)
+
+        obj._value = 'my value'
+        result = obj.to_jstree_dict([], index=10)
+        expected = {
+            'data': u'tag <span class="_tree_text">(my value)</span>',
+            'attr': {
+                'id': 'tree_10:tag',
+                'class': 'tree_ tree_10'},
+            'children': []}
+        self.assertEqual(result, expected)
+
+        obj.subtag = self.sub_cls()
+        obj.subtag._parent = obj
+        result = obj.to_jstree_dict([], index=10)
+        expected = {
+            'data': u'tag <span class="_tree_text">(my value)</span>',
+            'attr': {
+                'id': 'tree_10:tag',
+                'class': 'tree_ tree_10'},
+            'children': [
+                {'attr': {
+                    'class': 'tree_10:tag:subtag','id':
+                    'tree_10:tag:subtag'},
+                'children': [],
+                'data': 'subtag'}]}
+        self.assertEqual(result, expected)
 
     def test___getitem__(self):
         obj = self.cls()
@@ -577,6 +639,63 @@ class TestElementV2(TestCase):
         parent_obj.subtag = obj
         lis = parent_obj.findall('subtag')
         self.assertEqual(lis, [obj])
+
+    def test_write(self):
+        filename = 'tests/test.xml'
+        self.assertFalse(os.path.isfile(filename))
+        try:
+            obj = self.cls()
+            try:
+                obj.write()
+                assert 0
+            except Exception, e:
+                self.assertEqual(str(e), 'No filename given')
+
+            try:
+                obj.write(filename)
+                assert 0
+            except Exception, e:
+                self.assertEqual(str(e), 'No dtd url given')
+
+            old_get_content = utils.get_dtd_content
+            old_validate_xml = utils.validate_xml
+            try:
+                utils.get_dtd_content = lambda url: 'dtd content'
+                utils.validate_xml = lambda xml, dtd_str: True
+                obj.write(filename, dtd_url='http://dtd.url')
+            finally:
+                utils.get_dtd_content = old_get_content
+                utils.validate_xml = old_validate_xml
+
+            obj.write(filename, dtd_url='http://dtd.url', validate=False)
+            result = open(filename, 'r').read()
+            expected = ("<?xml version='1.0' encoding='UTF-8'?>\n"
+                        '<!DOCTYPE tag SYSTEM "http://dtd.url">\n'
+                        "<tag/>\n")
+            self.assertEqual(result, expected)
+
+            obj._xml_filename = filename
+            obj.write(dtd_url='http://dtd.url', validate=False)
+
+            obj._xml_dtd_url = 'http://dtd.url'
+            obj._xml_encoding = 'iso-8859-1'
+            obj.write(validate=False)
+            result = open(filename, 'r').read()
+            expected = ("<?xml version='1.0' encoding='iso-8859-1'?>\n"
+                        '<!DOCTYPE tag SYSTEM "http://dtd.url">\n'
+                        "<tag/>\n")
+            self.assertEqual(result, expected)
+
+            transform = lambda s: s.replace('tag', 'replaced-tag')
+            obj.write(validate=False, transform=transform)
+            result = open(filename, 'r').read()
+            expected = ("<?xml version='1.0' encoding='iso-8859-1'?>\n"
+                        '<!DOCTYPE replaced-tag SYSTEM "http://dtd.url">\n'
+                        "<replaced-tag/>\n")
+            self.assertEqual(result, expected)
+        finally:
+            if os.path.isfile(filename):
+                os.remove(filename)
 
 class TestTextElementV2(TestCase):
 
@@ -651,7 +770,7 @@ class TestTextElementV2(TestCase):
         self.assertEqual(html, expected)
 
         html = obj.to_html(partial=True)
-        expected = ('<div>'
+        expected = ('<div data-id="tag">'
                     '<label>tag</label>'
                     '<a class="btn btn-add-ajax hidden" '
                     'data-id="tag">Add tag</a>'
@@ -659,29 +778,29 @@ class TestTextElementV2(TestCase):
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment">Comment</a>'
                     '<textarea name="tag:_value" id="tag" '
-                    'class="tag"></textarea>'
+                    'class="tag" rows="1"></textarea>'
                     '</div>')
         self.assertEqual(html, expected)
 
         obj._required = True
         html = obj.to_html()
-        expected = ('<div>'
+        expected = ('<div data-id="tag">'
                     '<label>tag</label>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment">Comment</a>'
-                    '<textarea name="tag:_value" id="tag" class="tag">'
+                    '<textarea name="tag:_value" id="tag" class="tag" rows="1">'
                     '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
 
         obj._parent = ElementListV2()
         html = obj.to_html()
-        expected = ('<div>'
+        expected = ('<div data-id="tag">'
                     '<label>tag</label>'
                     '<a class="btn-delete-list">Delete</a>'
                     '<a data-comment-name="tag:_comment" class="btn-comment">'
                     'Comment</a>'
-                    '<textarea name="tag:_value" id="tag" class="tag">'
+                    '<textarea name="tag:_value" id="tag" class="tag" rows="1">'
                     '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -821,11 +940,11 @@ class TestElementListV2(TestCase):
         self.assertEqual(html, expected)
 
         html = obj.to_html(partial=True)
-        expected = ('<fieldset class="tag list_cls:0:tag">'
+        expected = ('<fieldset class="tag list_cls:0:tag" id="list_cls:0:tag">'
                     '<legend>tag'
-                    '<a class="btn-delete-fieldset">Delete</a>'
                     '<a data-comment-name="list_cls:0:tag:_comment" '
                     'class="btn-comment">Comment</a>'
+                    '<a class="btn-delete-fieldset">Delete</a>'
                     '</legend>'
                     '</fieldset>'
                     '<a class="btn btn-add-ajax-list" data-id="list_cls:1:tag">New tag</a>')
@@ -836,11 +955,11 @@ class TestElementListV2(TestCase):
         expected = ('<div class="list-container">'
                     '<a class="btn btn-add-ajax-list" '
                     'data-id="list_cls:0:tag">New tag</a>'
-                    '<fieldset class="tag list_cls:0:tag">'
+                    '<fieldset class="tag list_cls:0:tag" id="list_cls:0:tag">'
                     '<legend>tag'
-                    '<a class="btn-delete-fieldset">Delete</a>'
                     '<a data-comment-name="list_cls:0:tag:_comment" '
                     'class="btn-comment">Comment</a>'
+                    '<a class="btn-delete-fieldset">Delete</a>'
                     '</legend>'
                     '</fieldset>'
                     '<a class="btn btn-add-ajax-list" '
@@ -852,17 +971,31 @@ class TestElementListV2(TestCase):
         expected = ('<div class="list-container">'
                     '<a class="btn btn-add-ajax-list" '
                     'data-id="list_cls:10:tag">New tag</a>'
-                    '<fieldset class="tag list_cls:10:tag">'
+                    '<fieldset class="tag list_cls:10:tag" id="list_cls:10:tag">'
                     '<legend>tag'
-                    '<a class="btn-delete-fieldset">Delete</a>'
                     '<a data-comment-name="list_cls:10:tag:_comment" '
                     'class="btn-comment">Comment</a>'
+                    '<a class="btn-delete-fieldset">Delete</a>'
                     '</legend>'
                     '</fieldset>'
                     '<a class="btn btn-add-ajax-list" '
                     'data-id="list_cls:11:tag">New tag</a>'
                     '</div>')
         self.assertEqual(html, expected)
+
+    def test_to_jstree_dict(self):
+        obj = self.cls()
+        result = obj.to_jstree_dict([])
+        self.assertEqual(result, [])
+
+        obj._required = True
+        result = obj.to_jstree_dict([])
+        expected = [{
+            'attr': {'class': 'tree_list_cls tree_list_cls:0',
+                     'id': 'tree_list_cls:0:tag'},
+            'children': [],
+            'data': 'tag'}]
+        self.assertEqual(result, expected)
 
     def test_walk(self):
         sub_cls = type('SubCls', (ElementV2, ),
@@ -1011,13 +1144,18 @@ class TestMultipleElementV2(TestCase):
         parent_obj.tag1 = obj
         html = self.cls._to_html(parent_obj)
         expected = (
-            '<fieldset class="choice_cls">'
+            '<fieldset class="choice_cls" id="choice_cls">'
             '<legend>choice_cls'
             '<a data-comment-name="choice_cls:_comment" '
             'class="btn-comment">Comment</a>'
             '</legend>'
             '</fieldset>')
         self.assertEqual(html, expected)
+
+    def test_to_jstree_dict(self):
+        obj = self.cls()
+        result = obj.to_jstree_dict([])
+        self.assertEqual(result, {})
 
 
 class TestFunctions(TestCase):
@@ -1037,12 +1175,12 @@ class TestFunctions(TestCase):
         str_id = 'texts:text'
         html = get_obj_from_str(str_id, dtd_str=dtd_str)
         expected = (
-            '<div>'
+            '<div data-id="texts:text">'
             '<label>text</label>'
             '<a data-comment-name="texts:text:_comment" '
             'class="btn-comment">Comment</a>'
             '<textarea name="texts:text:_value" id="texts:text" '
-            'class="texts:text"></textarea>'
+            'class="texts:text" rows="1"></textarea>'
             '</div>')
         self.assertEqual(html, expected)
 
@@ -1053,13 +1191,13 @@ class TestFunctions(TestCase):
         '''
         str_id = 'texts:list__text:0:text'
         html = get_obj_from_str(str_id, dtd_str=dtd_str)
-        expected = ('<div>'
+        expected = ('<div data-id="texts:list__text:0:text">'
                     '<label>text</label>'
                     '<a class="btn-delete-list">Delete</a>'
                     '<a data-comment-name="texts:list__text:0:text:_comment" '
                     'class="btn-comment">Comment</a>'
                     '<textarea name="texts:list__text:0:text:_value" '
-                    'id="texts:list__text:0:text" class="texts:list__text">'
+                    'id="texts:list__text:0:text" class="texts:list__text" rows="1">'
                     '</textarea>'
                     '</div>'
                     '<a class="btn btn-add-ajax-list" '
@@ -1074,13 +1212,13 @@ class TestFunctions(TestCase):
         str_id = 'texts:list__list:0:list:text'
         html = get_obj_from_str(str_id, dtd_str=dtd_str)
         expected = (
-            '<div>'
+            '<div data-id="texts:list__list:0:list:text">'
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:0:list:text:_comment" '
             'class="btn-comment">Comment</a>'
             '<textarea name="texts:list__list:0:list:text:_value" '
             'id="texts:list__list:0:list:text" '
-            'class="texts:list__list:0:list:text"></textarea>'
+            'class="texts:list__list:0:list:text" rows="1"></textarea>'
             '</div>')
         self.assertEqual(html, expected)
 
@@ -1113,7 +1251,7 @@ class TestFunctions(TestCase):
                                                dtd_str=dtd_str)
         lis = elements._get_previous_js_selectors(obj, prefixes, index)
         expected = [
-            ('after', '.tree_texts:list__list:tag1'),
+            ('after', '.tree_texts:tag1'),
             ('inside', '#tree_texts')]
         self.assertEqual(lis, expected)
 
@@ -1133,6 +1271,78 @@ class TestFunctions(TestCase):
                     ('inside', '#tree_texts')]
         self.assertEqual(lis, expected)
 
+    def test__get_html_from_obj(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:tag2'
+        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+                                               dtd_str=dtd_str)
+        result = elements._get_html_from_obj(obj, prefixes, index)
+        expected = (
+            '<div data-id="texts:tag2">'
+            '<label>tag2</label>'
+            '<a data-comment-name="texts:tag2:_comment" class="btn-comment">'
+            'Comment</a>'
+            '<textarea name="texts:tag2:_value" id="texts:tag2" '
+            'class="texts:tag2" rows="1"></textarea>'
+            '</div>')
+        self.assertEqual(result, expected)
 
+        str_id = 'texts:list__list:1:list'
+        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+                                               dtd_str=dtd_str)
+        result = elements._get_html_from_obj(obj, prefixes, index)
+        expected = (
+            '<fieldset class="list texts:list__list:1:list" '
+            'id="texts:list__list:1:list"><legend>list'
+            '<a data-comment-name="texts:list__list:1:list:_comment" '
+            'class="btn-comment">Comment</a><a class="btn-delete-fieldset">'
+            'Delete</a>'
+            '</legend>'
+            '<div data-id="texts:list__list:1:list:text">'
+            '<label>text</label>'
+            '<a data-comment-name="texts:list__list:1:list:text:_comment" '
+            'class="btn-comment">Comment</a>'
+            '<textarea name="texts:list__list:1:list:text:_value" '
+            'id="texts:list__list:1:list:text" '
+            'class="texts:list__list:1:list:text" rows="1"></textarea>'
+            '</div>'
+            '</fieldset>'
+            '<a class="btn btn-add-ajax-list" '
+            'data-id="texts:list__list:2:list">New list</a>')
+        self.assertEqual(result, expected)
 
+    def test_get_jstree_json_from_str(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:tag2'
+        result = elements.get_jstree_json_from_str(str_id, dtd_str=dtd_str)
+        expected = {
+            'previous': [
+                ('after', '.tree_texts:list__list'),
+                ('after', '.tree_texts:tag1'),
+                ('inside', '#tree_texts')],
+            'html': ('<div data-id="texts:tag2">'
+                     '<label>tag2</label>'
+                     '<a data-comment-name="texts:tag2:_comment" '
+                     'class="btn-comment">Comment</a>'
+                     '<textarea name="texts:tag2:_value" id="texts:tag2" '
+                     'class="texts:tag2" rows="1"></textarea></div>'),
+            'jstree_data': {
+                'data': 'tag2',
+                'attr': {
+                    'id': 'tree_texts:tag2',
+                    'class': 'tree_texts:tag2'},
+                'children': []}}
+        self.assertEqual(result, expected)
 
