@@ -1,6 +1,9 @@
-<!ELEMENT Exercise (question, (qcm|mqm)*)>
+<!ELEMENT Exercise (question, (qcm|mqm), comments*)>
 <!ELEMENT question (#PCDATA)>
 <!ELEMENT qcm (good-choice, bad-choice*)>
 <!ELEMENT mqm (good-choice, bad-choice*)>
+<!ELEMENT comments (good-comment, bad-comment)+>
 <!ELEMENT good-choice (#PCDATA)>
 <!ELEMENT bad-choice (#PCDATA)>
+<!ELEMENT good-comment (#PCDATA)>
+<!ELEMENT bad-comment (#PCDATA)>
