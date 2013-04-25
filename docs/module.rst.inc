@@ -1,10 +1,6 @@
 Source
 ======
 
-.. testsetup:: *
-
-    from xmltool.dtd_parser import clear_value
-
 
 xmltool.factory
 -------------------
@@ -22,12 +18,6 @@ xmltool.dtd_parser
 -------------------
 
 .. automodule:: xmltool.dtd_parser
-
-
-xmltool.forms
---------------
-
-.. automodule:: xmltool.forms
 
 
 xmltool.utils

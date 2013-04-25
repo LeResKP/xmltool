@@ -1,26 +1,25 @@
-<form method="POST">
-<input type="text" value="http://xml-tools.lereskp.fr/examples/movie.dtd" name="_dtd_url" id="_dtd_url" class="_dtd_url"><input type="text" value="UTF-8" name="_encoding" id="_encoding" class="_encoding"><input type="text" value="movie" name="_root_tag" id="_root_tag" class="_root_tag"><input type="text" value="M1" name="attrs:idmovie" id="attrs:idmovie" class="attr idmovie"><fieldset>
-<legend>movie</legend>
-<div class="container">
-<label>title</label><textarea name="title:value" id="title" class="title" rows="2">Full Metal Jacket</textarea>
+<form method="POST" id="xmltool-form">
+<input type="hidden" name="_xml_filename" id="_xml_filename" value="examples/movie.xml"><input type="hidden" name="_xml_dtd_url" id="_xml_dtd_url" value="http://xml-tools.lereskp.fr/examples/movie.dtd"><input type="hidden" name="_xml_encoding" id="_xml_encoding" value="UTF-8"><fieldset class="movie" id="movie">
+<legend>movie<a data-comment-name="movie:_comment" class="btn-comment">Comment</a>
+</legend>
+<input value="M1" name="movie:_attrs:idmovie" id="movie:_attrs:idmovie" class="_attrs"><div data-id="movie:title">
+<label>title</label><a data-comment-name="movie:title:_comment" class="btn-comment">Comment</a><textarea name="movie:title:_value" id="movie:title" class="movie:title" rows="1">Full Metal Jacket</textarea>
 </div>
-<div class="container">
-<label>realisator</label><textarea name="realisator:value" id="realisator" class="realisator" rows="2">Stanley Kubrick</textarea>
+<div data-id="movie:realisator">
+<label>realisator</label><a data-comment-name="movie:realisator:_comment" class="btn-comment">Comment</a><textarea name="movie:realisator:_value" id="movie:realisator" class="movie:realisator" rows="1">Stanley Kubrick</textarea>
 </div>
-<div class="container"><fieldset id="characters" class="characters">
-<legend>characters</legend>
-<div class="growing-container required">
-<div class="container growing-source" id="characters:character">
-<label>character</label><input type="button" value="Delete character" class="growing-delete-button"><textarea name="characters:character:0:value" id="characters:character:0" class="character" rows="2"></textarea><input type="button" value="New character" class="growing-add-button">
+<fieldset class="characters movie:characters" id="movie:characters">
+<legend>characters<a data-comment-name="movie:characters:_comment" class="btn-comment">Comment</a>
+</legend>
+<div class="list-container">
+<a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:0:character">New character</a><div data-id="movie:characters:list__character:0:character">
+<label>character</label><a class="btn-delete-list">Delete</a><a data-comment-name="movie:characters:list__character:0:character:_comment" class="btn-comment">Comment</a><input value="C1" name="movie:characters:list__character:0:character:_attrs:idcharacter" id="movie:characters:list__character:0:character:_attrs:idcharacter" class="_attrs"><textarea name="movie:characters:list__character:0:character:_value" id="movie:characters:list__character:0:character" class="movie:characters:list__character" rows="1">Matthew Modine</textarea>
 </div>
-<div class="container">
-<input type="text" value="C1" name="characters:character:1:attrs:idcharacter" id="characters:character:1:attrs:idcharacter" class="attr idcharacter"><label>character</label><input type="button" value="Delete character" class="growing-delete-button"><textarea name="characters:character:1:value" id="characters:character:1" class="character" rows="2">Matthew Modine</textarea><input type="button" value="New character" class="growing-add-button">
+<a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:1:character">New character</a><div data-id="movie:characters:list__character:1:character">
+<label>character</label><a class="btn-delete-list">Delete</a><a data-comment-name="movie:characters:list__character:1:character:_comment" class="btn-comment">Comment</a><input value="C2" name="movie:characters:list__character:1:character:_attrs:idcharacter" id="movie:characters:list__character:1:character:_attrs:idcharacter" class="_attrs"><textarea name="movie:characters:list__character:1:character:_value" id="movie:characters:list__character:1:character" class="movie:characters:list__character" rows="1">Vincent D'Onofrio</textarea>
 </div>
-<div class="container">
-<input type="text" value="C2" name="characters:character:2:attrs:idcharacter" id="characters:character:2:attrs:idcharacter" class="attr idcharacter"><label>character</label><input type="button" value="Delete character" class="growing-delete-button"><textarea name="characters:character:2:value" id="characters:character:2" class="character" rows="2">Vincent D'Onofrio</textarea><input type="button" value="New character" class="growing-add-button">
+<a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:2:character">New character</a>
 </div>
-</div>
-</fieldset></div>
 </fieldset>
-<input type="submit">
+</fieldset>
 </form>

@@ -15,20 +15,20 @@ You will see in this example how it's easy to create an XML file according to th
 
 .. doctest::
 
+    >>> from lxml import etree
     >>> import xmltool
-    >>> gen = xmltool.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/movie.dtd')
-    >>> movie = gen.create_obj('movie')
-    >>> title = movie.create('title', 'Movie title')
-    >>> print title.value
+    >>> from xmltool import dtd_parser
+    >>> dtd_url = 'http://xml-tools.lereskp.fr/examples/movie.dtd'
+    >>> dic = dtd_parser.parse(dtd_url=dtd_url)
+    >>> movie = dic['movie']()
+    >>> title = movie.add('title', 'Movie title')
+    >>> print title._value
     Movie title
-    >>> realisator = movie.create('realisator', 'realisator name')
-    >>> characters = movie.create('characters')
-    >>> character_list = characters.create('character')
-    >>> print character_list
-    []
-    >>> c1 = character_list.add('character 1')
-    >>> c2 = character_list.add('character 2')
-    >>> print movie.to_xml()
+    >>> realisator = movie.add('realisator', 'realisator name')
+    >>> characters = movie.add('characters')
+    >>> c1 = characters.add('character', 'character 1')
+    >>> c2 = characters.add('character', 'character 2')
+    >>> print etree.tostring(movie.to_xml(), pretty_print=True)
     <movie>
       <title>Movie title</title>
       <realisator>realisator name</realisator>
@@ -52,19 +52,21 @@ Now we will see how to handle case with some conditional elements. It's '(qcm|mq
 .. doctest::
 
     >>> import xmltool
-    >>> gen = xmltool.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/exercise.dtd')
-    >>> exercise = gen.create_obj('Exercise')
-    >>> question = exercise.create('question', 'the question')
-    >>> qcm_list = exercise.create('qcm')
-    >>> print qcm_list
-    []
+    >>> from xmltool import dtd_parser
+    >>> dtd_url = 'http://xml-tools.lereskp.fr/examples/exercise.dtd'
+    >>> dic = dtd_parser.parse(dtd_url=dtd_url)
+    >>> exercise = dic['Exercise']()
+    >>> question = exercise.add('question', 'the question')
+    >>> qcm = exercise.add('qcm')
     >>> # Now we can't add a mqm since a qcm exists
-    >>> exercise.create('mqm')
+    >>> exercise.add('mqm')
     Traceback (most recent call last):
-    Exception: You can't add a mqm since it already contains a qcm
-    >>> qcm1 = qcm_list.add()
-    >>> c1 = qcm1.create('good-choice', 'choice 1')
-    >>> print exercise.to_xml()
+    Exception: qcm already defined
+    >>> exercise.add('qcm')
+    Traceback (most recent call last):
+    Exception: qcm already defined
+    >>> c1 = qcm.add('good-choice', 'choice 1')
+    >>> print etree.tostring(exercise.to_xml(), pretty_print=True)
     <Exercise>
       <question>the question</question>
       <qcm>
@@ -85,19 +87,21 @@ See the example below:
 
 .. doctest::
 
+    >>> from lxml import etree
     >>> import xmltool
-    >>> gen = xmltool.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/exercise.dtd')
-    >>> exercise = gen.create_obj('Exercise')
-    >>> question = exercise.create('question', 'the question')
-    >>> qcm_list = exercise.create('qcm')
-    >>> qcm1 = qcm_list.add()
-    >>> c1 = qcm1.create('good-choice', 'choice 1')
-    >>> print exercise.question.value
+    >>> from xmltool import dtd_parser
+    >>> dtd_url = 'http://xml-tools.lereskp.fr/examples/exercise.dtd'
+    >>> dic = dtd_parser.parse(dtd_url=dtd_url)
+    >>> exercise = dic['Exercise']()
+    >>> question = exercise.add('question', 'the question')
+    >>> comments = exercise.add('comments')
+    >>> c1 = comments.add('good-comment', 'comment 1')
+    >>> print exercise.question._value
     the question
-    >>> exercise.qcm == exercise['qcm']
+    >>> exercise.comments == exercise['comments']
     True
-    >>> exercise['qcm'][0]['good-choice'].value
-    'choice 1'
+    >>> exercise['comments'][0]['good-comment']._value
+    'comment 1'
 
 
 Loading a XML file
@@ -116,15 +120,15 @@ For this example we will load the following XML file:
 
     >>> xml_filename = 'examples/movie.xml'
     >>> obj = xmltool.load(xml_filename)
-    >>> print obj.attrs
+    >>> print obj._attributes
     {'idmovie': 'M1'}
     >>> print obj #doctest: +ELLIPSIS
     <xmltool.dtd_parser.movie object at 0x...>
-    >>> print obj.title.value
+    >>> print obj.title._value
     Full Metal Jacket
-    >>> print obj.characters.character[0].value
+    >>> print obj.characters.character[0]._value
     Matthew Modine
-    >>> print obj.characters.character[0].attrs
+    >>> print obj.characters.character[0]._attributes
     {'idcharacter': 'C1'}
 
 
@@ -135,7 +139,7 @@ Writing a XML file
 
     >>> xml_filename = 'examples/movie.xml'
     >>> obj = xmltool.load(xml_filename)
-    >>> obj.title.value = 'My new title'
+    >>> obj.title._value = 'My new title'
     >>> obj.write('examples/movie-updated.xml')
 
 See the content of the new XML file:
@@ -166,7 +170,7 @@ Use the new DTD file in our XML file. You don't need to create a new DTD file wh
 To update the file according to the DTD change, we just need to load it without validating the XML and write it.  Xmltools detects the missing tags and add it!
 
     >>> xml_filename = 'examples/movie-1.xml'
-    >>> obj = xmltool.load(xml_filename, validate_xml=False)
+    >>> obj = xmltool.load(xml_filename, validate=False)
     >>> obj.write('examples/movie-1-updated.xml')
 
 You can see that the comment tag is added automatically:
