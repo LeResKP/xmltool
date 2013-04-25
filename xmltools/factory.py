@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import tw2.core as twc
 from lxml import etree
 import re
 from StringIO import StringIO
@@ -110,7 +109,7 @@ def update(filename, data, validate=True, transform=None):
     :return: the object generated from the data
     :rtype: :class:`Element`
     """
-    data = twc.validation.unflatten_params(data)
+    data = utils.unflatten_params(data)
     encoding = data.pop('_xml_encoding')
     dtd_url = data.pop('_xml_dtd_url')
 

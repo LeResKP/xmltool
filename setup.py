@@ -35,7 +35,7 @@ setup(name='xml_tools',
       zip_safe=False,
       install_requires=[
           'lxml',
-          'tw2.core',
+          'WebOb',
       ],
       test_suite = 'nose.collector',
       tests_require = [
