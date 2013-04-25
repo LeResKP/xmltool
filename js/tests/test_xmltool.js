@@ -1,11 +1,11 @@
-QUnit.module('Test xmltools functions');
+QUnit.module('Test xmltool functions');
 
-test("xmltools.replace_id", function() {
+test("xmltool.replace_id", function() {
     expect(3);
     var html = '<div id="test:0:qcm:1">Hello world</div>'
     var expected = '<div id="test:0:qcm:1">Hello world</div>'
     obj = $(html);
-    xmltools.replace_id(obj, 1, 'test:0:qcm');
+    xmltool.replace_id(obj, 1, 'test:0:qcm');
     equal(obj.html(), $(expected).html(), 'Replacement');
 
     var html = ['<div id="test:0:qcm">',
@@ -32,7 +32,7 @@ test("xmltools.replace_id", function() {
     ].join('\n')
 
     var obj = $(html);
-    xmltools.replace_id(obj, 11);
+    xmltool.replace_id(obj, 11);
     equal(obj.html(), $(expected).html(), 'With no container_id given');
 
     var expected = ['<div id="test:0:qcm">',
@@ -47,11 +47,11 @@ test("xmltools.replace_id", function() {
         '</div>'
     ].join('\n')
     var obj = $(html);
-    xmltools.replace_id(obj, 11, 'test');
+    xmltool.replace_id(obj, 11, 'test');
     equal(obj.html(), $(expected).html(), 'With container_id given');
 });
 
-test("xmltools.has_field", function() {
+test("xmltool.has_field", function() {
     expect(4)
     var container = [
     '<div>',
@@ -65,7 +65,7 @@ test("xmltools.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmltools.has_field($(container)), true, 'textarea field');
+    equal(xmltool.has_field($(container)), true, 'textarea field');
 
     var container = [
     '<div>',
@@ -79,7 +79,7 @@ test("xmltools.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmltools.has_field($(container)), false, 'deleted textarea field');
+    equal(xmltool.has_field($(container)), false, 'deleted textarea field');
 
     var container = [
     '<div>',
@@ -93,7 +93,7 @@ test("xmltools.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmltools.has_field($(container)), false, 'growing field (only growing-source)');
+    equal(xmltool.has_field($(container)), false, 'growing field (only growing-source)');
 
     var container = [
     '<div>',
@@ -113,10 +113,10 @@ test("xmltools.has_field", function() {
     '  </div>',
     '</div>'
     ].join('\n')
-    equal(xmltools.has_field($(container)), true, 'growing field');
+    equal(xmltool.has_field($(container)), true, 'growing field');
 });
 
-test("xmltools.update_conditional_container", function() {
+test("xmltool.update_conditional_container", function() {
     expect(2);
     var html = [
     '<div>',
@@ -148,7 +148,7 @@ test("xmltools.update_conditional_container", function() {
 
     var obj = $(html);
     var container = obj.find('.conditional-option:first > div:first');
-    xmltools.update_conditional_container(container)
+    xmltool.update_conditional_container(container)
     equal(obj.html(), $(html).html(), 'Nothing has changed')
 
     var expected = [
@@ -180,41 +180,41 @@ test("xmltools.update_conditional_container", function() {
     ].join('\n')
 
     container.addClass('deleted');
-    xmltools.update_conditional_container(container)
+    xmltool.update_conditional_container(container)
     equal(obj.html(), $(expected).html(), 'Select is displayed')
 });
 
-test("xmltools.truncate", function() {
+test("xmltool.truncate", function() {
     expect(2);
     var text = 'Short text';
-    equal(xmltools.truncate(text, 30), text, 'Short text is not truncated');
+    equal(xmltool.truncate(text, 30), text, 'Short text is not truncated');
     var text = 'This text is very too long and will be truncated';
     var expected = 'This text is very too long and...';
-    equal(xmltools.truncate(text, 30), expected, 'Long text is truncated');
+    equal(xmltool.truncate(text, 30), expected, 'Long text is truncated');
 });
 
-test("xmltools.get_first_class", function() {
+test("xmltool.get_first_class", function() {
     expect(2);
     var elt = $('<li/>');
-    equal(xmltools.get_first_class(elt), '', 'no class');
+    equal(xmltool.get_first_class(elt), '', 'no class');
 
     var elt = $('<li class="class1 class2"/>');
-    equal(xmltools.get_first_class(elt), 'class1', 'ok first class');
+    equal(xmltool.get_first_class(elt), 'class1', 'ok first class');
 });
 
-test("xmltools.escape_id", function() {
+test("xmltool.escape_id", function() {
     expect(1);
-    equal(xmltools.escape_id('bob:1'), 'bob\\:1', 'id escaped');
+    equal(xmltool.escape_id('bob:1'), 'bob\\:1', 'id escaped');
 });
 
-test("xmltools.get_index", function() {
+test("xmltool.get_index", function() {
     expect(1);
-    equal(xmltools.get_index('bob:children:10'), 10);
+    equal(xmltool.get_index('bob:children:10'), 10);
 });
 
-test("xmltools.get_prefix", function() {
+test("xmltool.get_prefix", function() {
     expect(1);
-    equal(xmltools.get_prefix('bob:children:10'), 'bob:children');
+    equal(xmltool.get_prefix('bob:children:10'), 'bob:children');
 });
 
 test("Button", function() {
@@ -245,7 +245,7 @@ test("Button", function() {
         '  </div>',
         '</div>'].join('\n')
     var obj = $(html);
-    obj.xmltools();
+    obj.xmltool();
     obj.find('.delete-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'delete button');
 
@@ -287,7 +287,7 @@ test("Growing button", function() {
     '</div>',
     ].join('\n')
     var obj = $(html);
-    obj.xmltools();
+    obj.xmltool();
     obj.find('.growing-add-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'add button');
 
@@ -342,7 +342,7 @@ test("Fieldset button", function() {
     '</div>'
     ].join('\n')
     var obj = $(html);
-    obj.xmltools();
+    obj.xmltool();
     obj.find('.fieldset-delete-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'delete button');
 
@@ -414,7 +414,7 @@ test("Growing fieldset button", function() {
     '</div>',
     ].join('\n')
     var obj = $(html);
-    obj.xmltools();
+    obj.xmltool();
     obj.find('.growing-add-button').trigger('click');
     equal(obj.html(), $(expected).html(), 'add button');
 
@@ -427,7 +427,7 @@ test("Select on conditional", function() {
     expect(10);
     $('<div id="tree"></div>').appendTo($("body"));
     var counter = 0;
-    xmltools.jstree.add_node = function(){
+    xmltool.jstree.add_node = function(){
         counter += 1;
     };
 
@@ -461,7 +461,7 @@ test("Select on conditional", function() {
 
     var obj = $(html);
     var select = obj.find('select');
-    obj.xmltools({
+    obj.xmltool({
         jstree_selector: '#tree',
         jstree_url: 'http://fake.url'
     });
@@ -543,7 +543,7 @@ test("Select on conditional", function() {
     var obj = $(html);
     var select = obj.find('select');
     select.val(select.find('option:last').val());
-    obj.xmltools({
+    obj.xmltool({
         jstree_selector: '#tree',
         jstree_url: 'http://fake.url'
     });
@@ -618,7 +618,7 @@ test("Select on conditional", function() {
     var select = obj.find('select');
     equal(counter, 2, 'Counter has not changed');
     select.val(select.find('option:last').val());
-    obj.xmltools({
+    obj.xmltool({
         jstree_selector: '#tree',
         jstree_url: 'http://fake.url'
     });
@@ -633,7 +633,7 @@ test("form submit", function() {
 
     var html = [
     '<div>',
-    '<form action="javascript:" class="xmltools-form">',
+    '<form action="javascript:" class="xmltool-form">',
     '<input type="text" value="1" name="input1" />',
     '<input type="text" value="2" name="input2" class="deleted" />',
     '<div class="deleted">',
@@ -652,7 +652,7 @@ test("form submit", function() {
 
     var obj = $(html);
     var form = obj.find('form');
-    form.xmltools();
+    form.xmltool();
     obj.appendTo($("body"));
     form.trigger('submit');
     equal(form.serialize(), 'input1=1&input5=5', 'submit');
@@ -660,13 +660,13 @@ test("form submit", function() {
 });
 
 
-QUnit.module('Test xmltools.jstree functions');
-test("xmltools.jstree.update_node", function() {
+QUnit.module('Test xmltool.jstree functions');
+test("xmltool.jstree.update_node", function() {
     expect(6);
     var node = $('<li class="tree_test:old:1 class1 class2" />');
     node.data('id', 'test:old:1');
     node.data('replace_id', 'test:old:1');
-    xmltools.jstree.update_node(node, 'test:old:1', 'test:new:1');
+    xmltool.jstree.update_node(node, 'test:old:1', 'test:new:1');
     equal(node.attr('id'), 'tree_test:new:1', 'id updated');
     equal(node.data('id'), 'test:new:1', 'data id updated');
     equal(node.attr('class'), 'tree_test:new:1 class1 class2', 'class updated');
@@ -674,13 +674,13 @@ test("xmltools.jstree.update_node", function() {
     var node = $('<li class="tree_test:old:1:question class1 class2" />');
     node.data('id', 'test:old:1:question');
     node.data('replace_id', 'test:old:1:question');
-    xmltools.jstree.update_node(node, 'test:old:1', 'test:new:1');
+    xmltool.jstree.update_node(node, 'test:old:1', 'test:new:1');
     equal(node.attr('id'), 'tree_test:new:1:question', 'id updated');
     equal(node.data('id'), 'test:new:1:question', 'data id updated');
     equal(node.attr('class'), 'tree_test:new:1:question class1 class2', 'class updated');
 });
 
-test("xmltools.jstree.update_node_and_children", function() {
+test("xmltool.jstree.update_node_and_children", function() {
     expect(7);
     var node = $([
         '<li class="tree_test:old:1 class1 class2">',
@@ -695,7 +695,7 @@ test("xmltools.jstree.update_node_and_children", function() {
     node.find('li').each(function(index){
         $(this).data('id', 'test:old:1:children' + index);
     });
-    xmltools.jstree.update_node_and_children(node, 'test:new:1');
+    xmltool.jstree.update_node_and_children(node, 'test:new:1');
     equal(node.attr('id'), 'tree_test:new:1', 'id updated');
     equal(node.data('id'), 'test:new:1', 'data id updated');
     equal(node.attr('class'), 'tree_test:new:1 class1 class2', 'class updated');
@@ -708,7 +708,7 @@ test("xmltools.jstree.update_node_and_children", function() {
 
 });
 
-test("xmltools.jstree.increment_id", function() {
+test("xmltool.jstree.increment_id", function() {
     expect(9);
     var html = [
     '<ul>',
@@ -726,7 +726,7 @@ test("xmltools.jstree.increment_id", function() {
         $(this).data('replace_id', data_id);
     });
     var node = obj.find('li:first');
-    xmltools.jstree.increment_id(node);
+    xmltool.jstree.increment_id(node);
     equal($(lis[0]).attr('id'), 'tree_test:comment:1', "current node attr id hasn't changed");
     equal($(lis[0]).data('id'), 'test:comment:1', "current node data id hasn't changed");
     equal($(lis[0]).attr('class'), 'tree_test:comment', "current node class hasn't changed");
@@ -740,7 +740,7 @@ test("xmltools.jstree.increment_id", function() {
     equal($(lis[2]).attr('class'), '', "no class node class hasn't changed");
 });
 
-test("xmltools.jstree.increment_id with children", function() {
+test("xmltool.jstree.increment_id with children", function() {
     expect(9);
     var html = [
     '<ul>',
@@ -761,7 +761,7 @@ test("xmltools.jstree.increment_id with children", function() {
         $(this).data('replace_id', data_id);
     });
     var node = obj.find('li:first');
-    xmltools.jstree.increment_id(node);
+    xmltool.jstree.increment_id(node);
     equal($(lis[0]).attr('id'), 'tree_test:comment:1', "current node attr id hasn't changed");
     equal($(lis[0]).data('id'), 'test:comment:1', "current node data id hasn't changed");
     equal($(lis[0]).attr('class'), 'tree_test:comment', "current node class hasn't changed");
@@ -776,7 +776,7 @@ test("xmltools.jstree.increment_id with children", function() {
 });
 
 
-test("xmltools.jstree.create_nodes", function() {
+test("xmltool.jstree.create_nodes", function() {
     expect(3);
     var tree = $('<div id="tree"></div>');
     var node = {
@@ -787,7 +787,7 @@ test("xmltools.jstree.create_nodes", function() {
         }
     }
     tree.jstree();
-    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    xmltool.jstree.create_nodes(tree, node, tree, 'inside');
     expected = [
         '<ul>',
         '<li id="id1" class="class1 jstree-last jstree-leaf">',
@@ -822,7 +822,7 @@ test("xmltools.jstree.create_nodes", function() {
         }]
     }
     tree.jstree();
-    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    xmltool.jstree.create_nodes(tree, node, tree, 'inside');
     expected = [
         '<ul>',
         '<li id="tree_id:1" class="tree_class jstree-last jstree-open">',
@@ -850,7 +850,7 @@ test("xmltools.jstree.create_nodes", function() {
             'replace_id': 'id:1',
         }
     }
-    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    xmltool.jstree.create_nodes(tree, node, tree, 'inside');
     expected = [
         '<ul>',
         '<li id="tree_id:1" class="tree_class jstree-leaf">',
@@ -872,7 +872,7 @@ test("xmltools.jstree.create_nodes", function() {
     equal(tree.html(), expected, 'add node with increment_id');
 });
 
-test("xmltools.jstree.delete_node", function() {
+test("xmltool.jstree.delete_node", function() {
     expect(2);
 
     var tree = $('<div id="tree"></div>');
@@ -884,7 +884,7 @@ test("xmltools.jstree.delete_node", function() {
         }
     }
     tree.jstree();
-    xmltools.jstree.create_nodes(tree, node, tree, 'inside');
+    xmltool.jstree.create_nodes(tree, node, tree, 'inside');
     expected = [
         '<ul>',
         '<li id="tree_id1" class="class1 jstree-last jstree-leaf">',
@@ -896,26 +896,26 @@ test("xmltools.jstree.delete_node", function() {
     equal(tree.html(), expected, 'add node');
     
     var elt = $('<div id="id1"></div>');
-    xmltools.jstree.delete_node(tree, elt);
+    xmltool.jstree.delete_node(tree, elt);
     equal(tree.html(), '<ul></ul>', 'delete node');
 });
 
-test("xmltools.jstree.same_node", function() {
+test("xmltool.jstree.same_node", function() {
     expect(3);
     var node1 = $('<div id="id1"/>');
     var node2 = $('<div id="id2"/>');
-    equal(xmltools.jstree.same_node(node1, node2), false, 'different nodes');
-    equal(xmltools.jstree.same_node(node1, node1), true, 'same nodes');
-    equal(xmltools.jstree.same_node([node1], [node1]), true, 'same list nodes');
+    equal(xmltool.jstree.same_node(node1, node2), false, 'different nodes');
+    equal(xmltool.jstree.same_node(node1, node1), true, 'same nodes');
+    equal(xmltool.jstree.same_node([node1], [node1]), true, 'same list nodes');
 });
 
-test("xmltools.jstree.same_class", function() {
+test("xmltool.jstree.same_class", function() {
     expect(2);
     var node1 = $('<div class="class1"/>');
     var node2 = $('<div class="class2"/>');
-    equal(xmltools.jstree.same_class(node1, node2), false, 'different classes');
+    equal(xmltool.jstree.same_class(node1, node2), false, 'different classes');
     var node2 = $('<div class="class1"/>');
-    equal(xmltools.jstree.same_class(node1, node2), true, 'same class');
+    equal(xmltool.jstree.same_class(node1, node2), true, 'same class');
 });
 
 /*

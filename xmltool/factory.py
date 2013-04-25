@@ -85,9 +85,9 @@ def generate_form(filename, form_action=None, form_filename=None, validate=True)
     html = []
     if form_action:
         html += ['<form action="%s" method="POST" '
-                 'id="xmltools-form">' % form_action]
+                 'id="xmltool-form">' % form_action]
     else:
-        html += ['<form method="POST" id="xmltools-form">']
+        html += ['<form method="POST" id="xmltool-form">']
     html += [hidden_inputs]
     html += [obj.to_html()]
     html += ['</form>']
@@ -145,9 +145,9 @@ def new(dtd_url, root_tag, form_action=None):
     html = []
     if form_action:
         html += ['<form action="%s" method="POST" '
-                 'id="xmltools-form">' % form_action]
+                 'id="xmltool-form">' % form_action]
     else:
-        html += ['<form method="POST" id="xmltools-form">']
+        html += ['<form method="POST" id="xmltool-form">']
     html += [hidden_inputs]
     html += [obj.to_html()]
     html += ['</form>']

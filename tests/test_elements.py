@@ -5,15 +5,15 @@ from lxml import etree
 import tw2.core as twc
 import tw2.core.testbase as tw2test
 import os.path
-from xmltools import utils
-from xmltools.elements import (
+from xmltool import utils
+from xmltool.elements import (
     Element,
     ListElement,
     TextElement,
     ChoiceElement,
     get_obj_from_str_id,
 )
-import xmltools.elements as elements
+import xmltool.elements as elements
 from test_dtd_parser import (
     BOOK_XML,
     BOOK_DTD,

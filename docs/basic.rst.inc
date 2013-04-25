@@ -15,8 +15,8 @@ You will see in this example how it's easy to create an XML file according to th
 
 .. doctest::
 
-    >>> import xmltools
-    >>> gen = xmltools.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/movie.dtd')
+    >>> import xmltool
+    >>> gen = xmltool.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/movie.dtd')
     >>> movie = gen.create_obj('movie')
     >>> title = movie.create('title', 'Movie title')
     >>> print title.value
@@ -51,8 +51,8 @@ Now we will see how to handle case with some conditional elements. It's '(qcm|mq
 
 .. doctest::
 
-    >>> import xmltools
-    >>> gen = xmltools.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/exercise.dtd')
+    >>> import xmltool
+    >>> gen = xmltool.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/exercise.dtd')
     >>> exercise = gen.create_obj('Exercise')
     >>> question = exercise.create('question', 'the question')
     >>> qcm_list = exercise.create('qcm')
@@ -85,8 +85,8 @@ See the example below:
 
 .. doctest::
 
-    >>> import xmltools
-    >>> gen = xmltools.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/exercise.dtd')
+    >>> import xmltool
+    >>> gen = xmltool.Generator(dtd_url='http://xml-tools.lereskp.fr/examples/exercise.dtd')
     >>> exercise = gen.create_obj('Exercise')
     >>> question = exercise.create('question', 'the question')
     >>> qcm_list = exercise.create('qcm')
@@ -110,16 +110,16 @@ For this example we will load the following XML file:
 
 .. testsetup:: *
 
-    import xmltools
+    import xmltool
 
 .. doctest::
 
     >>> xml_filename = 'examples/movie.xml'
-    >>> obj = xmltools.load(xml_filename)
+    >>> obj = xmltool.load(xml_filename)
     >>> print obj.attrs
     {'idmovie': 'M1'}
     >>> print obj #doctest: +ELLIPSIS
-    <xmltools.dtd_parser.movie object at 0x...>
+    <xmltool.dtd_parser.movie object at 0x...>
     >>> print obj.title.value
     Full Metal Jacket
     >>> print obj.characters.character[0].value
@@ -134,7 +134,7 @@ Writing a XML file
 .. doctest::
 
     >>> xml_filename = 'examples/movie.xml'
-    >>> obj = xmltools.load(xml_filename)
+    >>> obj = xmltool.load(xml_filename)
     >>> obj.title.value = 'My new title'
     >>> obj.write('examples/movie-updated.xml')
 
@@ -166,7 +166,7 @@ Use the new DTD file in our XML file. You don't need to create a new DTD file wh
 To update the file according to the DTD change, we just need to load it without validating the XML and write it.  Xmltools detects the missing tags and add it!
 
     >>> xml_filename = 'examples/movie-1.xml'
-    >>> obj = xmltools.load(xml_filename, validate_xml=False)
+    >>> obj = xmltool.load(xml_filename, validate_xml=False)
     >>> obj.write('examples/movie-1-updated.xml')
 
 You can see that the comment tag is added automatically:

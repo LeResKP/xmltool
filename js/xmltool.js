@@ -16,10 +16,10 @@ var logger = new logging();
 var create_nodes = function(tree, data, parentobj, position){
     var node = tree.jstree("create_node", parentobj, position, data);
     var css_class = node.attr('class').split(' ')[0];
-    var nexts = node.nextAll('.'+xmltools.escape_id(css_class));
-    var longprefix = xmltools.get_prefix(node.attr('id'));
-    var prefix = xmltools.get_prefix(longprefix);
-    xmltools.increment_id(prefix, nexts);
+    var nexts = node.nextAll('.'+xmltool.escape_id(css_class));
+    var longprefix = xmltool.get_prefix(node.attr('id'));
+    var prefix = xmltool.get_prefix(longprefix);
+    xmltool.increment_id(prefix, nexts);
     // self.increment_id(node);
     if (typeof(data.children) != 'undefined'){
         for(var i=0; i < data.children.length; i++){
@@ -86,9 +86,9 @@ var create_nodes = function(tree, data, parentobj, position){
         increment_id: function(prefix, elts){
             for (var i=0; i< elts.length; i++){
                 var elt = $(elts[i]);
-                xmltools._increment_id(prefix, elt, xmltools._attr, attrnames, 1);
-                xmltools._increment_id(prefix, elt, xmltools._data, datanames, 1);
-                xmltools.increment_id(prefix, elt.children());
+                xmltool._increment_id(prefix, elt, xmltool._attr, attrnames, 1);
+                xmltool._increment_id(prefix, elt, xmltool._data, datanames, 1);
+                xmltool.increment_id(prefix, elt.children());
             }
         },
         _replace_id: function(prefix, elt, func, names, index){
@@ -124,9 +124,9 @@ var create_nodes = function(tree, data, parentobj, position){
                 else{
                     var tmp_index = index;
                 }
-                xmltools._replace_id(prefix, elt, xmltools._attr, attrnames, tmp_index);
-                xmltools._replace_id(prefix, elt, xmltools._data, datanames, tmp_index);
-                xmltools.replace_id(prefix, elt.children(), 1, tmp_index);
+                xmltool._replace_id(prefix, elt, xmltool._attr, attrnames, tmp_index);
+                xmltool._replace_id(prefix, elt, xmltool._data, datanames, tmp_index);
+                xmltool.replace_id(prefix, elt.children(), 1, tmp_index);
 
                 if (step == 1){
                     index += 1;
@@ -140,9 +140,9 @@ var create_nodes = function(tree, data, parentobj, position){
         decrement_id: function(prefix, elts){
             for (var i=0; i< elts.length; i++){
                 var elt = $(elts[i]);
-                xmltools._increment_id(prefix, elt, xmltools._attr, attrnames, -1);
-                xmltools._increment_id(prefix, elt, xmltools._data, datanames, -1);
-                xmltools.decrement_id(prefix, elt.children());
+                xmltool._increment_id(prefix, elt, xmltool._attr, attrnames, -1);
+                xmltool._increment_id(prefix, elt, xmltool._data, datanames, -1);
+                xmltool.decrement_id(prefix, elt.children());
             }
         },
         truncate: function (str, limit) {
@@ -170,7 +170,7 @@ var create_nodes = function(tree, data, parentobj, position){
     for (key in functions){
         exports[key] = functions[key];
     }
-}(typeof exports === "undefined"? (this.xmltools={}): exports));
+}(typeof exports === "undefined"? (this.xmltool={}): exports));
 
 
 (function(exports){
@@ -188,7 +188,7 @@ var create_nodes = function(tree, data, parentobj, position){
                 return false;
             },
             same_class: function(node1, node2){
-                if (xmltools.get_first_class(node1) == xmltools.get_first_class(node2))
+                if (xmltool.get_first_class(node1) == xmltool.get_first_class(node2))
                     return true;
                 return false;
             },
@@ -212,8 +212,8 @@ var create_nodes = function(tree, data, parentobj, position){
                 var drag_node_id = data.rslt.o.attr('id').replace(/^tree_/, '');
                 var reference_node = data.rslt.r; // The reference where we are moving the node
                 var reference_node_id = reference_node.attr('id').replace(/^tree_/, '');
-                var drag_elt = $('#' + xmltools.escape_id(drag_node_id)).parent();
-                var reference_elt = $('#' + xmltools.escape_id(reference_node_id)).parent();
+                var drag_elt = $('#' + xmltool.escape_id(drag_node_id)).parent();
+                var reference_elt = $('#' + xmltool.escape_id(reference_node_id)).parent();
                 var button = drag_elt.prev();
                 if (position == 'before'){
                     // The previous element is a button to add elements to the list
@@ -227,23 +227,23 @@ var create_nodes = function(tree, data, parentobj, position){
                 }
 
                 var elts = drag_node.parent().children();
-                var longprefix = xmltools.get_prefix(drag_node.attr('id'));
-                var prefix = xmltools.get_prefix(longprefix);
-                xmltools.replace_id(prefix, elts);
+                var longprefix = xmltool.get_prefix(drag_node.attr('id'));
+                var prefix = xmltool.get_prefix(longprefix);
+                xmltool.replace_id(prefix, elts);
 
                 var elts = drag_elt.parent().children();
                 prefix = prefix.replace(/^tree_/, '');
-                xmltools.replace_id(prefix, elts, step=2);
+                xmltool.replace_id(prefix, elts, step=2);
             }
         });
         return self;
     }();
 
-}(typeof exports === "undefined"? this.xmltools: exports));
+}(typeof exports === "undefined"? this.xmltool: exports));
 
 
 (function($){
-    $.fn.xmltools = function(options){
+    $.fn.xmltool = function(options){
         var self = $(this);
 
 
@@ -254,7 +254,7 @@ var create_nodes = function(tree, data, parentobj, position){
 
             for(var i=0; i < previous.length; i++){
                 var position = previous[i][0];
-                var selector = xmltools.escape_id(previous[i][1]);
+                var selector = xmltool.escape_id(previous[i][1]);
                 var parentobj = $(selector);
                 if (parentobj.length > 1){
                     alert('not expected');
@@ -269,15 +269,15 @@ var create_nodes = function(tree, data, parentobj, position){
 
         var delete_node = function(node_id){
             var tree = $('#tree');
-            var node = tree.find('#' + xmltools.escape_id(node_id));
+            var node = tree.find('#' + xmltool.escape_id(node_id));
             if (node.length > 1){
                 alert('Too many values to delete');
             }
             var css_class = node.attr('class').split(' ')[0];
-            var nexts = node.nextAll('.'+xmltools.escape_id(css_class));
-            var longprefix = xmltools.get_prefix(node.attr('id'));
-            var prefix = xmltools.get_prefix(longprefix);
-            xmltools.decrement_id(prefix, nexts);
+            var nexts = node.nextAll('.'+xmltool.escape_id(css_class));
+            var longprefix = xmltool.get_prefix(node.attr('id'));
+            var prefix = xmltool.get_prefix(longprefix);
+            xmltool.decrement_id(prefix, nexts);
             tree.jstree('delete_node', node);
         }
 
@@ -285,18 +285,18 @@ var create_nodes = function(tree, data, parentobj, position){
             set_btn_event: function(p){
                     p.find('textarea').autosize().focus(
                         function(){
-                            var id = xmltools.escape_id($(this).attr('id'));
+                            var id = xmltool.escape_id($(this).attr('id'));
                             var tree = $('#tree');
                             tree.jstree('hover_node', $('#tree_' + id));
                         }).blur(function(){
-                            var id = xmltools.escape_id($(this).attr('id'));
+                            var id = xmltool.escape_id($(this).attr('id'));
                             var a = $('#tree_' + id).find('a');
                             var elt = a.find('._tree_text');
                             if (elt.length == 0){
                                 elt = $('<span class="_tree_text"/>').appendTo(a);
                             }
                             if($(this).val()){
-                                elt.text(' (' + xmltools.truncate($(this).val(), 30) + ')');
+                                elt.text(' (' + xmltool.truncate($(this).val(), 30) + ')');
                             }
                             else{
                                 elt.text('');
@@ -305,11 +305,11 @@ var create_nodes = function(tree, data, parentobj, position){
 
             var set_fielset = function(fieldsets){
                 fieldsets.togglefieldset().bind('hide.togglefieldset', function(e){
-                    var o = $('#tree_' + xmltools.escape_id($(this).attr('id')));
+                    var o = $('#tree_' + xmltool.escape_id($(this).attr('id')));
                     $('#tree').jstree("close_node", o);
                     return false;
                 }).bind('show.togglefieldset', function(e){
-                    var o = $('#tree_' + xmltools.escape_id($(this).attr('id')));
+                    var o = $('#tree_' + xmltool.escape_id($(this).attr('id')));
                     $('#tree').jstree("open_node", o);
                     return false;
                 });
@@ -346,10 +346,10 @@ var create_nodes = function(tree, data, parentobj, position){
                 var add_btn = $(this).prev('.btn');
                 var is_list = fieldset.parent('.list-container').length;
                 if (is_list){
-                    var longprefix = xmltools.get_prefix(fieldset.attr('id'));
-                    var prefix = xmltools.get_prefix(longprefix);
+                    var longprefix = xmltool.get_prefix(fieldset.attr('id'));
+                    var prefix = xmltool.get_prefix(longprefix);
                     var nexts = fieldset.nextAll();
-                    xmltools.decrement_id(prefix, nexts);
+                    xmltool.decrement_id(prefix, nexts);
                 }
                 if(add_btn.length){
                     fieldset.replaceWith(add_btn);
@@ -369,14 +369,14 @@ var create_nodes = function(tree, data, parentobj, position){
                 parent_obj.remove();
                 delete_node('tree_' + parent_obj.data('id'));
 
-                var longprefix = xmltools.get_prefix(parent_obj.data('id'));
-                var prefix = xmltools.get_prefix(longprefix);
-                xmltools.decrement_id(prefix, nexts);
+                var longprefix = xmltool.get_prefix(parent_obj.data('id'));
+                var prefix = xmltool.get_prefix(longprefix);
+                xmltool.decrement_id(prefix, nexts);
             });
 
             p.find('.btn-add-ajax').on('click', function(){
                 var $this = $(this);
-                var dtd_url = $('form#xmltools-form #_xml_dtd_url').val();
+                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
                 var params = {
                     elt_id: $(this).data('id'),
                     dtd_url: dtd_url
@@ -404,7 +404,7 @@ var create_nodes = function(tree, data, parentobj, position){
                 // Same as before, the only difference is the way to get the
                 // the value and the event.
                 var $this = $(this);
-                var dtd_url = $('form#xmltools-form #_xml_dtd_url').val();
+                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
                 var params = {
                     elt_id: $(this).val(),
                     dtd_url: dtd_url
@@ -434,7 +434,7 @@ var create_nodes = function(tree, data, parentobj, position){
                 // Same as before, the only difference is the way to get the
                 // the value and the event.
                 var $this = $(this);
-                var dtd_url = $('form#xmltools-form #_xml_dtd_url').val();
+                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
                 var params = {
                     elt_id: $(this).val(),
                     dtd_url: dtd_url
@@ -454,9 +454,9 @@ var create_nodes = function(tree, data, parentobj, position){
                         var tmp = $(obj[obj.length-1]);
                         var nexts = tmp.nextAll();
                         // TODO: check it works fine
-                        var longprefix = xmltools.get_prefix($this.val());
-                        var prefix = xmltools.get_prefix(longprefix);
-                        xmltools.increment_id(prefix, nexts);
+                        var longprefix = xmltool.get_prefix($this.val());
+                        var prefix = xmltool.get_prefix(longprefix);
+                        xmltool.increment_id(prefix, nexts);
 
                         //jstree
                         add_node(data);
@@ -470,7 +470,7 @@ var create_nodes = function(tree, data, parentobj, position){
 
             p.find('.btn-add-ajax-list').on('click', function(){
                 var $this = $(this);
-                var dtd_url = $('form#xmltools-form #_xml_dtd_url').val();
+                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
                 var params = {
                     elt_id: $(this).data('id'),
                     dtd_url: dtd_url
@@ -490,9 +490,9 @@ var create_nodes = function(tree, data, parentobj, position){
                         $this.after(obj);
                         var tmp = $(obj[obj.length-1]);
                         var nexts = tmp.nextAll();
-                        var longprefix = xmltools.get_prefix($this.data('id'));
-                        var prefix = xmltools.get_prefix(longprefix);
-                        xmltools.increment_id(prefix, nexts);
+                        var longprefix = xmltool.get_prefix($this.data('id'));
+                        var prefix = xmltool.get_prefix(longprefix);
+                        xmltool.increment_id(prefix, nexts);
 
                         //jstree
                         add_node(data);

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from unittest import TestCase
-from xmltools import dtd_parser
-import xmltools.utils as utils
-from xmltools.elements import (
+from xmltool import dtd_parser
+import xmltool.utils as utils
+from xmltool.elements import (
     TextElement,
     Element,
     ListElement,

@@ -3,7 +3,7 @@
 from unittest import TestCase
 from lxml import etree
 import os.path
-from xmltools import factory
+from xmltool import factory
 
 
 class TestFactory(TestCase):
@@ -46,12 +46,12 @@ class TestFactory(TestCase):
 
     def test_generate_form(self):
         html = factory.generate_form('tests/exercise.xml')
-        self.assertTrue('<form method="POST" id="xmltools-form">' in html)
+        self.assertTrue('<form method="POST" id="xmltool-form">' in html)
 
         html = factory.generate_form('tests/exercise.xml',
                                         form_action='/action/submit')
         self.assertTrue('<form action="/action/submit" method="POST" '
-                        'id="xmltools-form">' in html)
+                        'id="xmltool-form">' in html)
         self.assertTrue(
             '<input type="hidden" name="_xml_filename" id="_xml_filename" '
             'value="tests/exercise.xml" />' in html)
@@ -121,7 +121,7 @@ class TestFactory(TestCase):
         dtd_url = 'http://xml-tools.lereskp.fr/static/exercise.dtd'
         root_tag = 'choice'
         result = factory.new(dtd_url, root_tag)
-        expected = ('<form method="POST" id="xmltools-form">'
+        expected = ('<form method="POST" id="xmltool-form">'
                     '<input type="hidden" name="_xml_filename" '
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
@@ -136,7 +136,7 @@ class TestFactory(TestCase):
         self.assertEqual(result, expected)
 
         result = factory.new(dtd_url, root_tag, '/submit')
-        expected = ('<form action="/submit" method="POST" id="xmltools-form">'
+        expected = ('<form action="/submit" method="POST" id="xmltool-form">'
                     '<input type="hidden" name="_xml_filename" '
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
