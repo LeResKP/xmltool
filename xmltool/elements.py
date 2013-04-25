@@ -72,22 +72,28 @@ class Element(object):
         return ':'.join(tmp_prefixes)
 
     @classmethod
-    def _add(cls, tagname, parent_obj):
-        value = getattr(parent_obj, tagname, None)
-        if value:
+    def _add(cls, tagname, parent_obj, value=None):
+        v = getattr(parent_obj, tagname, None)
+        if v:
             raise Exception('%s already defined' % tagname)
+
+        if value and not issubclass(cls, TextElement):
+            raise Exception, "Can't set value to non TextElement"
+
         tmpobj = cls()
         setattr(parent_obj, tagname, tmpobj)
         tmpobj._parent = parent_obj
+        if value:
+            tmpobj._value = value
         return tmpobj
 
-    def add(self, tagname):
+    def add(self, tagname, value=None):
         cls = self._get_sub_element(tagname)
 
         if cls is None:
             raise Exception('Invalid child %s' % tagname)
 
-        obj = cls._add(tagname, self)
+        obj = cls._add(tagname, self, value)
         return obj
 
     def add_attribute(self, name, value):
@@ -493,8 +499,11 @@ class ListElement(list, MultipleMixin, Element):
         return lis
 
     @classmethod
-    def _add(cls, tagname, parent_obj):
+    def _add(cls, tagname, parent_obj, value=None):
         elt = cls._get_sub_element(tagname)
+        if value and not issubclass(elt, TextElement):
+            raise Exception, "Can't set value to non TextElement"
+
         tg = cls._tagname
         if len(cls._elts) == 1:
             tg = tagname
@@ -506,6 +515,8 @@ class ListElement(list, MultipleMixin, Element):
             setattr(parent_obj, tg, lis)
         tmpobj = elt()
         tmpobj._parent = lis
+        if value:
+            tmpobj._value = value
         lis.append(tmpobj)
         return tmpobj
 
@@ -633,14 +644,19 @@ class ChoiceElement(MultipleMixin, Element):
         return lis
 
     @classmethod
-    def _add(cls, tagname, parent_obj):
+    def _add(cls, tagname, parent_obj, value=None):
         for elt in cls._elts:
             if hasattr(parent_obj, elt._tagname):
                 raise Exception('%s already defined' % elt._tagname)
 
         elt = cls._get_sub_element(tagname)
+        if value and not issubclass(elt, TextElement):
+            raise Exception, "Can't set value to non TextElement"
+
         tmpobj = elt()
         tmpobj._parent = parent_obj
+        if value:
+            tmpobj._value = value
         setattr(parent_obj, tagname, tmpobj)
         return tmpobj
 

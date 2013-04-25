@@ -95,6 +95,12 @@ class TestElement(TestCase):
 
     def test__add(self):
         parent_obj = FakeClass()
+        try:
+            obj = self.cls._add('tagname', parent_obj, 'my value')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "Can't set value to non TextElement")
+
         obj = self.cls._add('tagname', parent_obj)
         self.assertEqual(obj._parent, parent_obj)
         self.assertTrue(isinstance(obj, Element))
@@ -116,6 +122,15 @@ class TestElement(TestCase):
             obj.add('unexisting')
         except Exception, e:
             self.assertEqual(str(e), 'Invalid child unexisting')
+
+        parent_obj = FakeClass()
+        obj = self.cls()
+        obj._parent = parent_obj
+        try:
+            newobj = obj.add('subtag', 'my value')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "Can't set value to non TextElement")
 
     def test_add_attribute(self):
         obj = self.cls()
@@ -710,6 +725,11 @@ class TestTextElement(TestCase):
     def test__get_allowed_tagnames(self):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['tag'])
 
+    def test__add(self):
+        parent_obj = FakeClass()
+        obj = self.cls._add('tagname', parent_obj, 'my value')
+        self.assertEqual(obj._value, 'my value')
+
     def test_load_from_xml(self):
         root = etree.Element('root')
         text = etree.Element('text')
@@ -843,6 +863,12 @@ class TestListElement(TestCase):
     def test__add(self):
         parent_obj = FakeClass()
         parent_obj.tag = ListElement()
+        try:
+            obj1 = self.cls._add('tag', parent_obj, 'my value')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "Can't set value to non TextElement")
+
         obj1 = self.cls._add('tag', parent_obj)
         self.assertTrue(obj1._tagname, 'tag')
         self.assertEqual(obj1._parent, parent_obj.tag)
@@ -854,6 +880,11 @@ class TestListElement(TestCase):
         self.assertEqual(obj2._parent, parent_obj.tag)
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj.tag, [obj1, obj2])
+
+        self.cls._elts = [type('Cls', (TextElement, ),
+                            {'_tagname': 'tag'})]
+        obj3 = self.cls._add('tag', parent_obj, 'my value')
+        self.assertEqual(obj3._value, 'my value')
 
     def test__add_multiple(self):
         sub_cls = type('SubCls', (Element, ), {'_tagname': 'tag1'})
@@ -1094,6 +1125,12 @@ class TestChoiceElement(TestCase):
 
     def test__add(self):
         parent_obj = FakeClass()
+        try:
+            obj1 = self.cls._add('tag1', parent_obj, 'my value')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), "Can't set value to non TextElement")
+
         obj1 = self.cls._add('tag1', parent_obj)
         self.assertTrue(obj1._tagname, 'tag')
         self.assertEqual(obj1._parent, parent_obj)
@@ -1111,6 +1148,12 @@ class TestChoiceElement(TestCase):
             assert 0
         except Exception, e:
             self.assertEqual(str(e), 'tag1 already defined')
+
+        parent_obj = FakeClass()
+        self.cls._elts = [type('Cls', (TextElement, ),
+                            {'_tagname': 'tag'})]
+        obj2 = self.cls._add('tag', parent_obj, 'my value')
+        self.assertEqual(obj2._value, 'my value')
 
     def test__get_html_add_button(self):
         html = self.cls._get_html_add_button(None)
