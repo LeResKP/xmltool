@@ -1,10 +1,10 @@
-.. xmltools documentation master file, created by
+.. xmltool documentation master file, created by
    sphinx-quickstart on Mon Nov 12 22:30:12 2012.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 #########################
-xmltools's documentation!
+xmltool's documentation!
 #########################
 
 .. toctree::
@@ -14,7 +14,7 @@ xmltools's documentation!
 Introduction
 ============
 
-xmltools is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
+xmltool is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
 The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
 You can find the `source on github <https://github.com/LeResKP/xml-forms>`_.
 
