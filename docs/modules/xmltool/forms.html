@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>xmltools.forms &mdash; xmltools 0.0 documentation</title>
+    <title>xmltool.forms &mdash; xmltool 0.0 documentation</title>
     
     <link rel="stylesheet" href="../../static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../static/underscore.js"></script>
     <script type="text/javascript" src="../../static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="xmltools 0.0 documentation" href="../../index.html" />
+    <link rel="top" title="xmltool 0.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">xmltools 0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">xmltool 0.0 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -49,13 +49,13 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <h1>Source code for xmltools.forms</h1><div class="highlight"><pre>
+  <h1>Source code for xmltool.forms</h1><div class="highlight"><pre>
 <span class="c">#!/usr/bin/env python</span>
 
 <span class="kn">import</span> <span class="nn">dtd_parser</span>
 
 
-<div class="viewcode-block" id="clone_obj"><a class="viewcode-back" href="../../index.html#xmltools.forms.clone_obj">[docs]</a><span class="k">def</span> <span class="nf">clone_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="clone_obj"><a class="viewcode-back" href="../../index.html#xmltool.forms.clone_obj">[docs]</a><span class="k">def</span> <span class="nf">clone_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
 
     <span class="n">dic</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span>
@@ -90,7 +90,7 @@
     <span class="k">return</span> <span class="n">newobj</span>
 
 </div>
-<div class="viewcode-block" id="Field"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field">[docs]</a><span class="k">class</span> <span class="nc">Field</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Field"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field">[docs]</a><span class="k">class</span> <span class="nc">Field</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">attrs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">html_attrs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">display_container</span> <span class="o">=</span> <span class="bp">False</span>
@@ -119,12 +119,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_css_classes</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Field._init_css_classes"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field._init_css_classes">[docs]</a>    <span class="k">def</span> <span class="nf">_init_css_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field._init_css_classes"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field._init_css_classes">[docs]</a>    <span class="k">def</span> <span class="nf">_init_css_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">GrowingContainer</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">css_classes</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">css_classes</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
 </div>
-<div class="viewcode-block" id="Field._get_name"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field._get_name">[docs]</a>    <span class="k">def</span> <span class="nf">_get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field._get_name"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field._get_name">[docs]</a>    <span class="k">def</span> <span class="nf">_get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span>
             <span class="n">lis</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
@@ -136,10 +136,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lis</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
 </div>
-<div class="viewcode-block" id="Field.get_id"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.get_id"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_name</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="Field.get_name"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.get_name"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_name</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
             <span class="k">return</span> <span class="s">&#39;&#39;</span>
@@ -147,7 +147,7 @@
             <span class="n">s</span> <span class="o">+=</span> <span class="s">&#39;:value&#39;</span>
         <span class="k">return</span> <span class="n">s</span>
 </div>
-<div class="viewcode-block" id="Field.set_value"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.set_value"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="n">FormField</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -160,7 +160,7 @@
                         <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">)]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="Field._set_value"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Field._set_value"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">):</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">value</span>
         <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">:</span>
@@ -168,10 +168,10 @@
             <span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
 </div>
-<div class="viewcode-block" id="Field.get_value"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.get_value"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
 </div>
-<div class="viewcode-block" id="Field.get_attrs"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field.get_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">get_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.get_attrs"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field.get_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">get_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">attrs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">MultipleField</span><span class="p">):</span>
@@ -191,10 +191,10 @@
             <span class="k">return</span> <span class="s">&#39; </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">s</span>
         <span class="k">return</span> <span class="s">&#39;&#39;</span>
 </div>
-<div class="viewcode-block" id="Field._display"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field._display"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </div>
-<div class="viewcode-block" id="Field.display"><a class="viewcode-back" href="../../index.html#xmltools.forms.Field.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.display"><a class="viewcode-back" href="../../index.html#xmltool.forms.Field.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">html</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs_children</span><span class="p">:</span>
             <span class="n">html</span> <span class="o">+=</span> <span class="p">[</span><span class="n">child</span><span class="o">.</span><span class="n">display</span><span class="p">()]</span>
@@ -213,29 +213,29 @@
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="InputField"><a class="viewcode-back" href="../../index.html#xmltools.forms.InputField">[docs]</a><span class="k">class</span> <span class="nc">InputField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+<div class="viewcode-block" id="InputField"><a class="viewcode-back" href="../../index.html#xmltool.forms.InputField">[docs]</a><span class="k">class</span> <span class="nc">InputField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 
-<div class="viewcode-block" id="InputField._display"><a class="viewcode-back" href="../../index.html#xmltools.forms.InputField._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="InputField._display"><a class="viewcode-back" href="../../index.html#xmltool.forms.InputField._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s">&#39;&lt;input type=&quot;text&quot; value=&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> /&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">(),</span>
                                                     <span class="bp">self</span><span class="o">.</span><span class="n">get_attrs</span><span class="p">())</span>
 </div></div>
-<div class="viewcode-block" id="ButtonField"><a class="viewcode-back" href="../../index.html#xmltools.forms.ButtonField">[docs]</a><span class="k">class</span> <span class="nc">ButtonField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+<div class="viewcode-block" id="ButtonField"><a class="viewcode-back" href="../../index.html#xmltool.forms.ButtonField">[docs]</a><span class="k">class</span> <span class="nc">ButtonField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 
-<div class="viewcode-block" id="ButtonField.display"><a class="viewcode-back" href="../../index.html#xmltools.forms.ButtonField.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ButtonField.display"><a class="viewcode-back" href="../../index.html#xmltool.forms.ButtonField.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s">&#39;&lt;input type=&quot;button&quot; value=&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> /&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">(),</span>
                                                        <span class="bp">self</span><span class="o">.</span><span class="n">get_attrs</span><span class="p">())</span>
 </div></div>
-<div class="viewcode-block" id="TextAreaField"><a class="viewcode-back" href="../../index.html#xmltools.forms.TextAreaField">[docs]</a><span class="k">class</span> <span class="nc">TextAreaField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+<div class="viewcode-block" id="TextAreaField"><a class="viewcode-back" href="../../index.html#xmltool.forms.TextAreaField">[docs]</a><span class="k">class</span> <span class="nc">TextAreaField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
     <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]</span>
     <span class="n">html_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
     <span class="n">display_container</span> <span class="o">=</span> <span class="bp">True</span>
 
-<div class="viewcode-block" id="TextAreaField._set_value"><a class="viewcode-back" href="../../index.html#xmltools.forms.TextAreaField._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="TextAreaField._set_value"><a class="viewcode-back" href="../../index.html#xmltool.forms.TextAreaField._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">TextAreaField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_set_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="n">num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="TextAreaField._display"><a class="viewcode-back" href="../../index.html#xmltools.forms.TextAreaField._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TextAreaField._display"><a class="viewcode-back" href="../../index.html#xmltool.forms.TextAreaField._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">html</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">show_container</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">required</span><span class="p">:</span>
@@ -273,13 +273,13 @@
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="MultipleField"><a class="viewcode-back" href="../../index.html#xmltools.forms.MultipleField">[docs]</a><span class="k">class</span> <span class="nc">MultipleField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+<div class="viewcode-block" id="MultipleField"><a class="viewcode-back" href="../../index.html#xmltool.forms.MultipleField">[docs]</a><span class="k">class</span> <span class="nc">MultipleField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MultipleField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
 
-<div class="viewcode-block" id="MultipleField._set_value"><a class="viewcode-back" href="../../index.html#xmltools.forms.MultipleField._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="MultipleField._set_value"><a class="viewcode-back" href="../../index.html#xmltool.forms.MultipleField._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
             <span class="n">v</span> <span class="o">=</span> <span class="n">value</span>
@@ -287,18 +287,18 @@
                 <span class="n">v</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
             <span class="n">child</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="MultipleField.get_value"><a class="viewcode-back" href="../../index.html#xmltools.forms.MultipleField.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MultipleField.get_value"><a class="viewcode-back" href="../../index.html#xmltool.forms.MultipleField.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="p">[]</span>
 </div>
-<div class="viewcode-block" id="MultipleField.get_children"><a class="viewcode-back" href="../../index.html#xmltools.forms.MultipleField.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MultipleField.get_children"><a class="viewcode-back" href="../../index.html#xmltool.forms.MultipleField.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
 
 </div></div>
-<div class="viewcode-block" id="Fieldset"><a class="viewcode-back" href="../../index.html#xmltools.forms.Fieldset">[docs]</a><span class="k">class</span> <span class="nc">Fieldset</span><span class="p">(</span><span class="n">MultipleField</span><span class="p">):</span>
+<div class="viewcode-block" id="Fieldset"><a class="viewcode-back" href="../../index.html#xmltool.forms.Fieldset">[docs]</a><span class="k">class</span> <span class="nc">Fieldset</span><span class="p">(</span><span class="n">MultipleField</span><span class="p">):</span>
     <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;legend&#39;</span><span class="p">]</span>
     <span class="n">display_container</span> <span class="o">=</span> <span class="bp">True</span>
 
-<div class="viewcode-block" id="Fieldset._display"><a class="viewcode-back" href="../../index.html#xmltools.forms.Fieldset._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Fieldset._display"><a class="viewcode-back" href="../../index.html#xmltool.forms.Fieldset._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">child_html</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">():</span>
             <span class="n">content</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
@@ -345,7 +345,7 @@
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="FormField"><a class="viewcode-back" href="../../index.html#xmltools.forms.FormField">[docs]</a><span class="k">class</span> <span class="nc">FormField</span><span class="p">(</span><span class="n">Fieldset</span><span class="p">):</span>
+<div class="viewcode-block" id="FormField"><a class="viewcode-back" href="../../index.html#xmltool.forms.FormField">[docs]</a><span class="k">class</span> <span class="nc">FormField</span><span class="p">(</span><span class="n">Fieldset</span><span class="p">):</span>
 
     <span class="n">html_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;action&#39;</span><span class="p">]</span>
     <span class="n">display_container</span> <span class="o">=</span> <span class="bp">False</span>
@@ -376,7 +376,7 @@
             <span class="p">)</span>
         <span class="p">]</span>
 
-<div class="viewcode-block" id="FormField.display"><a class="viewcode-back" href="../../index.html#xmltools.forms.FormField.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FormField.display"><a class="viewcode-back" href="../../index.html#xmltool.forms.FormField.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">required</span> <span class="o">=</span> <span class="bp">True</span> <span class="c"># No delete nor add button on the form</span>
         <span class="n">children_html</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">FormField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">children_html</span><span class="p">:</span>
@@ -394,26 +394,26 @@
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="ConditionalContainer"><a class="viewcode-back" href="../../index.html#xmltools.forms.ConditionalContainer">[docs]</a><span class="k">class</span> <span class="nc">ConditionalContainer</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalContainer"><a class="viewcode-back" href="../../index.html#xmltool.forms.ConditionalContainer">[docs]</a><span class="k">class</span> <span class="nc">ConditionalContainer</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">possible_children</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConditionalContainer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ConditionalContainer.get_children"><a class="viewcode-back" href="../../index.html#xmltools.forms.ConditionalContainer.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalContainer.get_children"><a class="viewcode-back" href="../../index.html#xmltool.forms.ConditionalContainer.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_children</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">key</span><span class="p">):</span>
                 <span class="n">c</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
                 <span class="k">return</span> <span class="p">[</span><span class="n">c</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">[]</span>
 </div>
-<div class="viewcode-block" id="ConditionalContainer.get_child"><a class="viewcode-back" href="../../index.html#xmltools.forms.ConditionalContainer.get_child">[docs]</a>    <span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalContainer.get_child"><a class="viewcode-back" href="../../index.html#xmltool.forms.ConditionalContainer.get_child">[docs]</a>    <span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_children</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">key</span><span class="p">):</span>
                 <span class="n">c</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
                 <span class="k">return</span> <span class="n">c</span>
         <span class="k">return</span> <span class="bp">None</span>
 </div>
-<div class="viewcode-block" id="ConditionalContainer._display"><a class="viewcode-back" href="../../index.html#xmltools.forms.ConditionalContainer._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalContainer._display"><a class="viewcode-back" href="../../index.html#xmltool.forms.ConditionalContainer._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_children</span><span class="p">:</span>
             <span class="k">return</span> <span class="s">&#39;&#39;</span>
 
@@ -446,17 +446,17 @@
         <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="GrowingContainer"><a class="viewcode-back" href="../../index.html#xmltools.forms.GrowingContainer">[docs]</a><span class="k">class</span> <span class="nc">GrowingContainer</span><span class="p">(</span><span class="n">MultipleField</span><span class="p">):</span>
+<div class="viewcode-block" id="GrowingContainer"><a class="viewcode-back" href="../../index.html#xmltool.forms.GrowingContainer">[docs]</a><span class="k">class</span> <span class="nc">GrowingContainer</span><span class="p">(</span><span class="n">MultipleField</span><span class="p">):</span>
     <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;child&#39;</span><span class="p">]</span>
     <span class="n">repetitions</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="GrowingContainer._init_css_classes"><a class="viewcode-back" href="../../index.html#xmltools.forms.GrowingContainer._init_css_classes">[docs]</a>    <span class="k">def</span> <span class="nf">_init_css_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GrowingContainer._init_css_classes"><a class="viewcode-back" href="../../index.html#xmltool.forms.GrowingContainer._init_css_classes">[docs]</a>    <span class="k">def</span> <span class="nf">_init_css_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="GrowingContainer._set_value"><a class="viewcode-back" href="../../index.html#xmltools.forms.GrowingContainer._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="GrowingContainer._set_value"><a class="viewcode-back" href="../../index.html#xmltool.forms.GrowingContainer._set_value">[docs]</a>    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">Field</span><span class="o">.</span><span class="n">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="GrowingContainer.get_children"><a class="viewcode-back" href="../../index.html#xmltools.forms.GrowingContainer.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GrowingContainer.get_children"><a class="viewcode-back" href="../../index.html#xmltool.forms.GrowingContainer.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">child</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
 
@@ -488,7 +488,7 @@
 
         <span class="k">return</span> <span class="n">children</span>
 </div>
-<div class="viewcode-block" id="GrowingContainer._display"><a class="viewcode-back" href="../../index.html#xmltools.forms.GrowingContainer._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GrowingContainer._display"><a class="viewcode-back" href="../../index.html#xmltool.forms.GrowingContainer._display">[docs]</a>    <span class="k">def</span> <span class="nf">_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">html</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">():</span>
             <span class="n">html</span> <span class="o">+=</span> <span class="p">[</span><span class="n">child</span><span class="o">.</span><span class="n">display</span><span class="p">()]</span>
@@ -533,7 +533,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">xmltools 0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">xmltool 0.0 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>

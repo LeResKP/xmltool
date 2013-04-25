@@ -2,8 +2,9 @@
 
 from unittest import TestCase
 from lxml import etree
-from xmltools import utils
+from xmltool import utils
 from test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
+import webob
 
 
 class TestUtils(TestCase):
@@ -33,3 +34,45 @@ class TestUtils(TestCase):
         except etree.DocumentInvalid:
             pass
 
+    def test_to_int(self):
+        result = utils.to_int('bob')
+        self.assertEqual(result, None)
+
+        result = utils.to_int('10')
+        self.assertEqual(result, 10)
+
+    def test_truncate(self):
+        s = 'This text should be truncated'
+        self.assertEqual(utils.truncate(s, 11), 'This text...')
+        self.assertEqual(utils.truncate(s, 25), 'This text should be...')
+        self.assertEqual(utils.truncate(s, 60), s)
+
+    def test_numdict_to_list(self):
+        dic = {
+            'test': {'0': {'test1': {'value': 'v1'}},
+                     '1': {'test1': {'value': 'v2'}}
+                    }
+        }
+        utils.numdict_to_list(dic)
+        expected = {
+            'test': [{'test1': {'value': 'v1'}},
+                     {'test1': {'value': 'v2'}}]}
+        self.assertEqual(dic, expected)
+
+    def test_unflatten_params(self):
+        dic = {
+            'test:0:test1:value': 'v1',
+            'test:1:test1:value': 'v2',
+        }
+        result = utils.unflatten_params(dic)
+        expected = {
+            'test': [{'test1': {'value': 'v1'}},
+                     {'test1': {'value': 'v2'}}]}
+        self.assertEqual(result, expected)
+
+        if not hasattr(webob, 'MultiDict'):
+            dic = webob.multidict.MultiDict(dic)
+        else:
+            dic = webob.MultiDict(dic)
+        result = utils.unflatten_params(dic)
+        self.assertEqual(result, expected)

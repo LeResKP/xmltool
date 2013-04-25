@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
 from unittest import TestCase
-from lxml import etree
-import __builtin__
-from xmltools import dtd_parser, forms
+from xmltool import dtd_parser
+import xmltool.utils as utils
+from xmltool.elements import (
+    TextElement,
+    Element,
+    ListElement,
+    ChoiceElement
+)
 
-
-def fake_open(content, *args):
-    class Fake(object):
-        def read(self):
-            return content
-    return Fake()
 
 MOVIE_DTD = '''
 <!ELEMENT Movie (is-publish?, name, year, directors, actors, resume?, critique*)>
@@ -33,7 +32,6 @@ that should be removed
 '''
 
 MOVIE_XML_TITANIC = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Movie SYSTEM "test.dtd">
 <Movie>
   <name>Titanic</name>
   <year>1997</year>
@@ -61,6 +59,58 @@ MOVIE_XML_TITANIC = '''<?xml version='1.0' encoding='UTF-8'?>
      Resume of the movie
   </resume>
   <critique>critique1</critique>
+  <critique>critique2</critique>
+</Movie>
+'''
+
+MOVIE_XML_TITANIC_COMMENTS = '''<?xml version='1.0' encoding='UTF-8'?>
+<!-- Movie comment -->
+<Movie>
+  <!-- name comment -->
+  <name>Titanic</name>
+  <!-- year comment -->
+  <year>1997</year>
+  <!-- directors comment -->
+  <directors>
+    <!-- director comment -->
+    <director>
+      <!-- director name comment -->
+      <name>Cameron</name>
+      <!-- director firstname comment -->
+      <firstname>James</firstname>
+    </director>
+  </directors>
+  <!-- actors comment -->
+  <actors>
+    <!-- actor 1 comment -->
+    <actor>
+      <!-- actor 1 name comment -->
+      <name>DiCaprio</name>
+      <!-- actor 1 firstname comment -->
+      <firstname>Leonardo</firstname>
+    </actor>
+    <!-- actor 2 comment -->
+    <actor>
+      <!-- actor 2 name comment -->
+      <name>Winslet</name>
+      <!-- actor 2 firstname comment -->
+      <firstname>Kate</firstname>
+    </actor>
+    <!-- actor 3 comment -->
+    <actor>
+      <!-- actor 3 name comment -->
+      <name>Zane</name>
+      <!-- actor 3 firstname comment -->
+      <firstname>Billy</firstname>
+    </actor>
+  </actors>
+  <!-- resume comment -->
+  <resume>
+     Resume of the movie
+  </resume>
+  <!-- critique 1 comment -->
+  <critique>critique1</critique>
+  <!-- critique 2 comment -->
   <critique>critique2</critique>
 </Movie>
 '''
@@ -157,6 +207,31 @@ EXERCISE_XML_2 = '''<?xml version='1.0' encoding='UTF-8'?>
 </Exercise>
 '''
 
+EXERCISE_DTD_3 = '''
+<!ELEMENT Exercise (number, test+)>
+<!ELEMENT test (question, (qcm|mqm), comments?)>
+<!ELEMENT qcm (choice+)>
+<!ELEMENT mqm (choice+)>
+<!ELEMENT comments (comment+)>
+<!ELEMENT number (#PCDATA)>
+<!ELEMENT comment (#PCDATA)>
+<!ELEMENT question (#PCDATA)>
+<!ELEMENT choice (#PCDATA)>
+'''
+
+EXERCISE_DTD_4 = '''
+<!ELEMENT Exercise (number, test+)>
+<!ELEMENT test (question, (qcm|mqm), (positive-comments|negative-comments)*)>
+<!ELEMENT qcm (choice+)>
+<!ELEMENT mqm (choice+)>
+<!ELEMENT positive-comments (comment+)>
+<!ELEMENT negative-comments (comment+)>
+<!ELEMENT number (#PCDATA)>
+<!ELEMENT comment (#PCDATA)>
+<!ELEMENT question (#PCDATA)>
+<!ELEMENT choice (#PCDATA)>
+'''
+
 BOOK_DTD = '''
 <!ELEMENT Book (ISBN, book-title, book-resume, comments)>
 <!ELEMENT ISBN (#PCDATA)>
@@ -181,11 +256,6 @@ BOOK_XML = '''<?xml version='1.0' encoding='UTF-8'?>
 
 class DtdParser(TestCase):
 
-    def test_clear_value(self):
-        self.assertEqual(dtd_parser.clear_value(None), '')
-        self.assertEqual(dtd_parser.clear_value(dtd_parser.UNDEFINED), '')
-        self.assertEqual(dtd_parser.clear_value(" Hello "), ' Hello ')
-
     def test_cleanup(self):
         value = 'Hello\nWorld, my name is John\r'
         expected = 'HelloWorld, my name is John'
@@ -202,7 +272,18 @@ class DtdParser(TestCase):
 
     def test_parse_element_exception(self):
         element = 'Movie (name,year,directors,actors,resume?,critique*'
-        self.assertRaises(Exception, dtd_parser.parse_element, element)
+        try:
+            dtd_parser.parse_element(element)
+            assert 0
+        except Exception, e:
+            self.assertEqual( str(e), 'Unbalanced parenthesis %s' % element)
+
+    def test_parse_element_exception_empty(self):
+        try:
+            dtd_parser.parse_element('')
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'Error parsing element ')
 
     def test_parse_entity(self):
         entity = '%person"name,firstname"'
@@ -212,7 +293,7 @@ class DtdParser(TestCase):
     def test_parse_entity_exception(self):
         entity = '%personname,firstname"'
         self.assertRaises(Exception, dtd_parser.parse_entity, entity)
-    
+
     def test_split_list(self):
         lis = [1, 2, 3, 4, 5, 6]
         expected = [[1, 2, 3], [4, 5, 6]]
@@ -233,21 +314,22 @@ class DtdParser(TestCase):
 
     def test_dtd_to_dict(self):
         expected = {
-            'name': '#PCDATA', 
-            'firstname': '#PCDATA', 
-            'is-publish': 'EMPTY',
-            'resume': '#PCDATA', 
-            'Movie': 'is-publish?,name,year,directors,actors,resume?,critique*', 
-            'actor': 'name,firstname', 
-            'director': 'name,firstname', 
-            'directors': 'director+', 
-            'actors': 'actor+', 
-            'year': '#PCDATA', 
-            'critique': '#PCDATA'
+            'name': {'elts': '#PCDATA', 'attrs': []},
+            'firstname': {'elts': '#PCDATA', 'attrs': []},
+            'is-publish': {'elts': 'EMPTY', 'attrs': []},
+            'resume': {'elts': '#PCDATA', 'attrs': []},
+            'Movie': {
+                'elts': ('is-publish?,name,year,directors,'
+                         'actors,resume?,critique*'), 'attrs': []},
+            'actor': {'elts': 'name,firstname', 'attrs': []},
+            'director': {'elts': 'name,firstname', 'attrs': []},
+            'directors': {'elts': 'director+', 'attrs': []},
+            'actors': {'elts': 'actor+', 'attrs': []},
+            'year': {'elts': '#PCDATA', 'attrs': []},
+            'critique': {'elts': '#PCDATA', 'attrs': []},
             }
-        dtd, dtd_attrs = dtd_parser.dtd_to_dict(MOVIE_DTD)
-        self.assertEqual(dtd, expected)
-        self.assertEqual(dtd_attrs, {})
+        dic = dtd_parser.dtd_to_dict_v2(MOVIE_DTD)
+        self.assertEqual(dic, expected)
 
     def test_dtd_to_dict_with_spaces(self):
 
@@ -264,610 +346,265 @@ class DtdParser(TestCase):
             #PCDATA   )
             >'''
         expected = {
-            'Exercise': 'question,test',
-            'choice': '#PCDATA',
-            'empty': 'EMPTY',
-            'mqm': 'choice+',
-            'qcm': 'choice+',
-            'question': '#PCDATA',
-            'test': 'qcm|mqm'}
-        dtd, dtd_attrs = dtd_parser.dtd_to_dict(dtd_str)
-        self.assertEqual(dtd, expected)
-        self.assertEqual(dtd_attrs, {})
+            'Exercise': {'elts': 'question,test', 'attrs': []},
+            'choice': {'elts': '#PCDATA', 'attrs': []},
+            'empty': {'elts': 'EMPTY', 'attrs': []},
+            'mqm': {'elts': 'choice+', 'attrs': []},
+            'qcm': {'elts': 'choice+', 'attrs': []},
+            'question': {'elts': '#PCDATA', 'attrs': []},
+            'test': {'elts': 'qcm|mqm', 'attrs': []},
+        }
+        dic = dtd_parser.dtd_to_dict_v2(dtd_str)
+        self.assertEqual(dic, expected)
 
     def test_dtd_to_dict_attrs(self):
         expected = {
-            'name': '#PCDATA', 
-            'firstname': '#PCDATA', 
-            'resume': '#PCDATA', 
-            'Movie': 'name,year,directors,actors,resume?,critique*', 
-            'actor': 'name,firstname', 
-            'director': 'name,firstname', 
-            'directors': 'director+', 
-            'actors': 'actor+', 
-            'year': '#PCDATA', 
-            'critique': '#PCDATA'
+            'comment': {'elts': '#PCDATA',
+                        'attrs': [('idcomment', 'ID', '#IMPLIED')]},
+            'question': {'elts': '#PCDATA',
+                         'attrs': [('idquestion', 'ID', '#IMPLIED')]},
+            'mqm': {'elts': 'choice+',
+                    'attrs': [('idmqm', 'ID', '#IMPLIED')]},
+            'number': {'elts': '#PCDATA', 'attrs': []},
+            'comments': {'elts': 'comment+',
+                         'attrs': [('idcomments', 'ID', '#IMPLIED')]},
+            'choice': {'elts': '#PCDATA',
+                       'attrs': [('idchoice', 'ID', '#IMPLIED')]},
+            'Exercise': {'elts': 'number,test*',
+                         'attrs': [('idexercise', 'ID', '#IMPLIED')]},
+            'test': {'elts': 'question,(qcm|mqm)*,comments?',
+                     'attrs': [('idtest', 'ID', '#IMPLIED'),
+                               ('name', 'PCDATA', '#IMPLIED')]},
+            'qcm': {'elts': 'choice+',
+                    'attrs': [('idqcm', 'ID', '#IMPLIED')]}
             }
-
-        expected = {
-            'comment': '#PCDATA',
-            'question': '#PCDATA',
-            'mqm': 'choice+',
-            'number': '#PCDATA',
-            'comments': 'comment+',
-            'choice': '#PCDATA',
-            'Exercise': 'number,test*',
-            'test': 'question,(qcm|mqm)*,comments?',
-            'qcm': 'choice+'
-            }
-        expected_attrs = {
-            'comment': [('idcomment', 'ID', '#IMPLIED')],
-            'question': [('idquestion', 'ID', '#IMPLIED')],
-            'mqm': [('idmqm', 'ID', '#IMPLIED')],
-            'comments': [('idcomments', 'ID', '#IMPLIED')],
-            'choice': [('idchoice', 'ID', '#IMPLIED')],
-            'Exercise': [('idexercise', 'ID', '#IMPLIED')],
-            'test': [('idtest', 'ID', '#IMPLIED'),
-                     ('name', 'PCDATA', '#IMPLIED')],
-            'qcm': [('idqcm', 'ID', '#IMPLIED')]
-            }
-        dtd, dtd_attrs = dtd_parser.dtd_to_dict(EXERCISE_DTD_2)
-        self.assertEqual(dtd, expected)
-        self.assertEqual(dtd_attrs, expected_attrs)
+        dic = dtd_parser.dtd_to_dict_v2(EXERCISE_DTD_2)
+        self.assertEqual(dic, expected)
 
     def test_parse_dtd_to_dict_exception(self):
         dtd = '<!PLOP Movie (name, year, directors, actors, resume?, critique*)>'
-        self.assertRaises(Exception, dtd_parser.dtd_to_dict, dtd)
+        self.assertRaises(Exception, dtd_parser.dtd_to_dict_v2, dtd)
 
-    def test_get_child(self):
-        root = etree.Element('root')
-        sub1 = etree.SubElement(root, 'sub1')
-        sub1.text = 'sub1'
-        sub2 = etree.SubElement(root, 'sub1')
-        sub2.text = 'sub2'
-        result = dtd_parser.get_child('sub1', root).text
-        self.assertTrue(result, sub1.text)
+    def test__parse_elts(self):
+        elts = '#PCDATA'
+        lis = dtd_parser._parse_elts(elts)
+        expected = [('#PCDATA', True, False, [])]
+        self.assertEqual(lis, expected)
 
-    def test_get_children(self):
-        root = etree.Element('root')
-        sub1 = etree.SubElement(root, 'sub1')
-        sub1.text = 'sub1'
-        sub2 = etree.SubElement(root, 'sub1')
-        sub2.text = 'sub2'
-        results = [e.text for e in dtd_parser.get_children('sub1', root)]
-        self.assertTrue(results, [sub1.text, sub2.text])
+        elts = 'tag?'
+        lis = dtd_parser._parse_elts(elts)
+        expected = [('tag', False, False, [])]
+        self.assertEqual(lis, expected)
 
+        elts = 'tag*'
+        lis = dtd_parser._parse_elts(elts)
+        expected = [('tag', False, True, [])]
+        self.assertEqual(lis, expected)
 
-class test_SubElement(TestCase):
+        elts = 'tag+'
+        lis = dtd_parser._parse_elts(elts)
+        expected = [('tag', True, True, [])]
+        self.assertEqual(lis, expected)
 
-    def test_init(self):
-        text = 'actor'
-        elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
-        self.assertTrue(elt.required)
-        self.assertFalse(elt.islist)
+        elts = '(tag1|tag2)+'
+        lis = dtd_parser._parse_elts(elts)
+        expected = [('tag1_tag2', True, True, [
+            ('tag1', True, False, []),
+            ('tag2', True, False, [])
+        ])]
+        self.assertEqual(lis, expected)
 
-    def test_init_no_required(self):
-        text = 'actor?'
-        elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
-        self.assertFalse(elt.required)
-        self.assertFalse(elt.islist)
+        elts = '(#PCDATA|tag1|tag2)*'
+        lis = dtd_parser._parse_elts(elts)
+        expected = [
+            ('#PCDATA_tag1_tag2', False, True, [
+                ('#PCDATA', True, False, []),
+                ('tag1', True, False, []),
+                ('tag2', True, False, [])]
+            )]
+        self.assertEqual(lis, expected)
 
-    def test_init_list(self):
-        text = 'actor*'
-        elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
-        self.assertFalse(elt.required)
-        self.assertTrue(elt.islist)
+    def test__create_class_dict(self):
+        dtd_dict = {
+            'tag': {'elts': '#PCDATA', 'attrs': [('idtag', 'ID', '#IMPLIED')]},
+        }
+        dic = dtd_parser._create_class_dict(dtd_dict)
+        self.assertEqual(len(dic), 1)
+        tag = dic['tag']
+        self.assertTrue(issubclass(tag, TextElement))
+        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._attribute_names, ['idtag'])
+        self.assertEqual(tag._sub_elements, [])
 
-    def test_init_list_required(self):
-        text = 'actor+'
-        elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, 'actor')
-        self.assertTrue(elt.required)
-        self.assertTrue(elt.islist)
+        dtd_dict = {
+            'tag': {'elts': '(#PCDATA|tag1|tag2)*', 'attrs': []},
+        }
+        dic = dtd_parser._create_class_dict(dtd_dict)
+        self.assertEqual(len(dic), 1)
+        tag = dic['tag']
+        self.assertTrue(issubclass(tag, TextElement))
+        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._attribute_names, [])
+        self.assertEqual(tag._sub_elements, [])
+        # dtd_dict has changed because of the mixed content
+        self.assertEqual(
+            dtd_dict, {'tag': {'elts': 'tag1?,tag2?', 'attrs': []}})
 
-    def test_init_conditional(self):
-        text = '(qcm|mqm)*'
-        elt = dtd_parser.SubElement(text)
-        self.assertEqual(elt.name, '(qcm|mqm)')
-        self.assertFalse(elt.required)
-        self.assertTrue(elt.islist)
-        qcm, mqm = elt.conditional_names
-        self.assertEqual(qcm.name, 'qcm')
-        self.assertTrue(qcm.required)
-        self.assertTrue(qcm.islist)
-        self.assertEqual(mqm.name, 'mqm')
-        self.assertTrue(mqm.required)
-        self.assertTrue(mqm.islist)
+        dtd_dict = {
+            'tag': {'elts': '(tag1)*', 'attrs': []},
+        }
+        dic = dtd_parser._create_class_dict(dtd_dict)
+        self.assertEqual(len(dic), 1)
+        tag = dic['tag']
+        self.assertTrue(issubclass(tag, Element))
+        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._attribute_names, [])
+        self.assertEqual(tag._sub_elements, [])
 
-    def test_repr(self):
-        text = 'actor*'
-        elt = dtd_parser.SubElement(text)
-        self.assertTrue(repr(elt))
+        dtd_dict = {
+            'tag': {'elts': '(tag1|tag2)', 'attrs': []},
+        }
+        dic = dtd_parser._create_class_dict(dtd_dict)
+        self.assertEqual(len(dic), 1)
+        tag = dic['tag']
+        self.assertTrue(issubclass(tag, Element))
+        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._attribute_names, [])
+        self.assertEqual(tag._sub_elements, [])
 
+    def test__create_new_class(self):
+        dtd_dict = {
+            'tag': {'elts': 'tag1', 'attrs': [('idtag', 'ID', '#IMPLIED')]},
+        }
+        class_dic = dtd_parser._create_class_dict(dtd_dict)
+        cls = dtd_parser._create_new_class(
+            class_dic, 'tag', required=False, islist=False, conditionals=[])
+        self.assertTrue(issubclass(cls, Element))
+        self.assertEqual(cls.__name__, 'tag')
+        self.assertEqual(cls._required, False)
 
-class TestGenerator1(TestCase):
+        cls = dtd_parser._create_new_class(
+            class_dic, 'tag', required=True, islist=False, conditionals=[])
+        self.assertTrue(issubclass(cls, Element))
+        self.assertEqual(cls.__name__, 'tag')
+        self.assertEqual(cls._required, True)
 
-    def test_init(self):
-        self.assertRaises(ValueError, dtd_parser.Generator)
-        self.assertTrue(dtd_parser.Generator(dtd_str=MOVIE_DTD))
-        dic, dtd_attrs = dtd_parser.dtd_to_dict(MOVIE_DTD)
-        old_open = __builtin__.open
+        cls = dtd_parser._create_new_class(
+            class_dic, 'tag', required=True, islist=True, conditionals=[])
+        self.assertTrue(issubclass(cls, ListElement))
+        self.assertEqual(cls.__name__, 'tagList')
+        self.assertEqual(cls._required, True)
+        self.assertEqual(len(cls._elts), 1)
+        self.assertEqual(cls._elts[0]._parent, cls)
+        self.assertEqual(cls._elts[0]._required, True)
+
+        dtd_dict = {
+            'tag': {'elts': '(tag1|tag2)', 'attrs': []},
+            'tag1': {'elts': 'sub1', 'attrs': []},
+            'tag2': {'elts': 'sub2', 'attrs': []},
+        }
+        conditionals = [
+            ('tag1', True, False, []),
+            ('tag2', True, False, []),
+        ]
+        class_dic = dtd_parser._create_class_dict(dtd_dict)
         try:
-            __builtin__.open = fake_open
-            self.assertTrue(dtd_parser.Generator(dtd_url=MOVIE_DTD))
-        finally:
-            __builtin__.open = old_open
-
-    def test_dtd_classes(self):
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        self.assertEqual(len(gen.dtd_classes), 11)
-        for key in ['is-publish', 'name', 'firstname', 'year', 'resume', 'critique']:
-            self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.TextElement))
-        cls = gen.dtd_classes['Movie']
-        self.assertEqual(cls.__name__, 'Movie')
-        self.assertEqual(len(cls._elements), 7)
-        for (key, expected) in [('directors', 1), 
-                                ('actors', 1), 
-                                ('director', 2),
-                                ('actor', 2)]:
-            cls = gen.dtd_classes[key]
-            self.assertEqual(len(cls._elements), expected)
-
-    def test_create_obj(self):
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        actor = gen.create_obj('actor')
-        self.assertTrue(actor)
-
-        try:
-            gen.create_obj('unexisting')
+            cls = dtd_parser._create_new_class(
+            class_dic, 'tag1_tag2', required=True, islist=False,
+            conditionals=[])
             assert 0
         except Exception, e:
-            self.assertEqual(str(e), "Tagname unexisting doesn't exist")
+            self.assertEqual(
+                str(e),
+                'You should provide a base_cls or conditionals for tag1_tag2')
 
-    def test_get_key_from_xml(self):
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        text = 'actor+'
-        elt = dtd_parser.SubElement(text)
-        key = gen.get_key_from_xml(elt, None)
-        self.assertEqual(key, 'actor')
+        cls = dtd_parser._create_new_class(
+            class_dic, 'tag1_tag2', required=True, islist=False,
+            conditionals=conditionals)
+        self.assertTrue(issubclass(cls, ChoiceElement))
+        self.assertEqual(cls.__name__, 'tag1_tag2Choice')
+        self.assertEqual(cls._required, True)
+        self.assertEqual(len(cls._elts), 2)
+        elt1 = cls._elts[0]
+        elt2 = cls._elts[1]
+        self.assertEqual(elt1._parent, cls)
+        self.assertEqual(elt1._required, True)
+        self.assertEqual(elt2._parent, cls)
+        self.assertEqual(elt2._required, True)
 
-        text = '(qcm|mqm)*'
-        elt = dtd_parser.SubElement(text)
-        root = etree.Element('root')
-        etree.SubElement(root, 'qcm')
-        key = gen.get_key_from_xml(elt, root)
-        self.assertEqual(key, 'qcm')
+        cls = dtd_parser._create_new_class(
+            class_dic, 'tag1_tag2', required=True, islist=True,
+            conditionals=conditionals)
+        self.assertTrue(issubclass(cls, ListElement))
+        self.assertEqual(cls.__name__, 'tag1_tag2List')
+        self.assertEqual(cls._required, True)
+        self.assertEqual(len(cls._elts), 2)
+        elt1 = cls._elts[0]
+        elt2 = cls._elts[1]
+        self.assertEqual(elt1._parent, cls)
+        self.assertEqual(elt1._required, True)
+        self.assertEqual(elt2._parent, cls)
+        self.assertEqual(elt2._required, True)
 
-        root = etree.Element('root')
-        key = gen.get_key_from_xml(elt, root)
-        self.assertEqual(key, None)
-
-    def test_set_attrs_to_obj(self):
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        text = 'actor+'
-        elt = dtd_parser.SubElement(text)
-        root = etree.Element('root')
-        root.attrib['id'] = '1'
-        gen.set_attrs_to_obj(elt, root)
-        self.assertEqual(elt.attrs, {})
-
-        elt._attrs = [('id', 'ID', '#IMPLIED'),
-                      ('name', 'ID', '#IMPLIED'),
-                      ]
-        gen.set_attrs_to_obj(elt, root)
-        self.assertEqual(elt.attrs, root.attrib)
-
-    def test_generate_obj(self):
-        root = etree.fromstring(MOVIE_XML_TITANIC)
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        obj = gen.generate_obj(root)
-        self.assertEqual(obj.name.value, 'Titanic')
-        self.assertEqual(obj.resume.value, '\n     Resume of the movie\n  ')
-        self.assertEqual(obj.year.value, '1997')
-        self.assertEqual([c.value for c in obj.critique], ['critique1', 'critique2'])
-        self.assertEqual(len(obj.actors.actor), 3)
-        self.assertEqual(len(obj.directors.director), 1)
-        self.assertEqual(obj.actors.actor[0].name.value, 'DiCaprio')
-        self.assertEqual(obj.actors.actor[0].firstname.value, 'Leonardo')
-        self.assertEqual(obj.actors.actor[1].name.value, 'Winslet')
-        self.assertEqual(obj.actors.actor[1].firstname.value, 'Kate')
-        self.assertEqual(obj.actors.actor[2].name.value, 'Zane')
-        self.assertEqual(obj.actors.actor[2].firstname.value, 'Billy')
-        self.assertEqual(obj.directors.director[0].name.value, 'Cameron')
-        self.assertEqual(obj.directors.director[0].firstname.value, 'James')
-
-    def test_get_key_from_obj(self):
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        text = 'actor+'
-        elt = dtd_parser.SubElement(text)
-        key = gen.get_key_from_obj(elt, None)
-        self.assertEqual(key, 'actor')
-
-        text = '(qcm|mqm)*'
-        elt = dtd_parser.SubElement(text)
-        class FakeObject(object): pass
-        o = FakeObject()
-        key = gen.get_key_from_obj(elt, o)
-        self.assertEqual(key, None)
-        o.qcm = 'qcm'
-        key = gen.get_key_from_obj(elt, o)
-        self.assertEqual(key, 'qcm')
-
-    def test_set_attrs_to_xml(self):
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        text = 'actor+'
-        elt = dtd_parser.SubElement(text)
-        root = etree.Element('root')
-        gen.set_attrs_to_xml(elt, root)
-        self.assertEqual(root.attrib, {})
-
-        elt.attrs = {'id': '1'}
-        root = etree.Element('root')
-        gen.set_attrs_to_xml(elt, root)
-        self.assertEqual(root.attrib, elt.attrs)
-
-    def test_obj_to_xml(self):
-        root = etree.fromstring(MOVIE_XML_TITANIC)
-        gen = dtd_parser.Generator(dtd_str=MOVIE_DTD)
-        obj = gen.generate_obj(root)
-        xml = gen.obj_to_xml(obj)
-        s = etree.tostring(xml, pretty_print=True, xml_declaration=True)
-        docinfo = root.getroottree().docinfo
-        s = etree.tostring(
-                xml, 
-                pretty_print=True,
-                xml_declaration=True,
-                encoding=docinfo.encoding,
-                doctype=docinfo.doctype)
-        self.assertEqual(MOVIE_XML_TITANIC, s)
-
-
-class TestGenerator2(TestCase):
-
-    def test_dtd_classes(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD)
-        self.assertEqual(len(gen.dtd_classes), 6)
-        for key in ['question', 'choice']:
-            self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.TextElement))
-        for (key, nb_elements) in [('Exercise', 2),
-                                ('test', 1), 
-                                ('qcm', 1), 
-                                ('mqm', 1)]:
-            cls = gen.dtd_classes[key]
-            self.assertEqual(len(cls._elements), nb_elements)
-        cls = gen.dtd_classes['test']
-        self.assertEqual(len(cls._elements[0].conditional_names), 2)
-
-    def test_generate_obj(self):
-        root = etree.fromstring(EXERCISE_XML)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD)
-        obj = gen.generate_obj(root)
-        self.assertEqual(obj.question.value, 'What is your favorite color?')
-        self.assertTrue(isinstance(obj.test, gen.dtd_classes['test']))
-        self.assertTrue(isinstance(obj.test.mqm, gen.dtd_classes['mqm']))
-        self.assertEqual(len(obj.test.mqm.choice), 3)
-        self.assertEqual(obj.test.mqm.choice[0].value, 'blue')
-        self.assertEqual(obj.test.mqm.choice[1].value, 'red')
-        self.assertEqual(obj.test.mqm.choice[2].value, 'black')
-
-    def test_obj_to_xml(self):
-        root = etree.fromstring(EXERCISE_XML)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD)
-        obj = gen.generate_obj(root)
-        xml = gen.obj_to_xml(obj)
-        s = etree.tostring(xml, pretty_print=True, xml_declaration=True)
-        docinfo = root.getroottree().docinfo
-        s = etree.tostring(
-                xml, 
-                pretty_print=True,
-                xml_declaration=True,
-                encoding=docinfo.encoding,
-                doctype=docinfo.doctype)
-        self.assertEqual(EXERCISE_XML, s)
-
-
-class TestGenerator3(TestCase):
-
-    def test_dtd_classes(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        self.assertEqual(len(gen.dtd_classes), 9)
-        for key in ['question', 'choice', 'comment', 'number']:
-            self.assertTrue(issubclass(gen.dtd_classes[key],
-                dtd_parser.TextElement))
-        for (key, nb_elements) in [('Exercise', 2),
-                                   ('test', 3), 
-                                   ('qcm', 1), 
-                                   ('mqm', 1),
-                                   ('comments', 1)]:
-            cls = gen.dtd_classes[key]
-            self.assertEqual(len(cls._elements), nb_elements)
-        cls = gen.dtd_classes['test']
-        self.assertEqual(len(cls._elements[1].conditional_names), 2)
-
-    def test_dtd_attrs(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        expected = {
-            'comment': [('idcomment', 'ID', '#IMPLIED')], 
-            'question': [('idquestion', 'ID', '#IMPLIED')], 
-            'mqm': [('idmqm', 'ID', '#IMPLIED')],
-            'comments': [('idcomments', 'ID', '#IMPLIED')],
-            'choice': [('idchoice', 'ID', '#IMPLIED')],
-            'Exercise': [('idexercise', 'ID', '#IMPLIED')],
-            'test': [('idtest', 'ID', '#IMPLIED'),
-                     ('name', 'PCDATA', '#IMPLIED')],
-            'qcm': [('idqcm', 'ID', '#IMPLIED')]}
-        self.assertEqual(expected, gen.dtd_attrs)
-
-    def test_generate_obj(self):
-        root = etree.fromstring(EXERCISE_XML_2)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        obj = gen.generate_obj(root)
-        self.assertEqual(obj.attrs, {'idexercise': '1'})
-        self.assertEqual(obj.number.value, '1')
-        self.assertEqual(len(obj.test), 2)
-
-        test1, test2 = obj.test
-        self.assertEqual(test1.attrs, {'idtest': '1', 'name': 'color'})
-        self.assertEqual(test1.question.attrs, {'idquestion': '1'})
-        self.assertEqual(test1.question.value, 'What is your favorite color?')
-        self.assertTrue(isinstance(test1, gen.dtd_classes['test']))
-        self.assertEqual(len(test1.mqm), 2)
-        self.assertEqual(getattr(test1, 'qcm', None), None)
-        mqm1, mqm2 = test1.mqm
-        self.assertTrue(isinstance(mqm1, gen.dtd_classes['mqm']))
-        self.assertTrue(isinstance(mqm2, gen.dtd_classes['mqm']))
-        self.assertEqual(mqm1.attrs, {'idmqm': '1'})
-        self.assertEqual(len(mqm1.choice), 3)
-        self.assertEqual(mqm1.choice[0].attrs, {'idchoice': '1'})
-        self.assertEqual(mqm1.choice[0].value, 'blue')
-        self.assertEqual(mqm1.choice[1].attrs, {'idchoice': '2'})
-        self.assertEqual(mqm1.choice[1].value, 'red')
-        self.assertEqual(mqm1.choice[2].attrs, {'idchoice': '3'})
-        self.assertEqual(mqm1.choice[2].value, 'black')
-        self.assertEqual(mqm2.attrs, {'idmqm': '2'})
-        self.assertEqual(len(mqm2.choice), 3)
-        self.assertEqual(mqm2.choice[0].attrs, {'idchoice': '4'})
-        self.assertEqual(mqm2.choice[0].value, 'magenta')
-        self.assertEqual(mqm2.choice[1].attrs, {'idchoice': '5'})
-        self.assertEqual(mqm2.choice[1].value, 'orange')
-        self.assertEqual(mqm2.choice[2].attrs, {'idchoice': '6'})
-        self.assertEqual(mqm2.choice[2].value, 'yellow')
-        self.assertEqual(test1.comments, None)
-
-        self.assertEqual(test2.attrs, {'idtest': '2'})
-        self.assertEqual(test2.question.attrs, {'idquestion': '2'})
-        self.assertEqual(test2.question.value, 'Have you got a pet?')
-        self.assertTrue(isinstance(test2, gen.dtd_classes['test']))
-        self.assertEqual(len(test2.qcm), 2)
-        self.assertEqual(getattr(test2, 'mqm', None), None)
-        qcm1, qcm2 = test2.qcm
-        self.assertTrue(isinstance(qcm1, gen.dtd_classes['qcm']))
-        self.assertTrue(isinstance(qcm2, gen.dtd_classes['qcm']))
-        self.assertEqual(len(qcm1.choice), 2)
-        self.assertEqual(qcm1.choice[0].attrs, {'idchoice': '7'})
-        self.assertEqual(qcm1.choice[0].value, 'yes')
-        self.assertEqual(qcm1.choice[1].attrs, {'idchoice': '8'})
-        self.assertEqual(qcm1.choice[1].value, 'no')
-        self.assertEqual(len(qcm2.choice), 2)
-        self.assertEqual(qcm2.choice[0].attrs, {'idchoice': '9'})
-        self.assertEqual(qcm2.choice[0].value, 'yes')
-        self.assertEqual(qcm2.choice[1].attrs, {'idchoice': '10'})
-        self.assertEqual(qcm2.choice[1].value, 'no')
-
-        self.assertTrue(isinstance(test2.comments, gen.dtd_classes['comments']))
-        self.assertEqual(len(test2.comments.comment), 2)
-        self.assertEqual(test2.comments.attrs, {'idcomments': '1'})
-        comment1, comment2 = test2.comments.comment
-        self.assertEqual(comment1.attrs, {'idcomment': '1'})
-        self.assertEqual(comment1.value, 'My comment 1')
-        self.assertEqual(comment2.attrs, {'idcomment': '2'})
-        self.assertEqual(comment2.value, 'My comment 2')
-
-    def test_obj_to_xml(self):
-        root = etree.fromstring(EXERCISE_XML_2)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        obj = gen.generate_obj(root)
-        xml = gen.obj_to_xml(obj)
-        s = etree.tostring(xml, pretty_print=True, xml_declaration=True)
-        docinfo = root.getroottree().docinfo
-        s = etree.tostring(
-                xml,
-                pretty_print=True,
-                xml_declaration=True,
-                encoding=docinfo.encoding,
-                doctype=docinfo.doctype)
-        self.assertEqual(EXERCISE_XML_2, s)
-
-    def test_obj_to_xml_non_existing_list(self):
-        root = etree.fromstring(EXERCISE_XML_2)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        obj = gen.generate_obj(root)
-        del obj.test[0].mqm[0].choice
-        xml = gen.obj_to_xml(obj)
-        s = etree.tostring(xml, pretty_print=True)
-        expected = '''<Exercise idexercise="1">
-  <number>1</number>
-  <test idtest="1" name="color">
-    <question idquestion="1">What is your favorite color?</question>
-    <mqm idmqm="2">
-      <choice idchoice="4">magenta</choice>
-      <choice idchoice="5">orange</choice>
-      <choice idchoice="6">yellow</choice>
-    </mqm>
-  </test>
-  <test idtest="2">
-    <question idquestion="2">Have you got a pet?</question>
-    <qcm idqcm="1">
-      <choice idchoice="7">yes</choice>
-      <choice idchoice="8">no</choice>
-    </qcm>
-    <qcm idqcm="2">
-      <choice idchoice="9">yes</choice>
-      <choice idchoice="10">no</choice>
-    </qcm>
-    <comments idcomments="1">
-      <comment idcomment="1">My comment 1</comment>
-      <comment idcomment="2">My comment 2</comment>
-    </comments>
-  </test>
-</Exercise>
-'''
-        self.assertEqual(s, expected)
-
-    def test_generate_form_child_conditional(self):
-        text = '(qcm|mqm)*'
-        elt = dtd_parser.SubElement(text)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        field = gen.generate_form_child(elt, parent=None)
-        self.assertTrue(isinstance(field, forms.ConditionalContainer))
-        self.assertEqual(len(field.possible_children), 2)
-        for child in field.possible_children:
-            self.assertTrue(isinstance(child, forms.GrowingContainer))
-
-    def test_generate_form_child_no_list_text(self):
-        text = 'comment'
-        elt = dtd_parser.SubElement(text)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        field = gen.generate_form_child(elt, parent=None)
-        self.assertTrue(isinstance(field, forms.TextAreaField))
-
-    def test_generate_form_child_no_list_no_text(self):
-        text = 'comments'
-        elt = dtd_parser.SubElement(text)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        field = gen.generate_form_child(elt, parent=None)
-        self.assertTrue(isinstance(field, forms.Fieldset))
-        self.assertEqual(field.key, 'comments')
-        self.assertEqual(field.name, 'comments')
-        self.assertEqual(field.legend, 'comments')
-        self.assertEqual(len(field.children), 1)
-
-    def test_generate_form_child_list_text(self):
-        text = 'comment*'
-        elt = dtd_parser.SubElement(text)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        field = gen.generate_form_child(elt, parent=None)
-        self.assertTrue(isinstance(field, forms.GrowingContainer))
-        self.assertTrue(isinstance(field.child, forms.TextAreaField))
-        self.assertEqual(field.key, 'comment')
-        self.assertEqual(field.name, None)
-        self.assertEqual(field.child.key, 'comment')
-        self.assertEqual(field.child.name, 'comment')
-        self.assertEqual(field.child.parent, field)
-
-    def test_generate_form_child_list_no_text(self):
-        text = 'test*'
-        elt = dtd_parser.SubElement(text)
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        field = gen.generate_form_child(elt, parent=None)
-        self.assertTrue(isinstance(field, forms.GrowingContainer))
-        self.assertTrue(isinstance(field.child, forms.Fieldset))
-        self.assertEqual(field.key, 'test')
-        self.assertEqual(field.name, None)
-        self.assertEqual(field.child.key, 'test')
-        self.assertEqual(field.child.name, 'test')
-        self.assertEqual(field.child.legend, 'test')
-        self.assertEqual(field.child.parent, field)
-        self.assertEqual(len(field.child.children), 3)
-
-    def test_generate_form_children_text(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        element = dtd_parser.SubElement('text')
-        field = gen.generate_form_children(gen.dtd_classes['choice'],
-                                           parent=None,
-                                           element=element)
-
-        self.assertTrue(isinstance(field, forms.TextAreaField))
-        self.assertEqual(field.key, 'choice')
-        self.assertEqual(field.name, 'choice')
-
-    def test_generate_form_children_no_text(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        field = gen.generate_form_children(gen.dtd_classes['qcm'],
-                                           parent=None,
-                                           element=None)
-
-        self.assertEqual(len(field), 1)
-        self.assertTrue(isinstance(field[0], forms.GrowingContainer))
-        self.assertEqual(field[0].key, 'choice')
-        self.assertEqual(field[0].name, None)
-
-    def test_generate_form(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        form = gen.generate_form('Exercise')
-        self.assertTrue(isinstance(form, forms.FormField))
-        self.assertEqual(form.legend, 'Exercise')
-        self.assertEqual(len(form.children), 2)
-
-    def test_dict_to_obj(self):
-        gen = dtd_parser.Generator(dtd_str=EXERCISE_DTD_2)
-        dic = {}
-        obj = gen.dict_to_obj('Exercise', dic)
-        self.assertEqual(obj, None)
-
-        dic = {'empty': 'empty'}
-        obj = gen.dict_to_obj('choice', dic)
-        self.assertTrue(isinstance(obj, gen.dtd_classes['choice']))
-        self.assertEqual(obj.value, None)
-
-        dic = {
-            'value': 'choice value',
-            'attrs': {'id': '1'}
+    def test__create_classes(self):
+        dtd_dict = {
+            'tag': {'elts': '#PCDATA', 'attrs': []},
         }
-        obj = gen.dict_to_obj('choice', dic)
-        self.assertTrue(isinstance(obj, gen.dtd_classes['choice']))
-        self.assertEqual(obj.value, 'choice value')
-        # Bad attribute name
-        self.assertEqual(obj.attrs, {})
+        class_dict = dtd_parser._create_classes(dtd_dict)
+        self.assertEqual(len(class_dict), 1)
+        tag = class_dict['tag']
+        self.assertEqual(tag.__name__, 'tag')
+        self.assertEqual(tag._required, False)
+        self.assertEqual(tag._sub_elements, [])
 
-        dic = {'choice': [{'value': 'choice1',
-                           'attrs': {'idchoice': '1'}},
-                          {'value': 'choice2',
-                           'attrs': {'idchoice': '2'}},
-                         ],
-               'attrs': {'idmqm': '1'}
-              }
-        obj = gen.dict_to_obj('mqm', dic)
-        self.assertTrue(isinstance(obj, gen.dtd_classes['mqm']))
-        self.assertEqual(obj.attrs, {'idmqm': '1'})
-        self.assertEqual(len(obj.choice), 2)
-        self.assertEqual(obj.choice[0].value, 'choice1')
-        self.assertEqual(obj.choice[0].attrs, {'idchoice': '1'})
-        self.assertEqual(obj.choice[1].value, 'choice2')
-        self.assertEqual(obj.choice[1].attrs, {'idchoice': '2'})
-
-        dic = {'question': {'value': 'test question',
-                            'attrs': {'idquestion': '1'}},
-               'attrs': {'idtest': '1'}
+        dtd_dict = {
+            'tag': {'elts': 'subtag', 'attrs': []},
+            'subtag': {'elts': '#PCDATA', 'attrs': []},
         }
-        obj = gen.dict_to_obj('test', dic)
-        self.assertTrue(isinstance(obj, gen.dtd_classes['test']))
-        self.assertEqual(obj.attrs, {'idtest': '1'})
-        self.assertEqual(obj.question.value, 'test question')
-        self.assertEqual(obj.question.attrs, {'idquestion': '1'})
+        class_dict = dtd_parser._create_classes(dtd_dict)
+        self.assertEqual(len(class_dict), 2)
+        tag = class_dict['tag']
+        subtag = class_dict['subtag']
+        self.assertEqual(len(tag._sub_elements), 1)
+        self.assertTrue(issubclass(tag._sub_elements[0], subtag))
+        subtag = tag._sub_elements[0]
+        self.assertEqual(tag.__name__, 'tag')
+        self.assertEqual(tag._required, False)
+        self.assertEqual(subtag.__name__, 'subtag')
+        self.assertEqual(subtag._required, True)
+        self.assertEqual(subtag._sub_elements, [])
+        self.assertEqual(subtag._parent, tag)
 
-        dic = {'choice': []}
-        obj = gen.dict_to_obj('mqm', dic)
-        self.assertTrue(isinstance(obj, gen.dtd_classes['mqm']))
-        self.assertEqual(hasattr(obj, 'choice'), False)
+    def test_parse(self):
+        try:
+            dtd_parser.parse()
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e), 'You didn\'t provide dtd_str nor dtd_url')
 
-        dic = {'question': None}
-        obj = gen.dict_to_obj('test', dic)
-        self.assertEqual(obj.question, None)
-        self.assertEqual(obj.attrs, {})
+        try:
+            dtd_parser.parse(dtd_str=True, dtd_url=True)
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e),
+                             'You should provide either dtd_str or dtd_url')
 
-        dic = {'value': ''}
-        obj = gen.dict_to_obj('question', dic)
-        self.assertEqual(obj.value, dtd_parser.UNDEFINED)
-        self.assertEqual(obj.attrs, {})
-
-        dic = {'value': None}
-        obj = gen.dict_to_obj('question', dic)
-        self.assertEqual(obj.value, None)
-        self.assertEqual(obj.attrs, {})
+        dtd_str = '''
+            <!ELEMENT Exercise (question)>
+            <!ELEMENT question (#PCDATA)>
+        '''
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        self.assertEqual(len(dic), 2)
+        self.assertTrue(issubclass(dic['Exercise'], Element))
+        self.assertTrue(issubclass(dic['question'], TextElement))
+        old_get_dtd_content = utils.get_dtd_content
+        try:
+            # We pass the content instead of the url
+            utils.get_dtd_content = lambda content: content
+            dic = dtd_parser.parse(dtd_url=dtd_str)
+            self.assertEqual(len(dic), 2)
+            self.assertTrue(issubclass(dic['Exercise'], Element))
+            self.assertTrue(issubclass(dic['question'], TextElement))
+        finally:
+            utils.get_dtd_content = old_get_dtd_content
 

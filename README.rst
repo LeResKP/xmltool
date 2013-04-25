@@ -1,7 +1,7 @@
 xml-tools
 =========
 
-xmltools is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
+xmltool is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
 The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
 `Read the documentation <http://xml-tools.lereskp.fr>`_
 
@@ -9,10 +9,15 @@ The main goal of this package was to create a HTML form to edit and create a XML
 Changelog
 =========
 
+O.3:
+    * Rewrite the core of the code
+    * Better performance to generate the HTML
+    * Fix bug
+
 O.2:
     * Update the project architecture
     * Be able to access to the element properties like a dict
-    * Add functions to easily update or create XML file.
+    * Add functions to easily update or create XML file
     * Fix missing README file in the package
 
 O.1:

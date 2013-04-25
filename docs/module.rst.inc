@@ -1,37 +1,27 @@
 Source
 ======
 
-.. testsetup:: *
 
-    from xmltools.dtd_parser import clear_value
-
-
-xmltools.factory
+xmltool.factory
 -------------------
 
-.. automodule:: xmltools.factory
+.. automodule:: xmltool.factory
 
 
-xmltools.elements
+xmltool.elements
 -------------------
 
-.. automodule:: xmltools.elements
+.. automodule:: xmltool.elements
 
 
-xmltools.dtd_parser
+xmltool.dtd_parser
 -------------------
 
-.. automodule:: xmltools.dtd_parser
+.. automodule:: xmltool.dtd_parser
 
 
-xmltools.forms
---------------
-
-.. automodule:: xmltools.forms
-
-
-xmltools.utils
+xmltool.utils
 -------------------
 
-.. automodule:: xmltools.utils
+.. automodule:: xmltool.utils
 

@@ -8,11 +8,11 @@ try:
 except ImportError:
     pass
 
-version = '0.2'
+version = '0.3'
 
-setup(name='xml_tools',
+setup(name='xmltool',
       version=version,
-      description="Tools to manipulate XML files",
+      description="Tool to manipulate XML files",
       long_description=open('README.rst').read().split('Build Status')[0],
       classifiers=[
         'Topic :: Software Development :: Libraries :: Python Modules',
@@ -30,12 +30,12 @@ setup(name='xml_tools',
       author_email='a.matouillot@gmail.com',
       url='http://xml-tools.lereskp.fr/',
       license='MIT',
-      packages=find_packages(exclude=['ez_setup', 'tests']),
+      packages=find_packages(exclude=['ez_setup', 'tests', 'tests.*']),
       include_package_data=True,
       zip_safe=False,
       install_requires=[
           'lxml',
-          'tw2.core',
+          'WebOb',
       ],
       test_suite = 'nose.collector',
       tests_require = [
