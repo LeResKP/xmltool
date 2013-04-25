@@ -6,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>xmltool’s documentation! &mdash; xmltool 0.2 documentation</title>
+    <title>xmltool’s documentation! &mdash; xmltool 0.3 documentation</title>
     
-    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2',
+        VERSION:     '0.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="xmltool 0.2 documentation" href="#" /> 
+    <link rel="top" title="xmltool 0.3 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -36,9 +36,65 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltool 0.2 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltool 0.3 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">xmltool&#8217;s documentation!</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#changelog">Changelog</a></li>
+<li><a class="reference internal" href="#basic">Basic</a><ul>
+<li><a class="reference internal" href="#creating-a-xml">Creating a XML</a><ul>
+<li><a class="reference internal" href="#general-case">General case</a></li>
+<li><a class="reference internal" href="#case-with-conditional-elements">Case with conditional elements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#accessing-to-the-property">Accessing to the property</a></li>
+<li><a class="reference internal" href="#loading-a-xml-file">Loading a XML file</a></li>
+<li><a class="reference internal" href="#writing-a-xml-file">Writing a XML file</a></li>
+<li><a class="reference internal" href="#updating-a-xml-file-after-a-dtd-change">Updating a XML file after a dtd change</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#form">Form</a><ul>
+<li><a class="reference internal" href="#generating-a-html-form">Generating a HTML form</a></li>
+<li><a class="reference internal" href="#submitting-a-html-form">Submitting a HTML form</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#source">Source</a><ul>
+<li><a class="reference internal" href="#module-xmltool.factory">xmltool.factory</a></li>
+<li><a class="reference internal" href="#module-xmltool.elements">xmltool.elements</a></li>
+<li><a class="reference internal" href="#module-xmltool.dtd_parser">xmltool.dtd_parser</a></li>
+<li><a class="reference internal" href="#module-xmltool.utils">xmltool.utils</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -55,7 +111,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>xmltool is a python package to manipulate XML files. It&#8217;s very useful to update some XML files with the python syntax without using the DOM.
 The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
-You can find the <a class="reference external" href="https://github.com/LeResKP/xml-forms">source on github</a>.</p>
+You can find the <a class="reference external" href="https://github.com/LeResKP/xmltool">source on github</a>.</p>
 </div>
 <div class="section" id="changelog">
 <h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
@@ -90,20 +146,20 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 &lt;!ELEMENT character (#PCDATA)&gt;
 &lt;!ATTLIST character idcharacter ID #IMPLIED&gt;</pre>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">movie</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">create_obj</span><span class="p">(</span><span class="s">&#39;movie&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="s">&#39;Movie title&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">title</span><span class="o">.</span><span class="n">value</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xmltool</span> <span class="kn">import</span> <span class="n">dtd_parser</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">movie</span> <span class="o">=</span> <span class="n">dic</span><span class="p">[</span><span class="s">&#39;movie&#39;</span><span class="p">]()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="s">&#39;Movie title&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">title</span><span class="o">.</span><span class="n">_value</span>
 <span class="go">Movie title</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">realisator</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;realisator&#39;</span><span class="p">,</span> <span class="s">&#39;realisator name&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">characters</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;characters&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">character_list</span> <span class="o">=</span> <span class="n">characters</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;character&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">character_list</span>
-<span class="go">[]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">character_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;character 1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c2</span> <span class="o">=</span> <span class="n">character_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;character 2&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">movie</span><span class="o">.</span><span class="n">to_xml</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">realisator</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;realisator&#39;</span><span class="p">,</span> <span class="s">&#39;realisator name&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">characters</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;characters&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">characters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;character&#39;</span><span class="p">,</span> <span class="s">&#39;character 1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c2</span> <span class="o">=</span> <span class="n">characters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;character&#39;</span><span class="p">,</span> <span class="s">&#39;character 2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">to_xml</span><span class="p">(),</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="go">&lt;movie&gt;</span>
 <span class="go">  &lt;title&gt;Movie title&lt;/title&gt;</span>
 <span class="go">  &lt;realisator&gt;realisator name&lt;/realisator&gt;</span>
@@ -118,27 +174,32 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <div class="section" id="case-with-conditional-elements">
 <h4>Case with conditional elements<a class="headerlink" href="#case-with-conditional-elements" title="Permalink to this headline">¶</a></h4>
 <p>Now we will see how to handle case with some conditional elements. It&#8217;s &#8216;(qcm|mqm)*&#8217; in the following DTD files:</p>
-<div class="code dtd highlight-python"><pre>&lt;!ELEMENT Exercise (question, (qcm|mqm)*)&gt;
+<div class="code dtd highlight-python"><pre>&lt;!ELEMENT Exercise (question, (qcm|mqm), comments*)&gt;
 &lt;!ELEMENT question (#PCDATA)&gt;
 &lt;!ELEMENT qcm (good-choice, bad-choice*)&gt;
 &lt;!ELEMENT mqm (good-choice, bad-choice*)&gt;
+&lt;!ELEMENT comments (good-comment, bad-comment)+&gt;
 &lt;!ELEMENT good-choice (#PCDATA)&gt;
-&lt;!ELEMENT bad-choice (#PCDATA)&gt;</pre>
+&lt;!ELEMENT bad-choice (#PCDATA)&gt;
+&lt;!ELEMENT good-comment (#PCDATA)&gt;
+&lt;!ELEMENT bad-comment (#PCDATA)&gt;</pre>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">create_obj</span><span class="p">(</span><span class="s">&#39;Exercise&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm_list</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;qcm&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">qcm_list</span>
-<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xmltool</span> <span class="kn">import</span> <span class="n">dtd_parser</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">dic</span><span class="p">[</span><span class="s">&#39;Exercise&#39;</span><span class="p">]()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;qcm&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Now we can&#39;t add a mqm since a qcm exists</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;mqm&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;mqm&#39;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-<span class="gr">Exception</span>: <span class="n">You can&#39;t add a mqm since it already contains a qcm</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm1</span> <span class="o">=</span> <span class="n">qcm_list</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">qcm1</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;good-choice&#39;</span><span class="p">,</span> <span class="s">&#39;choice 1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">exercise</span><span class="o">.</span><span class="n">to_xml</span><span class="p">()</span>
+<span class="gr">Exception</span>: <span class="n">qcm already defined</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;qcm&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="gr">Exception</span>: <span class="n">qcm already defined</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">qcm</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;good-choice&#39;</span><span class="p">,</span> <span class="s">&#39;choice 1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">exercise</span><span class="o">.</span><span class="n">to_xml</span><span class="p">(),</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="go">&lt;Exercise&gt;</span>
 <span class="go">  &lt;question&gt;the question&lt;/question&gt;</span>
 <span class="go">  &lt;qcm&gt;</span>
@@ -160,19 +221,21 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </dd>
 </dl>
 <p>See the example below:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">create_obj</span><span class="p">(</span><span class="s">&#39;Exercise&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm_list</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;qcm&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qcm1</span> <span class="o">=</span> <span class="n">qcm_list</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">qcm1</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;good-choice&#39;</span><span class="p">,</span> <span class="s">&#39;choice 1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">exercise</span><span class="o">.</span><span class="n">question</span><span class="o">.</span><span class="n">value</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xmltool</span> <span class="kn">import</span> <span class="n">dtd_parser</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">dic</span><span class="p">[</span><span class="s">&#39;Exercise&#39;</span><span class="p">]()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comments</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;comments&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">comments</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;good-comment&#39;</span><span class="p">,</span> <span class="s">&#39;comment 1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">exercise</span><span class="o">.</span><span class="n">question</span><span class="o">.</span><span class="n">_value</span>
 <span class="go">the question</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="o">.</span><span class="n">qcm</span> <span class="o">==</span> <span class="n">exercise</span><span class="p">[</span><span class="s">&#39;qcm&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="o">.</span><span class="n">comments</span> <span class="o">==</span> <span class="n">exercise</span><span class="p">[</span><span class="s">&#39;comments&#39;</span><span class="p">]</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="p">[</span><span class="s">&#39;qcm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;good-choice&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-<span class="go">&#39;choice 1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span><span class="p">[</span><span class="s">&#39;comments&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;good-comment&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_value</span>
+<span class="go">&#39;comment 1&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -192,15 +255,15 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/movie.xml&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">attrs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">_attributes</span>
 <span class="go">{&#39;idmovie&#39;: &#39;M1&#39;}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span> 
 <span class="go">&lt;xmltool.dtd_parser.movie object at 0x...&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">value</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">_value</span>
 <span class="go">Full Metal Jacket</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_value</span>
 <span class="go">Matthew Modine</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_attributes</span>
 <span class="go">{&#39;idcharacter&#39;: &#39;C1&#39;}</span>
 </pre></div>
 </div>
@@ -209,13 +272,13 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <h3>Writing a XML file<a class="headerlink" href="#writing-a-xml-file" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/movie.xml&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s">&#39;My new title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="s">&#39;My new title&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;examples/movie-updated.xml&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>See the content of the new XML file:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
+&lt;!DOCTYPE movie SYSTEM "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
   &lt;title&gt;My new title&lt;/title&gt;
   &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -261,13 +324,13 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>To update the file according to the DTD change, we just need to load it without validating the XML and write it.  Xmltools detects the missing tags and add it!</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/movie-1.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">validate_xml</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;examples/movie-1-updated.xml&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>You can see that the comment tag is added automatically:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie-1.dtd" "http://xml-tools.lereskp.fr/examples/movie-1.dtd"&gt;
+&lt;!DOCTYPE movie SYSTEM "http://xml-tools.lereskp.fr/examples/movie-1.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
   &lt;title&gt;Full Metal Jacket&lt;/title&gt;
   &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -309,31 +372,30 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </dd>
 </dl>
 <p>See the generated HTML:</p>
-<div class="code html highlight-python"><pre>&lt;form method="POST"&gt;
-&lt;input type="text" value="http://xml-tools.lereskp.fr/examples/movie.dtd" name="_dtd_url" id="_dtd_url" class="_dtd_url"&gt;&lt;input type="text" value="UTF-8" name="_encoding" id="_encoding" class="_encoding"&gt;&lt;input type="text" value="movie" name="_root_tag" id="_root_tag" class="_root_tag"&gt;&lt;input type="text" value="M1" name="attrs:idmovie" id="attrs:idmovie" class="attr idmovie"&gt;&lt;fieldset&gt;
-&lt;legend&gt;movie&lt;/legend&gt;
-&lt;div class="container"&gt;
-&lt;label&gt;title&lt;/label&gt;&lt;textarea name="title:value" id="title" class="title" rows="2"&gt;Full Metal Jacket&lt;/textarea&gt;
+<div class="code html highlight-python"><pre>&lt;form method="POST" id="xmltool-form"&gt;
+&lt;input type="hidden" name="_xml_filename" id="_xml_filename" value="examples/movie.xml"&gt;&lt;input type="hidden" name="_xml_dtd_url" id="_xml_dtd_url" value="http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;&lt;input type="hidden" name="_xml_encoding" id="_xml_encoding" value="UTF-8"&gt;&lt;fieldset class="movie" id="movie"&gt;
+&lt;legend&gt;movie&lt;a data-comment-name="movie:_comment" class="btn-comment"&gt;Comment&lt;/a&gt;
+&lt;/legend&gt;
+&lt;input value="M1" name="movie:_attrs:idmovie" id="movie:_attrs:idmovie" class="_attrs"&gt;&lt;div data-id="movie:title"&gt;
+&lt;label&gt;title&lt;/label&gt;&lt;a data-comment-name="movie:title:_comment" class="btn-comment"&gt;Comment&lt;/a&gt;&lt;textarea name="movie:title:_value" id="movie:title" class="movie:title" rows="1"&gt;Full Metal Jacket&lt;/textarea&gt;
 &lt;/div&gt;
-&lt;div class="container"&gt;
-&lt;label&gt;realisator&lt;/label&gt;&lt;textarea name="realisator:value" id="realisator" class="realisator" rows="2"&gt;Stanley Kubrick&lt;/textarea&gt;
+&lt;div data-id="movie:realisator"&gt;
+&lt;label&gt;realisator&lt;/label&gt;&lt;a data-comment-name="movie:realisator:_comment" class="btn-comment"&gt;Comment&lt;/a&gt;&lt;textarea name="movie:realisator:_value" id="movie:realisator" class="movie:realisator" rows="1"&gt;Stanley Kubrick&lt;/textarea&gt;
 &lt;/div&gt;
-&lt;div class="container"&gt;&lt;fieldset id="characters" class="characters"&gt;
-&lt;legend&gt;characters&lt;/legend&gt;
-&lt;div class="growing-container required"&gt;
-&lt;div class="container growing-source" id="characters:character"&gt;
-&lt;label&gt;character&lt;/label&gt;&lt;input type="button" value="Delete character" class="growing-delete-button"&gt;&lt;textarea name="characters:character:0:value" id="characters:character:0" class="character" rows="2"&gt;&lt;/textarea&gt;&lt;input type="button" value="New character" class="growing-add-button"&gt;
+&lt;fieldset class="characters movie:characters" id="movie:characters"&gt;
+&lt;legend&gt;characters&lt;a data-comment-name="movie:characters:_comment" class="btn-comment"&gt;Comment&lt;/a&gt;
+&lt;/legend&gt;
+&lt;div class="list-container"&gt;
+&lt;a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:0:character"&gt;New character&lt;/a&gt;&lt;div data-id="movie:characters:list__character:0:character"&gt;
+&lt;label&gt;character&lt;/label&gt;&lt;a class="btn-delete-list"&gt;Delete&lt;/a&gt;&lt;a data-comment-name="movie:characters:list__character:0:character:_comment" class="btn-comment"&gt;Comment&lt;/a&gt;&lt;input value="C1" name="movie:characters:list__character:0:character:_attrs:idcharacter" id="movie:characters:list__character:0:character:_attrs:idcharacter" class="_attrs"&gt;&lt;textarea name="movie:characters:list__character:0:character:_value" id="movie:characters:list__character:0:character" class="movie:characters:list__character" rows="1"&gt;Matthew Modine&lt;/textarea&gt;
 &lt;/div&gt;
-&lt;div class="container"&gt;
-&lt;input type="text" value="C1" name="characters:character:1:attrs:idcharacter" id="characters:character:1:attrs:idcharacter" class="attr idcharacter"&gt;&lt;label&gt;character&lt;/label&gt;&lt;input type="button" value="Delete character" class="growing-delete-button"&gt;&lt;textarea name="characters:character:1:value" id="characters:character:1" class="character" rows="2"&gt;Matthew Modine&lt;/textarea&gt;&lt;input type="button" value="New character" class="growing-add-button"&gt;
+&lt;a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:1:character"&gt;New character&lt;/a&gt;&lt;div data-id="movie:characters:list__character:1:character"&gt;
+&lt;label&gt;character&lt;/label&gt;&lt;a class="btn-delete-list"&gt;Delete&lt;/a&gt;&lt;a data-comment-name="movie:characters:list__character:1:character:_comment" class="btn-comment"&gt;Comment&lt;/a&gt;&lt;input value="C2" name="movie:characters:list__character:1:character:_attrs:idcharacter" id="movie:characters:list__character:1:character:_attrs:idcharacter" class="_attrs"&gt;&lt;textarea name="movie:characters:list__character:1:character:_value" id="movie:characters:list__character:1:character" class="movie:characters:list__character" rows="1"&gt;Vincent D'Onofrio&lt;/textarea&gt;
 &lt;/div&gt;
-&lt;div class="container"&gt;
-&lt;input type="text" value="C2" name="characters:character:2:attrs:idcharacter" id="characters:character:2:attrs:idcharacter" class="attr idcharacter"&gt;&lt;label&gt;character&lt;/label&gt;&lt;input type="button" value="Delete character" class="growing-delete-button"&gt;&lt;textarea name="characters:character:2:value" id="characters:character:2" class="character" rows="2"&gt;Vincent D'Onofrio&lt;/textarea&gt;&lt;input type="button" value="New character" class="growing-add-button"&gt;
+&lt;a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:2:character"&gt;New character&lt;/a&gt;
 &lt;/div&gt;
-&lt;/div&gt;
-&lt;/fieldset&gt;&lt;/div&gt;
 &lt;/fieldset&gt;
-&lt;input type="submit"&gt;
+&lt;/fieldset&gt;
 &lt;/form&gt;</pre>
 </div>
 <div class="admonition note">
@@ -343,26 +405,25 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <div class="section" id="submitting-a-html-form">
 <h3>Submitting a HTML form<a class="headerlink" href="#submitting-a-html-form" title="Permalink to this headline">¶</a></h3>
-<p>XML tools support you submit WebOb request or dict. We will use a dict for this example.</p>
+<p>XML tool support you submit WebOb request or dict. We will use a dict for this example.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/my-movie.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;_dtd_url&#39;</span><span class="p">:</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span><span class="p">,</span>
-<span class="gp">... </span>       <span class="s">&#39;_encoding&#39;</span><span class="p">:</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">,</span>
-<span class="gp">... </span>       <span class="s">&#39;_root_tag&#39;</span><span class="p">:</span> <span class="s">&#39;movie&#39;</span><span class="p">,</span>
-<span class="gp">... </span>       <span class="s">&#39;title:value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie title&#39;</span><span class="p">,</span>
-<span class="gp">... </span>       <span class="s">&#39;realisator:value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie realisator&#39;</span><span class="p">,</span>
-<span class="gp">... </span>       <span class="s">&#39;characters:character:1:value&#39;</span><span class="p">:</span> <span class="s">&#39;My first character&#39;</span><span class="p">,</span>
-<span class="gp">... </span>       <span class="s">&#39;characters:character:2:value&#39;</span><span class="p">:</span> <span class="s">&#39;My second character&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;_xml_dtd_url&#39;</span><span class="p">:</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;_xml_encoding&#39;</span><span class="p">:</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;movie:title:_value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie title&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;movie:realisator:_value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie realisator&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;movie:characters:character__list:1:character:_value&#39;</span><span class="p">:</span> <span class="s">&#39;My first character&#39;</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="s">&#39;movie:characters:character__list:2:character:_value&#39;</span><span class="p">:</span> <span class="s">&#39;My second character&#39;</span><span class="p">,</span>
 <span class="gp">... </span>      <span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">update_xml_file</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">value</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">xmltool</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">xml_filename</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">_value</span>
 <span class="go">My movie title</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obj</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">character</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_value</span>
 <span class="go">My first character</span>
 </pre></div>
 </div>
 <p>The generated XML looks like:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
+&lt;!DOCTYPE movie SYSTEM "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie&gt;
   &lt;title&gt;My movie title&lt;/title&gt;
   &lt;realisator&gt;My movie realisator&lt;/realisator&gt;
@@ -495,7 +556,7 @@ writing it.</li>
 <em class="property">class </em><tt class="descclassname">xmltool.elements.</tt><tt class="descname">ChoiceElement</tt><a class="reference internal" href="modules/xmltool/elements.html#ChoiceElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.ChoiceElement" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="classmethod">
 <dt id="xmltool.elements.ChoiceElement._add">
-<em class="property">classmethod </em><tt class="descname">_add</tt><big>(</big><em>tagname</em>, <em>parent_obj</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#ChoiceElement._add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.ChoiceElement._add" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">_add</tt><big>(</big><em>tagname</em>, <em>parent_obj</em>, <em>value=None</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#ChoiceElement._add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.ChoiceElement._add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="classmethod">
@@ -538,7 +599,7 @@ element.</p>
 <dd><p>After reading a dtd file we construct some Element</p>
 <dl class="classmethod">
 <dt id="xmltool.elements.Element._add">
-<em class="property">classmethod </em><tt class="descname">_add</tt><big>(</big><em>tagname</em>, <em>parent_obj</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#Element._add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.Element._add" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">_add</tt><big>(</big><em>tagname</em>, <em>parent_obj</em>, <em>value=None</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#Element._add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.Element._add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -703,7 +764,7 @@ element.</p>
 
 <dl class="method">
 <dt id="xmltool.elements.Element.add">
-<tt class="descname">add</tt><big>(</big><em>tagname</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#Element.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.Element.add" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">add</tt><big>(</big><em>tagname</em>, <em>value=None</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#Element.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.Element.add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -763,7 +824,7 @@ element.</p>
 <em class="property">class </em><tt class="descclassname">xmltool.elements.</tt><tt class="descname">ListElement</tt><a class="reference internal" href="modules/xmltool/elements.html#ListElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.ListElement" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="classmethod">
 <dt id="xmltool.elements.ListElement._add">
-<em class="property">classmethod </em><tt class="descname">_add</tt><big>(</big><em>tagname</em>, <em>parent_obj</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#ListElement._add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.ListElement._add" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">_add</tt><big>(</big><em>tagname</em>, <em>parent_obj</em>, <em>value=None</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#ListElement._add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.ListElement._add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="classmethod">
@@ -942,9 +1003,6 @@ element.</p>
 <dd></dd></dl>
 
 </div>
-<div class="section" id="xmltool-forms">
-<h3>xmltool.forms<a class="headerlink" href="#xmltool-forms" title="Permalink to this headline">¶</a></h3>
-</div>
 <div class="section" id="module-xmltool.utils">
 <span id="xmltool-utils"></span><h3>xmltool.utils<a class="headerlink" href="#module-xmltool.utils" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
@@ -1046,63 +1104,6 @@ this into a nested dict/list structure. It also performs unicode decoding.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">xmltool&#8217;s documentation!</a><ul>
-<li><a class="reference internal" href="#introduction">Introduction</a></li>
-<li><a class="reference internal" href="#changelog">Changelog</a></li>
-<li><a class="reference internal" href="#basic">Basic</a><ul>
-<li><a class="reference internal" href="#creating-a-xml">Creating a XML</a><ul>
-<li><a class="reference internal" href="#general-case">General case</a></li>
-<li><a class="reference internal" href="#case-with-conditional-elements">Case with conditional elements</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#accessing-to-the-property">Accessing to the property</a></li>
-<li><a class="reference internal" href="#loading-a-xml-file">Loading a XML file</a></li>
-<li><a class="reference internal" href="#writing-a-xml-file">Writing a XML file</a></li>
-<li><a class="reference internal" href="#updating-a-xml-file-after-a-dtd-change">Updating a XML file after a dtd change</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#form">Form</a><ul>
-<li><a class="reference internal" href="#generating-a-html-form">Generating a HTML form</a></li>
-<li><a class="reference internal" href="#submitting-a-html-form">Submitting a HTML form</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#source">Source</a><ul>
-<li><a class="reference internal" href="#module-xmltool.factory">xmltool.factory</a></li>
-<li><a class="reference internal" href="#module-xmltool.elements">xmltool.elements</a></li>
-<li><a class="reference internal" href="#module-xmltool.dtd_parser">xmltool.dtd_parser</a></li>
-<li><a class="reference internal" href="#xmltool-forms">xmltool.forms</a></li>
-<li><a class="reference internal" href="#module-xmltool.utils">xmltool.utils</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-</ul>
-</li>
-</ul>
-
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="sources/index.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related">
@@ -1114,7 +1115,7 @@ this into a nested dict/list structure. It also performs unicode decoding.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltool 0.2 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltool 0.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
