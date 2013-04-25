@@ -513,7 +513,7 @@ var create_nodes = function(tree, data, parentobj, position){
                     self.after(comment_textarea);
                 }
                 // Create the dialog
-                var dialog = $("<div>");
+                var dialog = $('<div class="comment-dialog">');
                 var textarea = $('<textarea />').val(comment_textarea.val());
                 textarea.appendTo(dialog);
                 $('<br />').appendTo(dialog);
@@ -535,7 +535,7 @@ var create_nodes = function(tree, data, parentobj, position){
 
                 dialog.dialog({
                     modal: true,
-                    height: 400,
+                    height: 200,
                     width: 400,
                     title: 'Add comment'
                 });
