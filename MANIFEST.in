@@ -1,3 +1,4 @@
 include README.rst
 include LICENSE.txt
-include js/xmltool.js
+recursive-include tests *.py
+prune *.pyc

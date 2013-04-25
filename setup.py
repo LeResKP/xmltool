@@ -30,7 +30,7 @@ setup(name='xmltool',
       author_email='a.matouillot@gmail.com',
       url='http://xml-tools.lereskp.fr/',
       license='MIT',
-      packages=find_packages(exclude=['ez_setup', 'tests']),
+      packages=find_packages(exclude=['ez_setup', 'tests', 'tests.*']),
       include_package_data=True,
       zip_safe=False,
       install_requires=[
