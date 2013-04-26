@@ -1,6 +1,11 @@
 Changelog
 =========
 
+O.3:
+    * Rewrite the core of the code
+    * Better performance to generate the HTML
+    * Fix bug
+
 O.2:
     * Update the project architecture
     * Be able to access to the element properties like a dict
