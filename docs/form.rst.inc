@@ -39,7 +39,7 @@ Submitting a HTML form
 XML tool support you submit WebOb request or dict. We will use a dict for this example.
 
     >>> xml_filename = 'examples/my-movie.xml'
-    >>> dic = {'_xml_dtd_url': 'http://xml-tools.lereskp.fr/examples/movie.dtd',
+    >>> dic = {'_xml_dtd_url': 'http://xmltool.lereskp.fr/examples/movie.dtd',
     ...        '_xml_encoding': 'UTF-8',
     ...        'movie:title:_value': 'My movie title',
     ...        'movie:realisator:_value': 'My movie realisator',

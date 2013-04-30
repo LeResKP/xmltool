@@ -57,7 +57,7 @@ class TestFactory(TestCase):
             'value="tests/exercise.xml" />' in html)
         self.assertTrue(
             '<input type="hidden" name="_xml_dtd_url" id="_xml_dtd_url" '
-            'value="http://xml-tools.lereskp.fr/static/exercise.dtd" />' in
+            'value="http://xmltool.lereskp.fr/static/exercise.dtd" />' in
             html)
         self.assertTrue(
             '<input type="hidden" name="_xml_encoding" id="_xml_encoding" '
@@ -71,14 +71,14 @@ class TestFactory(TestCase):
         try:
             data = {
                 '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
+                '_xml_dtd_url': 'http://xmltool.lereskp.fr/static/exercise.dtd',
                 'Exercise': {},
             }
             obj = factory.update(filename, data)
             self.assertTrue(obj)
             result = open(filename, 'r').read()
             expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise SYSTEM "http://xml-tools.lereskp.fr/static/exercise.dtd">
+<!DOCTYPE Exercise SYSTEM "http://xmltool.lereskp.fr/static/exercise.dtd">
 <Exercise>
   <number/>
 </Exercise>
@@ -86,7 +86,7 @@ class TestFactory(TestCase):
             self.assertEqual(result, expected)
             data = {
                 '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
+                '_xml_dtd_url': 'http://xmltool.lereskp.fr/static/exercise.dtd',
                 'Exercise': {},
                 'fake': {},
             }
@@ -98,7 +98,7 @@ class TestFactory(TestCase):
 
             data = {
                 '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'http://xml-tools.lereskp.fr/static/exercise.dtd',
+                '_xml_dtd_url': 'http://xmltool.lereskp.fr/static/exercise.dtd',
                 'Exercise': {},
             }
             transform_func = lambda  txt: txt.replace('number',
@@ -107,7 +107,7 @@ class TestFactory(TestCase):
             self.assertTrue(obj)
             result = open(filename, 'r').read()
             expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise SYSTEM "http://xml-tools.lereskp.fr/static/exercise.dtd">
+<!DOCTYPE Exercise SYSTEM "http://xmltool.lereskp.fr/static/exercise.dtd">
 <Exercise>
   <number-updated/>
 </Exercise>
@@ -118,7 +118,7 @@ class TestFactory(TestCase):
                 os.remove(filename)
 
     def test_new(self):
-        dtd_url = 'http://xml-tools.lereskp.fr/static/exercise.dtd'
+        dtd_url = 'http://xmltool.lereskp.fr/static/exercise.dtd'
         root_tag = 'choice'
         result = factory.new(dtd_url, root_tag)
         expected = ('<form method="POST" id="xmltool-form">'
@@ -126,7 +126,7 @@ class TestFactory(TestCase):
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
                     'id="_xml_dtd_url" '
-                    'value="http://xml-tools.lereskp.fr/static/exercise.dtd" '
+                    'value="http://xmltool.lereskp.fr/static/exercise.dtd" '
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
@@ -141,7 +141,7 @@ class TestFactory(TestCase):
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
                     'id="_xml_dtd_url" '
-                    'value="http://xml-tools.lereskp.fr/static/exercise.dtd" '
+                    'value="http://xmltool.lereskp.fr/static/exercise.dtd" '
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
