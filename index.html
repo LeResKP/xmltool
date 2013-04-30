@@ -156,7 +156,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xmltool</span> <span class="kn">import</span> <span class="n">dtd_parser</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xmltool.lereskp.fr/examples/movie.dtd&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">movie</span> <span class="o">=</span> <span class="n">dic</span><span class="p">[</span><span class="s">&#39;movie&#39;</span><span class="p">]()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="s">&#39;Movie title&#39;</span><span class="p">)</span>
@@ -193,7 +193,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xmltool</span> <span class="kn">import</span> <span class="n">dtd_parser</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xmltool.lereskp.fr/examples/exercise.dtd&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">dic</span><span class="p">[</span><span class="s">&#39;Exercise&#39;</span><span class="p">]()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
@@ -231,7 +231,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xmltool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xmltool</span> <span class="kn">import</span> <span class="n">dtd_parser</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/exercise.dtd&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dtd_url</span> <span class="o">=</span> <span class="s">&#39;http://xmltool.lereskp.fr/examples/exercise.dtd&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="n">dtd_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">dtd_url</span><span class="o">=</span><span class="n">dtd_url</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exercise</span> <span class="o">=</span> <span class="n">dic</span><span class="p">[</span><span class="s">&#39;Exercise&#39;</span><span class="p">]()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">question</span> <span class="o">=</span> <span class="n">exercise</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="s">&#39;the question&#39;</span><span class="p">)</span>
@@ -250,7 +250,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <h3>Loading a XML file<a class="headerlink" href="#loading-a-xml-file" title="Permalink to this headline">¶</a></h3>
 <p>For this example we will load the following XML file:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xmltool.lereskp.fr/examples/movie.dtd" "http://xmltool.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
  &lt;title&gt;Full Metal Jacket&lt;/title&gt;
  &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -285,7 +285,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>See the content of the new XML file:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie SYSTEM "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
+&lt;!DOCTYPE movie SYSTEM "http://xmltool.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
   &lt;title&gt;My new title&lt;/title&gt;
   &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -319,7 +319,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>Use the new DTD file in our XML file. You don&#8217;t need to create a new DTD file when you want to update it, it&#8217;s just needed to write this example easily.</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie-1.dtd" "http://xml-tools.lereskp.fr/examples/movie-1.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xmltool.lereskp.fr/examples/movie-1.dtd" "http://xmltool.lereskp.fr/examples/movie-1.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
  &lt;title&gt;Full Metal Jacket&lt;/title&gt;
  &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -337,7 +337,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>You can see that the comment tag is added automatically:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie SYSTEM "http://xml-tools.lereskp.fr/examples/movie-1.dtd"&gt;
+&lt;!DOCTYPE movie SYSTEM "http://xmltool.lereskp.fr/examples/movie-1.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
   &lt;title&gt;Full Metal Jacket&lt;/title&gt;
   &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -356,7 +356,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <h3>Generating a HTML form<a class="headerlink" href="#generating-a-html-form" title="Permalink to this headline">¶</a></h3>
 <p>We will make this example with the same XML file:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie PUBLIC "http://xml-tools.lereskp.fr/examples/movie.dtd" "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
+&lt;!DOCTYPE movie PUBLIC "http://xmltool.lereskp.fr/examples/movie.dtd" "http://xmltool.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie idmovie="M1"&gt;
  &lt;title&gt;Full Metal Jacket&lt;/title&gt;
  &lt;realisator&gt;Stanley Kubrick&lt;/realisator&gt;
@@ -380,7 +380,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </dl>
 <p>See the generated HTML:</p>
 <div class="code html highlight-python"><pre>&lt;form method="POST" id="xmltool-form"&gt;
-&lt;input type="hidden" name="_xml_filename" id="_xml_filename" value="examples/movie.xml"&gt;&lt;input type="hidden" name="_xml_dtd_url" id="_xml_dtd_url" value="http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;&lt;input type="hidden" name="_xml_encoding" id="_xml_encoding" value="UTF-8"&gt;&lt;fieldset class="movie" id="movie"&gt;
+&lt;input type="hidden" name="_xml_filename" id="_xml_filename" value="examples/movie.xml"&gt;&lt;input type="hidden" name="_xml_dtd_url" id="_xml_dtd_url" value="http://xmltool.lereskp.fr/examples/movie.dtd"&gt;&lt;input type="hidden" name="_xml_encoding" id="_xml_encoding" value="UTF-8"&gt;&lt;fieldset class="movie" id="movie"&gt;
 &lt;legend&gt;movie&lt;a data-comment-name="movie:_comment" class="btn-comment"&gt;Comment&lt;/a&gt;
 &lt;/legend&gt;
 &lt;input value="M1" name="movie:_attrs:idmovie" id="movie:_attrs:idmovie" class="_attrs"&gt;&lt;div data-id="movie:title"&gt;
@@ -414,7 +414,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <h3>Submitting a HTML form<a class="headerlink" href="#submitting-a-html-form" title="Permalink to this headline">¶</a></h3>
 <p>XML tool support you submit WebOb request or dict. We will use a dict for this example.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xml_filename</span> <span class="o">=</span> <span class="s">&#39;examples/my-movie.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;_xml_dtd_url&#39;</span><span class="p">:</span> <span class="s">&#39;http://xml-tools.lereskp.fr/examples/movie.dtd&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;_xml_dtd_url&#39;</span><span class="p">:</span> <span class="s">&#39;http://xmltool.lereskp.fr/examples/movie.dtd&#39;</span><span class="p">,</span>
 <span class="gp">... </span>       <span class="s">&#39;_xml_encoding&#39;</span><span class="p">:</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">,</span>
 <span class="gp">... </span>       <span class="s">&#39;movie:title:_value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie title&#39;</span><span class="p">,</span>
 <span class="gp">... </span>       <span class="s">&#39;movie:realisator:_value&#39;</span><span class="p">:</span> <span class="s">&#39;My movie realisator&#39;</span><span class="p">,</span>
@@ -430,7 +430,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 </div>
 <p>The generated XML looks like:</p>
 <div class="code xml highlight-python"><pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;!DOCTYPE movie SYSTEM "http://xml-tools.lereskp.fr/examples/movie.dtd"&gt;
+&lt;!DOCTYPE movie SYSTEM "http://xmltool.lereskp.fr/examples/movie.dtd"&gt;
 &lt;movie&gt;
   &lt;title&gt;My movie title&lt;/title&gt;
   &lt;realisator&gt;My movie realisator&lt;/realisator&gt;
