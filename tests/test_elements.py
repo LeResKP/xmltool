@@ -734,15 +734,25 @@ class TestTextElement(TestCase):
         root = etree.Element('root')
         text = etree.Element('text')
         text.text = 'text'
+        empty = etree.Element('empty')
+        empty.text = ''
         comment = etree.Comment('comment')
         root.append(comment)
         root.append(text)
+        root.append(empty)
         text.attrib['attr'] = 'value'
         obj = self.cls()
         obj.load_from_xml(text)
         self.assertEqual(obj._value, 'text')
+        self.assertEqual(obj._exists, True)
         self.assertEqual(obj._comment, 'comment')
         self.assertEqual(obj._attributes, {'attr': 'value'})
+
+        obj = self.cls()
+        obj.load_from_xml(empty)
+        self.assertEqual(obj._value, '')
+        self.assertEqual(obj._exists, True)
+        self.assertEqual(obj._comment, None)
 
     def test_load_from_dict(self):
         dic = {'tag': {'_value': 'text',

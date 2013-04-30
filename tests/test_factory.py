@@ -80,7 +80,7 @@ class TestFactory(TestCase):
             expected = '''<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Exercise SYSTEM "http://xmltool.lereskp.fr/static/exercise.dtd">
 <Exercise>
-  <number/>
+  <number></number>
 </Exercise>
 '''
             self.assertEqual(result, expected)
@@ -109,7 +109,7 @@ class TestFactory(TestCase):
             expected = '''<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Exercise SYSTEM "http://xmltool.lereskp.fr/static/exercise.dtd">
 <Exercise>
-  <number-updated/>
+  <number-updated></number-updated>
 </Exercise>
 '''
             self.assertEqual(result, expected)

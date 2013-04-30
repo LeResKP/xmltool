@@ -399,6 +399,7 @@ class Element(object):
 
 class TextElement(Element):
     _value = None
+    _exists = False
 
     def __repr__(self):
         return '<TextElement %s "%s">' % (
@@ -408,6 +409,8 @@ class TextElement(Element):
     def load_from_xml(self, xml):
         self._load_extra_from_xml(xml)
         self._value = xml.text
+        # We use _exists to know if the tag is defined in the XML.
+        self._exists= True
 
     def load_from_dict(self, dic):
         data = dic[self._tagname]
@@ -416,10 +419,12 @@ class TextElement(Element):
 
     def to_xml(self):
         xml = etree.Element(self._tagname)
-        # We comment can't be added here since we don't always have the parent
+        # The comment can't be added here since we don't always have the parent
         # defined.
         self._attributes_to_xml(xml)
-        xml.text = self._value
+        # We never set self.text to None to make sure when we export as string
+        # we get a HTML format (no autoclose tag)
+        xml.text = self._value or ''
         return xml
 
     def _get_html_attrs(self, prefixes, index=None):
@@ -446,7 +451,8 @@ class TextElement(Element):
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False):
 
-        if not self._value and not self._required and not partial:
+        if (not self._exists and not self._value and
+            not self._required and not partial):
             return self._get_html_add_button(prefixes, index)
 
         parent_is_list = isinstance(self._parent, ListElement)
