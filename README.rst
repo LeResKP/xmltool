@@ -1,9 +1,9 @@
-xml-tools
+xmltool
 =========
 
 xmltool is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
 The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
-`Read the documentation <http://xml-tools.lereskp.fr>`_
+`Read the documentation <http://xmltool.lereskp.fr>`_
 
 
 Changelog
@@ -28,13 +28,13 @@ O.1:
 Build Status
 ------------
 
-.. |master| image:: https://secure.travis-ci.org/LeResKP/xml-tools.png?branch=master
+.. |master| image:: https://secure.travis-ci.org/LeResKP/xmltool.png?branch=master
    :alt: Build Status - master branch
-   :target: https://travis-ci.org/#!/LeResKP/xml-tools
+   :target: https://travis-ci.org/#!/LeResKP/xmltool
 
-.. |develop| image:: https://secure.travis-ci.org/LeResKP/xml-tools.png?branch=develop
+.. |develop| image:: https://secure.travis-ci.org/LeResKP/xmltool.png?branch=develop
    :alt: Build Status - develop branch
-   :target: https://travis-ci.org/#!/LeResKP/xml-tools
+   :target: https://travis-ci.org/#!/LeResKP/xmltool
 
 +----------+-----------+
 | Branch   | Status    |
