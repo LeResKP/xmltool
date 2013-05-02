@@ -9,6 +9,10 @@ The main goal of this package was to create a HTML form to edit and create a XML
 Changelog
 =========
 
+O.3.1:
+    * Render the text element as HTML format when exporting in XML (no autoclose tag)
+    * Fix bug: make sure we add empty text element in the HTML form
+
 O.3:
     * Rewrite the core of the code
     * Better performance to generate the HTML
