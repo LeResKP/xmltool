@@ -1,3 +1,25 @@
+%define modname xmltool
+%define version 0.3.1
+%define unmangled_version 0.3.1
+%define unmangled_version 0.3.1
+%define release 1
+
+Summary: Tool to manipulate XML files
+Name: python-xmltool
+Version: %{version}
+Release: %{release}
+Source0: http://pypi.python.org/packages/source/t/%{modname}/%{modname}-%{version}.tar.gz
+License: MIT
+Group: Development/Libraries
+BuildRoot: %{_tmppath}/%{modname}-%{version}-%{release}-buildroot
+Prefix: %{_prefix}
+BuildArch: noarch
+Vendor: Aurélien Matouillot <a.matouillot@gmail.com>
+Url: http://xmltool.lereskp.fr/
+Requires: python-lxml
+Requires: python-webob
+
+%description
 xmltool
 =========
 
@@ -29,21 +51,19 @@ O.1:
 
 
 
-Build Status
-------------
 
-.. |master| image:: https://secure.travis-ci.org/LeResKP/xmltool.png?branch=master
-   :alt: Build Status - master branch
-   :target: https://travis-ci.org/#!/LeResKP/xmltool
 
-.. |develop| image:: https://secure.travis-ci.org/LeResKP/xmltool.png?branch=develop
-   :alt: Build Status - develop branch
-   :target: https://travis-ci.org/#!/LeResKP/xmltool
+%prep
+%setup -n %{modname}-%{unmangled_version} -n %{modname}-%{unmangled_version}
 
-+----------+-----------+
-| Branch   | Status    |
-+==========+===========+
-| master   | |master|  |
-+----------+-----------+
-| develop  | |develop| |
-+----------+-----------+
+%build
+python setup.py build
+
+%install
+python setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files -f INSTALLED_FILES
+%defattr(-,root,root)

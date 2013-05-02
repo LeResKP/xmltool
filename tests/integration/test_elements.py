@@ -220,7 +220,7 @@ class TestElementPCDATAEmpty(ElementTester):
 '''
     expected_xml = '''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
-  <text/>
+  <text></text>
 </texts>
 '''
     expected_html = (
@@ -377,6 +377,63 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
     ]
 
 
+class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
+    dtd_str = '''
+        <!ELEMENT texts (text?)>
+        <!ELEMENT text (#PCDATA)>
+        '''
+    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text></text>
+</texts>
+'''
+    expected_html = (
+        '<fieldset class="texts" id="texts">'
+        '<legend>texts'
+        '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
+        '</legend>'
+        '<div data-id="texts:text">'
+        '<label>text</label>'
+        '<a class="btn btn-add-ajax hidden" data-id="texts:text">Add text</a>'
+        '<a class="btn-delete">Delete</a>'
+        '<a data-comment-name="texts:text:_comment" class="btn-comment">'
+        'Comment</a>'
+        '<textarea name="texts:text:_value" id="texts:text" '
+        'class="texts:text" rows="1"></textarea>'
+        '</div>'
+        '</fieldset>'
+    )
+
+    submit_data = {'texts:text:_value': ''}
+
+    str_to_html = [
+        ('texts',
+         '<fieldset class="texts" id="texts">'
+         '<legend>texts'
+         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
+         '<a class="btn-delete-fieldset">Delete</a>'
+         '</legend>'
+         '<a class="btn btn-add-ajax" data-id="texts:text">Add text</a>'
+         '</fieldset>'
+        ),
+        ('texts:text',
+         '<div data-id="texts:text">'
+         '<label>text</label>'
+         '<a class="btn btn-add-ajax hidden" data-id="texts:text">Add text</a>'
+         '<a class="btn-delete">Delete</a>'
+         '<a data-comment-name="texts:text:_comment" '
+         'class="btn-comment">Comment</a>'
+         '<textarea name="texts:text:_value" id="texts:text" '
+         'class="texts:text" rows="1"></textarea>'
+         '</div>'
+        )
+    ]
+
+    js_selector = [
+        [],
+        [('inside', '#tree_texts')]
+    ]
+
 class TestListElement(ElementTester):
     dtd_str = '''
         <!ELEMENT texts (text+)>
@@ -520,7 +577,7 @@ class TestListElementEmpty(ElementTester):
 '''
     expected_xml = '''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
-  <text/>
+  <text></text>
 </texts>
 '''
 
@@ -781,7 +838,7 @@ class TestListElementElementEmpty(ElementTester):
     expected_xml = '''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>
-    <subtext/>
+    <subtext></subtext>
   </text>
 </texts>
 '''
