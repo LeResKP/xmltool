@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 from lxml import etree
 import re
 from StringIO import StringIO
@@ -23,7 +24,8 @@ def load(filename, validate=True):
     """
     tree = etree.parse(filename)
     dtd_url = tree.docinfo.system_url
-    dtd_str = utils.get_dtd_content(dtd_url)
+    path = isinstance(filename, basestring) and os.path.dirname(filename) or None
+    dtd_str = utils.get_dtd_content(dtd_url, path)
     if validate:
         utils.validate_xml(tree, dtd_str)
 

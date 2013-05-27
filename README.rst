@@ -9,14 +9,18 @@ The main goal of this package was to create a HTML form to edit and create a XML
 Changelog
 =========
 
+O.3.2:
+    * Better support for local dtd. It can a relative path from the XML filename.
+    * Bug fix: the EMPTY tags are support correctly!
+
 O.3.1:
     * Render the text element as HTML format when exporting in XML (no autoclose tag)
-    * Fix bug: make sure we add empty text element in the HTML form
+    * Bug fix: make sure we add empty text element in the HTML form
 
 O.3:
     * Rewrite the core of the code
     * Better performance to generate the HTML
-    * Fix bug
+    * Bug fix
 
 O.2:
     * Update the project architecture

@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-version = '0.3.1'
+version = '0.3.2'
 
 setup(name='xmltool',
       version=version,
@@ -28,7 +28,7 @@ setup(name='xmltool',
       keywords='',
       author='Aur\xc3\xa9lien Matouillot',
       author_email='a.matouillot@gmail.com',
-      url='http://xmltools.lereskp.fr/',
+      url='http://xmltool.lereskp.fr/',
       license='MIT',
       packages=find_packages(exclude=['ez_setup', 'tests', 'tests.*']),
       include_package_data=True,

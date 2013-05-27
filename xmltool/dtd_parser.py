@@ -170,13 +170,18 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
 def _create_class_dict(dtd_dict):
     class_dict = {}
     for tagname, dic in dtd_dict.items():
+        is_empty = False
         lis = _parse_elts(dic['elts'])
         if dic['elts'] in ['#PCDATA', 'EMPTY']:
             c = TextElement
+            if dic['elts'] == 'EMPTY':
+                is_empty = True
         elif (lis[0][3] and
               lis[0][3][0][0] in ['#PCDATA', 'EMPTY']):
             # Special case with mixed content
             c = TextElement
+            if lis[0][3][0][0] == 'EMPTY':
+                is_empty = True
             # TODO: find a better way to handle the mixed content
             # 
             # Make some replacements to have the same dtd than for the children
@@ -192,6 +197,7 @@ def _create_class_dict(dtd_dict):
             '_tagname': tagname,
             '_attribute_names': [tple[0] for tple in dic['attrs']],
             '_sub_elements': [],
+            '_is_empty': is_empty,
         })
         class_dict[tagname] = cls
     return class_dict

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import urllib2
 import StringIO
 from lxml import etree
@@ -25,11 +26,13 @@ def is_http_url(url):
     return False
 
 
-def get_dtd_content(url):
+def get_dtd_content(url, path=None):
     """Get the content of url.
 
     :param url: the url of the dtd file.
     :type url: str
+    :param path: the path to use for a local file.
+    :type path: str
     :return: The content of the given url
     :rtype: string
     """
@@ -40,6 +43,8 @@ def get_dtd_content(url):
         response.close()
         return s
 
+    if path and not url.startswith('/'):
+        url = os.path.join(path, url)
     return open(url, 'r').read()
 
 

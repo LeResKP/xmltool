@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 from lxml import etree
 import simplejson as json
 import dtd_parser
@@ -20,6 +21,7 @@ class Element(object):
     _sourceline = None
     _comment = None
     _is_choice = False
+    _is_empty = False
 
     # The following attributes should be used for the root element.
     _xml_filename = None
@@ -379,7 +381,7 @@ class Element(object):
         encoding = encoding or self._xml_encoding or DEFAULT_ENCODING
         xml = self.to_xml()
         if validate:
-            dtd_str = utils.get_dtd_content(dtd_url)
+            dtd_str = utils.get_dtd_content(dtd_url, os.path.dirname(filename))
             utils.validate_xml(xml, dtd_str)
 
         doctype = ('<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
@@ -424,7 +426,13 @@ class TextElement(Element):
         self._attributes_to_xml(xml)
         # We never set self.text to None to make sure when we export as string
         # we get a HTML format (no autoclose tag)
-        xml.text = self._value or ''
+        if self._is_empty:
+            if self._value:
+                raise Exception(
+                    'It\'s forbidden to have a value to an EMPTY tag')
+            xml.text = None
+        else:
+            xml.text = self._value or ''
         return xml
 
     def _get_html_attrs(self, prefixes, index=None):

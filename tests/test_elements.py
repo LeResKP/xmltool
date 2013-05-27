@@ -675,7 +675,7 @@ class TestElement(TestCase):
             old_get_content = utils.get_dtd_content
             old_validate_xml = utils.validate_xml
             try:
-                utils.get_dtd_content = lambda url: 'dtd content'
+                utils.get_dtd_content = lambda url, path: 'dtd content'
                 utils.validate_xml = lambda xml, dtd_str: True
                 obj.write(filename, dtd_url='http://dtd.url')
             finally:
@@ -776,6 +776,20 @@ class TestTextElement(TestCase):
         self.assertTrue(xml.tag, 'tag')
         self.assertTrue(xml.text, 'text')
         self.assertTrue(xml.attrib, {'attr': 'value'})
+
+        obj = self.cls()
+        obj._is_empty = True
+        obj._value = 'text'
+        try:
+            xml = obj.to_xml()
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e),
+                             'It\'s forbidden to have a value to an EMPTY tag')
+        obj._value = None
+        self.assertTrue(xml.tag, 'tag')
+        self.assertTrue(xml.text, None)
+        self.assertTrue(xml.attrib, {})
 
     def test__get_html_attrs(self):
         obj = self.cls()
