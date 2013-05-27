@@ -23,6 +23,9 @@ class TestUtils(TestCase):
         url = 'tests/exercise.dtd'
         fs_content = utils.get_dtd_content(url)
         self.assertEqual(http_content, fs_content)
+        url = 'exercise.dtd'
+        fs_content = utils.get_dtd_content(url, path='tests/')
+        self.assertEqual(http_content, fs_content)
 
     def test_validate_xml(self):
         root = etree.fromstring(EXERCISE_XML)

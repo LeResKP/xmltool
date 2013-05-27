@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 from lxml import etree
 import simplejson as json
 import dtd_parser
@@ -379,7 +380,7 @@ class Element(object):
         encoding = encoding or self._xml_encoding or DEFAULT_ENCODING
         xml = self.to_xml()
         if validate:
-            dtd_str = utils.get_dtd_content(dtd_url)
+            dtd_str = utils.get_dtd_content(dtd_url, os.path.dirname(filename))
             utils.validate_xml(xml, dtd_str)
 
         doctype = ('<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {

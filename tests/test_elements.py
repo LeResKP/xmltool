@@ -675,7 +675,7 @@ class TestElement(TestCase):
             old_get_content = utils.get_dtd_content
             old_validate_xml = utils.validate_xml
             try:
-                utils.get_dtd_content = lambda url: 'dtd content'
+                utils.get_dtd_content = lambda url, path: 'dtd content'
                 utils.validate_xml = lambda xml, dtd_str: True
                 obj.write(filename, dtd_url='http://dtd.url')
             finally:
