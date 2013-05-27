@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>xmltool’s documentation! &mdash; xmltool 0.3 documentation</title>
+    <title>xmltool’s documentation! &mdash; xmltool 0.3.2 documentation</title>
     
     <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.3',
+        VERSION:     '0.3.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="xmltool 0.3 documentation" href="#" /> 
+    <link rel="top" title="xmltool 0.3.2 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltool 0.3 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltool 0.3.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -116,18 +116,30 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
 <div class="section" id="changelog">
 <h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
+<dt>O.3.2:</dt>
+<dd><ul class="first last simple">
+<li>Better support for local dtd. It can a relative path from the XML filename.</li>
+<li>Bug fix: the EMPTY tags are support correctly!</li>
+</ul>
+</dd>
+<dt>O.3.1:</dt>
+<dd><ul class="first last simple">
+<li>Render the text element as HTML format when exporting in XML (no autoclose tag)</li>
+<li>Bug fix: make sure we add empty text element in the HTML form</li>
+</ul>
+</dd>
 <dt>O.3:</dt>
 <dd><ul class="first last simple">
 <li>Rewrite the core of the code</li>
 <li>Better performance to generate the HTML</li>
-<li>Fix bug</li>
+<li>Bug fix</li>
 </ul>
 </dd>
 <dt>O.2:</dt>
 <dd><ul class="first last simple">
 <li>Update the project architecture</li>
 <li>Be able to access to the element properties like a dict</li>
-<li>Add functions to easily update or create XML file.</li>
+<li>Add functions to easily update or create XML file</li>
 <li>Fix missing README file in the package</li>
 </ul>
 </dd>
@@ -345,7 +357,7 @@ You can find the <a class="reference external" href="https://github.com/LeResKP/
     &lt;character idcharacter="C1"&gt;Matthew Modine&lt;/character&gt;
     &lt;character idcharacter="C2"&gt;Vincent D'Onofrio&lt;/character&gt;
   &lt;/characters&gt;
-  &lt;comment/&gt;
+  &lt;comment&gt;&lt;/comment&gt;
 &lt;/movie&gt;</pre>
 </div>
 </div>
@@ -689,6 +701,11 @@ element.</p>
 <tt class="descname">_is_choice</tt><em class="property"> = False</em><a class="headerlink" href="#xmltool.elements.Element._is_choice" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="xmltool.elements.Element._is_empty">
+<tt class="descname">_is_empty</tt><em class="property"> = False</em><a class="headerlink" href="#xmltool.elements.Element._is_empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="xmltool.elements.Element._load_attributes_from_dict">
 <tt class="descname">_load_attributes_from_dict</tt><big>(</big><em>dic</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#Element._load_attributes_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.Element._load_attributes_from_dict" title="Permalink to this definition">¶</a></dt>
@@ -894,7 +911,12 @@ element.</p>
 <dl class="class">
 <dt id="xmltool.elements.TextElement">
 <em class="property">class </em><tt class="descclassname">xmltool.elements.</tt><tt class="descname">TextElement</tt><a class="reference internal" href="modules/xmltool/elements.html#TextElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.TextElement" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<dd><dl class="attribute">
+<dt id="xmltool.elements.TextElement._exists">
+<tt class="descname">_exists</tt><em class="property"> = False</em><a class="headerlink" href="#xmltool.elements.TextElement._exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="xmltool.elements.TextElement._get_html_attrs">
 <tt class="descname">_get_html_attrs</tt><big>(</big><em>prefixes</em>, <em>index=None</em><big>)</big><a class="reference internal" href="modules/xmltool/elements.html#TextElement._get_html_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.elements.TextElement._get_html_attrs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1014,17 +1036,23 @@ element.</p>
 <span id="xmltool-utils"></span><h3>xmltool.utils<a class="headerlink" href="#module-xmltool.utils" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="xmltool.utils.get_dtd_content">
-<tt class="descclassname">xmltool.utils.</tt><tt class="descname">get_dtd_content</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="modules/xmltool/utils.html#get_dtd_content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.utils.get_dtd_content" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">xmltool.utils.</tt><tt class="descname">get_dtd_content</tt><big>(</big><em>url</em>, <em>path=None</em><big>)</big><a class="reference internal" href="modules/xmltool/utils.html#get_dtd_content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xmltool.utils.get_dtd_content" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the content of url.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the url of the dtd file.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the url of the dtd file.</li>
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the path to use for a local file.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The content of the given url</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The content of the given url</p>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">string</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">string</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1122,11 +1150,11 @@ this into a nested dict/list structure. It also performs unicode decoding.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">xmltool 0.3 documentation</a> &raquo;</li> 
+        <li><a href="#">xmltool 0.3.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2012, Aurélien Matouillot.
+        &copy; Copyright 2013, Aurélien Matouillot.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
   </body>
