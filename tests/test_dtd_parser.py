@@ -433,6 +433,7 @@ class DtdParser(TestCase):
         tag = dic['tag']
         self.assertTrue(issubclass(tag, TextElement))
         self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, ['idtag'])
         self.assertEqual(tag._sub_elements, [])
 
@@ -444,6 +445,7 @@ class DtdParser(TestCase):
         tag = dic['tag']
         self.assertTrue(issubclass(tag, TextElement))
         self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
         # dtd_dict has changed because of the mixed content
@@ -458,6 +460,7 @@ class DtdParser(TestCase):
         tag = dic['tag']
         self.assertTrue(issubclass(tag, Element))
         self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
 
@@ -469,7 +472,19 @@ class DtdParser(TestCase):
         tag = dic['tag']
         self.assertTrue(issubclass(tag, Element))
         self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
+        self.assertEqual(tag._sub_elements, [])
+
+        dtd_dict = {
+            'tag': {'elts': 'EMPTY', 'attrs': []},
+        }
+        dic = dtd_parser._create_class_dict(dtd_dict)
+        self.assertEqual(len(dic), 1)
+        tag = dic['tag']
+        self.assertTrue(issubclass(tag, TextElement))
+        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag._is_empty, True)
         self.assertEqual(tag._sub_elements, [])
 
     def test__create_new_class(self):

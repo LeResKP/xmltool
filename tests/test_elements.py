@@ -777,6 +777,20 @@ class TestTextElement(TestCase):
         self.assertTrue(xml.text, 'text')
         self.assertTrue(xml.attrib, {'attr': 'value'})
 
+        obj = self.cls()
+        obj._is_empty = True
+        obj._value = 'text'
+        try:
+            xml = obj.to_xml()
+            assert 0
+        except Exception, e:
+            self.assertEqual(str(e),
+                             'It\'s forbidden to have a value to an EMPTY tag')
+        obj._value = None
+        self.assertTrue(xml.tag, 'tag')
+        self.assertTrue(xml.text, None)
+        self.assertTrue(xml.attrib, {})
+
     def test__get_html_attrs(self):
         obj = self.cls()
         result = obj._get_html_attrs(None)
