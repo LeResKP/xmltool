@@ -70,7 +70,11 @@ def generate_form(filename, form_action=None, form_filename=None, validate=True)
     if not form_filename:
         form_filename = filename
     obj = load(filename, validate)
+    return generate_form_from_obj(obj, form_action, form_filename, validate)
 
+
+def generate_form_from_obj(obj, form_action=None, form_filename=None,
+                           validate=True):
     hidden_inputs = (
         '<input type="hidden" name="_xml_filename" '
         'id="_xml_filename" value="%s" />'

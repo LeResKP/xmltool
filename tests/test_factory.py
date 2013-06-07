@@ -65,6 +65,11 @@ class TestFactory(TestCase):
 
         self.assertTrue('<fieldset class="Exercise" id="Exercise">' in html)
 
+    def test_generate_form_from_obj(self):
+        obj = factory.load('tests/exercise.xml')
+        html = factory.generate_form_from_obj(obj)
+        self.assertTrue('<form method="POST" id="xmltool-form">' in html)
+
     def test_update(self):
         filename = 'tests/test.xml'
         self.assertFalse(os.path.isfile(filename))
