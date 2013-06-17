@@ -45,6 +45,8 @@ def load_string(xml_str, validate=True):
     :return: the generated python object
     :rtype: :class:`Element`
     """
+    if type(xml_str) == unicode:
+        xml_str = xml_str.encode('utf-8')
     return load(StringIO(xml_str), validate)
 
 
