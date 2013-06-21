@@ -115,9 +115,6 @@ var create_nodes = function(tree, data, parentobj, position){
             var index = 0;
             for (var i=0; i< elts.length; i++){
                 var elt = $(elts[i]);
-                console.log('elt');
-                console.log(elt);
-                console.log(index);
                 if (typeof force_index != 'undefined'){
                     var tmp_index = force_index;
                 }
@@ -134,7 +131,6 @@ var create_nodes = function(tree, data, parentobj, position){
                 else if((i+1) % step == 0 && i != 0){
                     index += 1;
                 }
-                console.log('  ');
             }
         },
         decrement_id: function(prefix, elts){
@@ -212,8 +208,13 @@ var create_nodes = function(tree, data, parentobj, position){
                 var drag_node_id = data.rslt.o.attr('id').replace(/^tree_/, '');
                 var reference_node = data.rslt.r; // The reference where we are moving the node
                 var reference_node_id = reference_node.attr('id').replace(/^tree_/, '');
-                var drag_elt = $('#' + xmltool.escape_id(drag_node_id)).parent();
-                var reference_elt = $('#' + xmltool.escape_id(reference_node_id)).parent();
+                var drag_elt = $('#' + xmltool.escape_id(drag_node_id));
+                var reference_elt = $('#' + xmltool.escape_id(reference_node_id));
+
+                if(drag_elt.is('textarea')){
+                    drag_elt = drag_elt.parent();
+                    reference_elt = reference_elt.parent();
+                }
                 var button = drag_elt.prev();
                 if (position == 'before'){
                     // The previous element is a button to add elements to the list
@@ -265,7 +266,7 @@ var create_nodes = function(tree, data, parentobj, position){
             for(var i=0; i < previous.length; i++){
                 var position = previous[i][0];
                 var selector = xmltool.escape_id(previous[i][1]);
-                var parentobj = $(selector);
+                var parentobj = $(selector + ':last');
                 if (parentobj.length > 1){
                     alert('not expected');
                 }
