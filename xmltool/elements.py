@@ -370,6 +370,21 @@ class Element(object):
                 lis += [elt]
         return lis
 
+    def find_parents(self, tagname):
+        """Find all parents named tagname in element's parents
+
+        :param tagname: (str) The tagname to look for
+        :returns: (list) List of matching parents, ordered from the inside to
+            the outside. This will return the object himself as first element
+            if its tagname is the one we're looking for
+        """
+        res = []
+        if self._tagname == tagname:
+            res = [self]
+        if self._parent is not None:
+            res += self._parent.find_parents(tagname)
+        return res
+
     def write(self, filename=None, encoding=None, dtd_url=None, validate=True,
               transform=None):
         filename = filename or self._xml_filename

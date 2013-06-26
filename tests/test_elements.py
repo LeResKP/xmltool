@@ -655,6 +655,37 @@ class TestElement(TestCase):
         lis = parent_obj.findall('subtag')
         self.assertEqual(lis, [obj])
 
+    def test_find_parents(self):
+        """Testing find_parents
+        """
+        parent_obj = self.cls()
+        obj1 = self.sub_cls()
+        obj2 = self.sub_cls()
+        obj3 = self.sub_cls()
+        # define tree, we need to set _parent by hand because we don't have dtd
+        parent_obj.subtag = obj1
+        obj1._parent = parent_obj
+        obj1.subtag = obj2
+        obj2._parent = obj1
+        obj2.subtag = obj3
+        obj3._parent = obj2
+
+        # no parent
+        lis = parent_obj.find_parents('subtag')
+        self.assertEqual(lis, [])
+
+        # element matches
+        lis = obj1.find_parents('subtag')
+        self.assertEqual(lis, [obj1])
+
+        # one parent (and self)
+        lis = obj2.find_parents('subtag')
+        self.assertEqual(lis, [obj2, obj1])
+
+        # 2 parents (and self)
+        lis = obj3.find_parents('subtag')
+        self.assertEqual(lis, [obj3, obj2, obj1])
+
     def test_write(self):
         filename = 'tests/test.xml'
         self.assertFalse(os.path.isfile(filename))
