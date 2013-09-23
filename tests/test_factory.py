@@ -44,6 +44,13 @@ class TestFactory(TestCase):
                                  validate=False)
         self.assertEqual(obj._tagname, 'Exercise')
 
+    def test_load_string_unicode(self):
+        xml_str = open('tests/exercise-notvalid.xml', 'r').read()
+        xml_str = unicode(xml_str)
+        obj = factory.load_string(xml_str,
+                                  validate=False)
+        self.assertEqual(obj._tagname, 'Exercise')
+
     def test_generate_form(self):
         html = factory.generate_form('tests/exercise.xml')
         self.assertTrue('<form method="POST" id="xmltool-form">' in html)
@@ -64,6 +71,11 @@ class TestFactory(TestCase):
             'value="UTF-8" />' in html)
 
         self.assertTrue('<fieldset class="Exercise" id="Exercise">' in html)
+
+    def test_generate_form_from_obj(self):
+        obj = factory.load('tests/exercise.xml')
+        html = factory.generate_form_from_obj(obj)
+        self.assertTrue('<form method="POST" id="xmltool-form">' in html)
 
     def test_update(self):
         filename = 'tests/test.xml'

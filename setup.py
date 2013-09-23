@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-version = '0.3.2'
+version = '0.3.3'
 
 setup(name='xmltool',
       version=version,
@@ -36,9 +36,10 @@ setup(name='xmltool',
       install_requires=[
           'lxml',
           'WebOb',
+          'simplejson',
       ],
-      test_suite = 'nose.collector',
-      tests_require = [
+      test_suite='nose.collector',
+      tests_require=[
           'nose',
           'BeautifulSoup',
           'strainer',

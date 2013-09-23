@@ -115,9 +115,6 @@ var create_nodes = function(tree, data, parentobj, position){
             var index = 0;
             for (var i=0; i< elts.length; i++){
                 var elt = $(elts[i]);
-                console.log('elt');
-                console.log(elt);
-                console.log(index);
                 if (typeof force_index != 'undefined'){
                     var tmp_index = force_index;
                 }
@@ -134,7 +131,6 @@ var create_nodes = function(tree, data, parentobj, position){
                 else if((i+1) % step == 0 && i != 0){
                     index += 1;
                 }
-                console.log('  ');
             }
         },
         decrement_id: function(prefix, elts){
@@ -212,8 +208,13 @@ var create_nodes = function(tree, data, parentobj, position){
                 var drag_node_id = data.rslt.o.attr('id').replace(/^tree_/, '');
                 var reference_node = data.rslt.r; // The reference where we are moving the node
                 var reference_node_id = reference_node.attr('id').replace(/^tree_/, '');
-                var drag_elt = $('#' + xmltool.escape_id(drag_node_id)).parent();
-                var reference_elt = $('#' + xmltool.escape_id(reference_node_id)).parent();
+                var drag_elt = $('#' + xmltool.escape_id(drag_node_id));
+                var reference_elt = $('#' + xmltool.escape_id(reference_node_id));
+
+                if(drag_elt.is('textarea')){
+                    drag_elt = drag_elt.parent();
+                    reference_elt = reference_elt.parent();
+                }
                 var button = drag_elt.prev();
                 if (position == 'before'){
                     // The previous element is a button to add elements to the list
@@ -243,9 +244,19 @@ var create_nodes = function(tree, data, parentobj, position){
 
 
 (function($){
+
+    var default_options = {
+        open_dialog: function(dialog){
+            dialog.modal('show');
+        },
+        close_dialog: function(dialog){
+            dialog.modal('hide');
+        }
+    };
+
     $.fn.xmltool = function(options){
         var self = $(this);
-
+        var settings = $.extend({}, default_options, options);
 
         var add_node = function(data){
             //jstree
@@ -255,7 +266,7 @@ var create_nodes = function(tree, data, parentobj, position){
             for(var i=0; i < previous.length; i++){
                 var position = previous[i][0];
                 var selector = xmltool.escape_id(previous[i][1]);
-                var parentobj = $(selector);
+                var parentobj = $(selector + ':last');
                 if (parentobj.length > 1){
                     alert('not expected');
                 }
@@ -265,7 +276,7 @@ var create_nodes = function(tree, data, parentobj, position){
                     break;
                 }
             }
-        }
+        };
 
         var delete_node = function(node_id){
             var tree = $('#tree');
@@ -279,7 +290,7 @@ var create_nodes = function(tree, data, parentobj, position){
             var prefix = xmltool.get_prefix(longprefix);
             xmltool.decrement_id(prefix, nexts);
             tree.jstree('delete_node', node);
-        }
+        };
 
         $.extend(self, {
             set_btn_event: function(p){
@@ -313,7 +324,7 @@ var create_nodes = function(tree, data, parentobj, position){
                     $('#tree').jstree("open_node", o);
                     return false;
                 });
-            }
+            };
 
             set_fielset(p.find('fieldset'));
             if(p.is('fieldset')){
@@ -380,11 +391,10 @@ var create_nodes = function(tree, data, parentobj, position){
                 var params = {
                     elt_id: $(this).data('id'),
                     dtd_url: dtd_url
-                }
-                var url = 'http://127.0.0.1:6543/add-element.json'
+                };
                 $.ajax({
                      type: 'GET',
-                     url: url,
+                     url: settings.add_element_url,
                      data: params,
                      dataType: 'json',
                      success: function(data, textStatus, jqXHR){
@@ -408,11 +418,10 @@ var create_nodes = function(tree, data, parentobj, position){
                 var params = {
                     elt_id: $(this).val(),
                     dtd_url: dtd_url
-                }
-                var url = 'http://127.0.0.1:6543/add-element.json'
+                };
                 $.ajax({
                      type: 'GET',
-                     url: url,
+                     url: settings.add_element_url,
                      data: params,
                      dataType: 'json',
                      success: function(data, textStatus, jqXHR){
@@ -438,11 +447,10 @@ var create_nodes = function(tree, data, parentobj, position){
                 var params = {
                     elt_id: $(this).val(),
                     dtd_url: dtd_url
-                }
-                var url = 'http://127.0.0.1:6543/add-element.json'
+                };
                 $.ajax({
                      type: 'GET',
-                     url: url,
+                     url: settings.add_element_url,
                      data: params,
                      dataType: 'json',
                      success: function(data, textStatus, jqXHR){
@@ -474,12 +482,11 @@ var create_nodes = function(tree, data, parentobj, position){
                 var params = {
                     elt_id: $(this).data('id'),
                     dtd_url: dtd_url
-                }
+                };
                 // TODO: do nothing if elt_id is empty
-                var url = 'http://127.0.0.1:6543/add-element.json'
                 $.ajax({
                      type: 'GET',
-                     url: url,
+                     url: settings.add_element_url,
                      data: params,
                      dataType: 'json',
                      success: function(data, textStatus, jqXHR){
@@ -506,39 +513,47 @@ var create_nodes = function(tree, data, parentobj, position){
 
             p.find('.btn-comment').on('click', function(){
                 var self = $(this);
-                var comment_textarea = $(this).next('._comment');
+
+                var comment_textarea = self.next('._comment');
 
                 if (!comment_textarea.length){
                     comment_textarea = $('<textarea>').attr('name', self.data('comment-name')).addClass('_comment');
                     self.after(comment_textarea);
                 }
                 // Create the dialog
-                var dialog = $('<div class="comment-dialog">');
-                var textarea = $('<textarea />').val(comment_textarea.val());
-                textarea.appendTo(dialog);
-                $('<br />').appendTo(dialog);
-                var submit = $('<input type="button" value="Update" />');
-                submit.appendTo(dialog);
-                submit.on('click', function(){
-                    var value = textarea.val();
-                    comment_textarea.val(value);
-                    dialog.dialog('close');
+                var modal = self.data('modal');
+                if(modal === undefined){
+                    $.ajax({
+                        type: 'GET',
+                        url: settings.comment_modal_url,
+                        data: {'comment': comment_textarea.val()},
+                        dataType: 'json',
+                        async: false,
+                        success: function(data, textStatus, jqXHR){
+                            modal = $(data.content);
+                            self.data('modal', modal);
+                            modal.find('.submit').click(function(){
+                                var value = modal.find('textarea').val();
+                                comment_textarea.val(value);
+                                settings.close_dialog(modal);
 
-                    self.attr('title', value);
-                    if (value){
-                        self.addClass('has-comment');
-                    }
-                    else{
-                        self.removeClass('has-comment');
-                    }
-                });
-
-                dialog.dialog({
-                    modal: true,
-                    height: 200,
-                    width: 400,
-                    title: 'Add comment'
-                });
+                                self.attr('title', value);
+                                if (value){
+                                    self.addClass('has-comment');
+                                }
+                                else{
+                                    self.removeClass('has-comment');
+                                }
+                                return false;
+                            });
+                        },
+                        error: function(jqXHR, textStatus, errorThrown){
+                            // TODO: Replace all this kind of errors!
+                            console.log('Error ajax loading');
+                        }
+                    });
+                }
+                settings.open_dialog(modal);
                 return false;
              });
             }

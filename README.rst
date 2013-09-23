@@ -9,6 +9,9 @@ The main goal of this package was to create a HTML form to edit and create a XML
 Changelog
 =========
 
+O.3.3:
+    * Fix missing require
+
 O.3.2:
     * Better support for local dtd. It can a relative path from the XML filename.
     * Bug fix: the EMPTY tags are support correctly!

@@ -2,14 +2,10 @@
 
 import os
 from lxml import etree
-import re
 from StringIO import StringIO
 import dtd_parser
 import utils
 import elements
-
-
-xml_declaration_re = re.compile(r'(<\?xml [^>]*\?>)')
 
 
 def load(filename, validate=True):
@@ -49,9 +45,8 @@ def load_string(xml_str, validate=True):
     :return: the generated python object
     :rtype: :class:`Element`
     """
-    # We remove the xml declaration since it's not supported to load xml with
-    # it in lxml
-    xml_str = xml_declaration_re.sub('', xml_str)
+    if type(xml_str) == unicode:
+        xml_str = xml_str.encode('utf-8')
     return load(StringIO(xml_str), validate)
 
 
@@ -70,7 +65,11 @@ def generate_form(filename, form_action=None, form_filename=None, validate=True)
     if not form_filename:
         form_filename = filename
     obj = load(filename, validate)
+    return generate_form_from_obj(obj, form_action, form_filename, validate)
 
+
+def generate_form_from_obj(obj, form_action=None, form_filename=None,
+                           validate=True):
     hidden_inputs = (
         '<input type="hidden" name="_xml_filename" '
         'id="_xml_filename" value="%s" />'
