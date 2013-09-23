@@ -1,6 +1,9 @@
 Changelog
 =========
 
+O.3.3:
+    * Fix missing require
+
 O.3.2:
     * Better support for local dtd. It can a relative path from the XML filename.
     * Bug fix: the EMPTY tags are support correctly!
