@@ -299,6 +299,12 @@ var create_nodes = function(tree, data, parentobj, position){
                             var id = xmltool.escape_id($(this).attr('id'));
                             var tree = $('#tree');
                             tree.jstree('hover_node', $('#tree_' + id));
+                            $(this).on('keyup.xmltool', function(){
+                                // TODO: this method should be improved to make
+                                // sure the user has made an update
+                                self.trigger('field_change.xmltool');
+                                $(this).unbind('keyup.xmltool');
+                            });
                         }).blur(function(){
                             var id = xmltool.escape_id($(this).attr('id'));
                             var a = $('#tree_' + id).find('a');
@@ -312,6 +318,7 @@ var create_nodes = function(tree, data, parentobj, position){
                             else{
                                 elt.text('');
                             }
+                            $(this).unbind('keyup.xmltool');
                         });
 
             var set_fielset = function(fieldsets){
