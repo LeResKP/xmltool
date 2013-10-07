@@ -303,7 +303,6 @@ var create_nodes = function(tree, data, parentobj, position){
                                 // TODO: this method should be improved to make
                                 // sure the user has made an update
                                 self.trigger('field_change.xmltool');
-                                $(this).unbind('keyup.xmltool');
                             });
                         }).blur(function(){
                             var id = xmltool.escape_id($(this).attr('id'));
