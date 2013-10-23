@@ -2,8 +2,6 @@
 
 from unittest import TestCase
 from lxml import etree
-import tw2.core as twc
-import tw2.core.testbase as tw2test
 import os.path
 from xmltool import utils
 from xmltool.elements import (
