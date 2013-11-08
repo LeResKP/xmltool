@@ -69,7 +69,7 @@ def generate_form(filename, form_action=None, form_filename=None, validate=True)
 
 
 def generate_form_from_obj(obj, form_action=None, form_filename=None,
-                           validate=True):
+                           validate=True, form_attrs=None):
     hidden_inputs = (
         '<input type="hidden" name="_xml_filename" '
         'id="_xml_filename" value="%s" />'
@@ -82,13 +82,16 @@ def generate_form_from_obj(obj, form_action=None, form_filename=None,
         obj._xml_dtd_url,
         obj._xml_encoding or elements.DEFAULT_ENCODING,
     )
-
-    html = []
+    attrs = {}
+    if form_attrs:
+        attrs = form_attrs.copy()
+    if 'id' not in attrs:
+        attrs['id'] = 'xmltool-form'
     if form_action:
-        html += ['<form action="%s" method="POST" '
-                 'id="xmltool-form">' % form_action]
-    else:
-        html += ['<form method="POST" id="xmltool-form">']
+        attrs['action'] = form_action
+
+    attrs_str = ' '.join(['%s="%s"' % tple for tple in attrs.items()])
+    html = ['<form method="POST" %s>' % attrs_str]
     html += [hidden_inputs]
     html += [obj.to_html()]
     html += ['</form>']
@@ -126,7 +129,7 @@ def update(filename, data, validate=True, transform=None):
     return obj
 
 
-def new(dtd_url, root_tag, form_action=None):
+def new(dtd_url, root_tag, form_action=None, form_attrs=None):
     dic = dtd_parser.parse(dtd_url=dtd_url)
     obj = dic[root_tag]()
 
@@ -143,12 +146,16 @@ def new(dtd_url, root_tag, form_action=None):
         elements.DEFAULT_ENCODING,
     )
 
-    html = []
+    attrs = {}
+    if form_attrs:
+        attrs = form_attrs.copy()
+    if 'id' not in attrs:
+        attrs['id'] = 'xmltool-form'
     if form_action:
-        html += ['<form action="%s" method="POST" '
-                 'id="xmltool-form">' % form_action]
-    else:
-        html += ['<form method="POST" id="xmltool-form">']
+        attrs['action'] = form_action
+
+    attrs_str = ' '.join(['%s="%s"' % tple for tple in attrs.items()])
+    html = ['<form method="POST" %s>' % attrs_str]
     html += [hidden_inputs]
     html += [obj.to_html()]
     html += ['</form>']

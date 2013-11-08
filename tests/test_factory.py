@@ -56,8 +56,8 @@ class TestFactory(TestCase):
         self.assertTrue('<form method="POST" id="xmltool-form">' in html)
 
         html = factory.generate_form('tests/exercise.xml',
-                                        form_action='/action/submit')
-        self.assertTrue('<form action="/action/submit" method="POST" '
+                                     form_action='/action/submit')
+        self.assertTrue('<form method="POST" action="/action/submit" '
                         'id="xmltool-form">' in html)
         self.assertTrue(
             '<input type="hidden" name="_xml_filename" id="_xml_filename" '
@@ -76,6 +76,12 @@ class TestFactory(TestCase):
         obj = factory.load('tests/exercise.xml')
         html = factory.generate_form_from_obj(obj)
         self.assertTrue('<form method="POST" id="xmltool-form">' in html)
+
+        html = factory.generate_form_from_obj(
+            obj,
+            form_attrs={'data-action': 'action'})
+        self.assertTrue('<form method="POST" data-action="action" '
+                        'id="xmltool-form">' in html)
 
     def test_update(self):
         filename = 'tests/test.xml'
@@ -148,7 +154,24 @@ class TestFactory(TestCase):
         self.assertEqual(result, expected)
 
         result = factory.new(dtd_url, root_tag, '/submit')
-        expected = ('<form action="/submit" method="POST" id="xmltool-form">'
+        expected = ('<form method="POST" action="/submit" id="xmltool-form">'
+                    '<input type="hidden" name="_xml_filename" '
+                    'id="_xml_filename" value="" />'
+                    '<input type="hidden" name="_xml_dtd_url" '
+                    'id="_xml_dtd_url" '
+                    'value="http://xmltool.lereskp.fr/static/exercise.dtd" '
+                    '/>'
+                    '<input type="hidden" name="_xml_encoding" '
+                    'id="_xml_encoding" value="UTF-8" />'
+                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    'Add choice</a>'
+                    '</form>')
+        self.assertEqual(result, expected)
+
+        result = factory.new(dtd_url, root_tag, '/submit',
+                             form_attrs={'data-action': 'action'})
+        expected = ('<form method="POST" action="/submit" '
+                    'data-action="action" id="xmltool-form">'
                     '<input type="hidden" name="_xml_filename" '
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
