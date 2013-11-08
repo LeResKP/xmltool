@@ -5,6 +5,7 @@ from lxml import etree
 import simplejson as json
 import dtd_parser
 import utils
+from distutils.version import StrictVersion
 
 DEFAULT_ENCODING = 'UTF-8'
 
@@ -384,16 +385,27 @@ class Element(object):
             dtd_str = utils.get_dtd_content(dtd_url, os.path.dirname(filename))
             utils.validate_xml(xml, dtd_str)
 
-        doctype = ('<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
+        doctype = '<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
                       'root_tag': self._tagname,
                       'dtd_url': dtd_url,
-                 })
-        xml_str = etree.tostring(
-            xml.getroottree(),
-            pretty_print=True,
-            xml_declaration=True,
-            encoding=encoding,
-            doctype=doctype)
+                    }
+
+        if StrictVersion(etree.__version__) < StrictVersion('2.3'):
+            xml_str = etree.tostring(
+                xml.getroottree(),
+                pretty_print=True,
+                xml_declaration=True,
+                encoding=encoding,
+            )
+            xml_str = xml_str.replace('<%s' % self._tagname,
+                                      '%s\n<%s' % (doctype, self._tagname))
+        else:
+            xml_str = etree.tostring(
+                xml.getroottree(),
+                pretty_print=True,
+                xml_declaration=True,
+                encoding=encoding,
+                doctype=doctype)
         if transform:
             xml_str = transform(xml_str)
         open(filename, 'w').write(xml_str)

@@ -1,9 +1,8 @@
-var jsdom = require('jsdom');
-window = jsdom.jsdom().createWindow();
+var jsdom = require('jsdom').jsdom;
+window = jsdom().createWindow();
 document = window.document;
-$ = jQuery = require('jQuery');
+navigator = window.navigator
 // We don't care of the confirm dialog in the test
-confirm = function(text){return true;}
+confirm = function(text){return true;};
 // Fake alert
-alert = function(text){console.log(text);}
-navigator = require('navigator');
+alert = function(text){console.log(text);};

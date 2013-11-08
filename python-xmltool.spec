@@ -1,7 +1,7 @@
 %define modname xmltool
-%define version 0.3.2
-%define unmangled_version 0.3.3
-%define unmangled_version 0.3.3
+%define version 0.3.4
+%define unmangled_version 0.3.4
+%define unmangled_version 0.3.4
 %define release 1
 
 Summary: Tool to manipulate XML files
@@ -30,6 +30,10 @@ The main goal of this package was to create a HTML form to edit and create a XML
 
 Changelog
 =========
+
+O.3.4:
+    * Make xmltool works with old version of lxml
+    * Be able to pass attributes to the HTML form
 
 O.3.3:
     * Fix missing require
