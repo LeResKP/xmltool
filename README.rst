@@ -9,6 +9,10 @@ The main goal of this package was to create a HTML form to edit and create a XML
 Changelog
 =========
 
+O.3.4:
+    * Make xmltool works with old version of lxml
+    * Be able to pass attributes to the HTML form
+
 O.3.3:
     * Fix missing require
 
