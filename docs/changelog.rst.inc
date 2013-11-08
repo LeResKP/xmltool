@@ -1,6 +1,10 @@
 Changelog
 =========
 
+O.3.4:
+    * Make xmltool works with old version of lxml
+    * Be able to pass attributes to the HTML form
+
 O.3.3:
     * Fix missing require
 
