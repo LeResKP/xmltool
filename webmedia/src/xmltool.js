@@ -1,17 +1,4 @@
-
-var logging = function(){
-
-    var self = this;
-
-    $.extend(self,{
-        log: function(text){
-            console.log(text);
-        }
-    });
-}
-
-var logger = new logging();
-
+var xmltool = xmltool || {};
 
 var create_nodes = function(tree, data, parentobj, position){
     var node = tree.jstree("create_node", parentobj, position, data);
@@ -21,7 +8,7 @@ var create_nodes = function(tree, data, parentobj, position){
     var prefix = xmltool.get_prefix(longprefix);
     xmltool.increment_id(prefix, nexts);
     // self.increment_id(node);
-    if (typeof(data.children) != 'undefined'){
+    if (typeof(data.children) !== 'undefined'){
         for(var i=0; i < data.children.length; i++){
             tree.jstree("create_node", node, 'last', data.children[i]);
         }
@@ -30,7 +17,7 @@ var create_nodes = function(tree, data, parentobj, position){
 };
 
 
-(function(exports){
+(function($, ns){
     var re_split = new RegExp('^(.*):([^:]+)$');
 
     var attrnames = ['name', 'id', 'class', 'value'];
@@ -44,7 +31,7 @@ var create_nodes = function(tree, data, parentobj, position){
             return id.replace(re_split, '$1');
         },
         get_index: function(id){
-            return parseInt(id.replace(re_split, '$2'));
+            return parseInt(id.replace(re_split, '$2'), 10);
         },
         _attr: function(elt, name, value){
             if(typeof value === 'undefined'){
@@ -70,11 +57,11 @@ var create_nodes = function(tree, data, parentobj, position){
                 // TODO: split value on ' ' and make sure we update all .
                 // it's needed for the css class
                 if(value){
-                    values = value.split(' ');
-                    var output = []
+                    var values = value.split(' ');
+                    var output = [];
                     for(var i=0; i<values.length; i++){
                         var v = values[i];
-                        var index = parseInt(v.replace(re_id, '$1'));
+                        var index = parseInt(v.replace(re_id, '$1'), 10);
                         var re = new RegExp('^'+prefix+':'+index);
                         var new_value = v.replace(re, prefix + ':' + (index+diff));
                         output.push(new_value);
@@ -97,11 +84,11 @@ var create_nodes = function(tree, data, parentobj, position){
                 var name = names[key];
                 var value = func(elt, name);
                 if(value){
-                    values = value.split(' ');
-                    var output = []
+                    var values = value.split(' ');
+                    var output = [];
                     for(var i=0; i<values.length; i++){
                         var v = values[i];
-                        var old_index = parseInt(v.replace(re_id, '$1'));
+                        var old_index = parseInt(v.replace(re_id, '$1'), 10);
                         var re = new RegExp('^'+prefix+':'+old_index);
                         var new_value = v.replace(re, prefix + ':' + index);
                         output.push(new_value);
@@ -115,20 +102,21 @@ var create_nodes = function(tree, data, parentobj, position){
             var index = 0;
             for (var i=0; i< elts.length; i++){
                 var elt = $(elts[i]);
-                if (typeof force_index != 'undefined'){
-                    var tmp_index = force_index;
+                var tmp_index;
+                if (typeof force_index !== 'undefined'){
+                    tmp_index = force_index;
                 }
                 else{
-                    var tmp_index = index;
+                    tmp_index = index;
                 }
                 xmltool._replace_id(prefix, elt, xmltool._attr, attrnames, tmp_index);
                 xmltool._replace_id(prefix, elt, xmltool._data, datanames, tmp_index);
                 xmltool.replace_id(prefix, elt.children(), 1, tmp_index);
 
-                if (step == 1){
+                if (step === 1){
                     index += 1;
                 }
-                else if((i+1) % step == 0 && i != 0){
+                else if(((i+1) % step) === 0 && i !== 0){
                     index += 1;
                 }
             }
@@ -161,39 +149,42 @@ var create_nodes = function(tree, data, parentobj, position){
         get_first_class: function(obj){
             return obj.attr('class').split(' ')[0];
         }
+    };
+
+    for (var key in functions){
+        ns[key] = functions[key];
     }
-
-    for (key in functions){
-        exports[key] = functions[key];
-    }
-}(typeof exports === "undefined"? (this.xmltool={}): exports));
+})(window.jQuery, xmltool);
 
 
-(function(exports){
+(function($, ns){
 
-    exports.jstree = function(){
+    ns.jstree = (function(){
         var self = {};
 
         $.extend(self,{
             same_node: function(node1, node2){
                 // We assume there is no multiple selection, node1 and node2 are not list!
-                if(node1 === node2)
+                if(node1 === node2){
                     return true;
-                if(node1[0] && node2[0] && node1[0] === node2[0])
+                }
+                if(node1[0] && node2[0] && node1[0] === node2[0]){
                     return true;
+                }
                 return false;
             },
             same_class: function(node1, node2){
-                if (xmltool.get_first_class(node1) == xmltool.get_first_class(node2))
+                if (xmltool.get_first_class(node1) === xmltool.get_first_class(node2)){
                     return true;
+                }
                 return false;
             },
             check_move: function (m) {
                 // Only be able to move elements with the same parent and the
                 // same class
                 var p = this._get_parent(m.o);
-                if(!p) return false;
-                p = p == -1 ? this.get_container() : p;
+                if(!p) {return false;}
+                p = (p === -1) ? this.get_container() : p;
                 if (! self.same_node(p, m.np)){
                     return false;
                 }
@@ -216,13 +207,13 @@ var create_nodes = function(tree, data, parentobj, position){
                     reference_elt = reference_elt.parent();
                 }
                 var button = drag_elt.prev();
-                if (position == 'before'){
+                if (position === 'before'){
                     // The previous element is a button to add elements to the list
                     var prev = reference_elt.prev();
                     prev.before(button);
                     prev.before(drag_elt);
                 }
-                else if (position == 'after'){
+                else if (position === 'after'){
                     reference_elt.after(drag_elt);
                     reference_elt.after(button);
                 }
@@ -232,15 +223,15 @@ var create_nodes = function(tree, data, parentobj, position){
                 var prefix = xmltool.get_prefix(longprefix);
                 xmltool.replace_id(prefix, elts);
 
-                var elts = drag_elt.parent().children();
+                elts = drag_elt.parent().children();
                 prefix = prefix.replace(/^tree_/, '');
-                xmltool.replace_id(prefix, elts, step=2);
+                xmltool.replace_id(prefix, elts, 2);
             }
         });
         return self;
-    }();
+    })();
 
-}(typeof exports === "undefined"? this.xmltool: exports));
+})(window.jQuery, xmltool);
 
 
 (function($){
@@ -308,7 +299,7 @@ var create_nodes = function(tree, data, parentobj, position){
                             var id = xmltool.escape_id($(this).attr('id'));
                             var a = $('#tree_' + id).find('a');
                             var elt = a.find('._tree_text');
-                            if (elt.length == 0){
+                            if (elt.length === 0){
                                 elt = $('<span class="_tree_text"/>').appendTo(a);
                             }
                             if($(this).val()){
@@ -569,4 +560,4 @@ var create_nodes = function(tree, data, parentobj, position){
             self.set_btn_event($(this));
         });
     };
-})(jQuery);
+})(window.jQuery);
