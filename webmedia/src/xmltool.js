@@ -7,7 +7,6 @@ var create_nodes = function(tree, data, parentobj, position){
     var longprefix = xmltool.get_prefix(node.attr('id'));
     var prefix = xmltool.get_prefix(longprefix);
     xmltool.increment_id(prefix, nexts);
-    // self.increment_id(node);
     if (typeof(data.children) !== 'undefined'){
         for(var i=0; i < data.children.length; i++){
             tree.jstree("create_node", node, 'last', data.children[i]);
@@ -54,8 +53,6 @@ var create_nodes = function(tree, data, parentobj, position){
             for (var key in names){
                 var name = names[key];
                 var value = func(elt, name);
-                // TODO: split value on ' ' and make sure we update all .
-                // it's needed for the css class
                 if(value){
                     var values = value.split(' ');
                     var output = [];
@@ -236,20 +233,21 @@ var create_nodes = function(tree, data, parentobj, position){
 
 (function($){
 
-    var default_options = {
-        open_dialog: function(dialog){
-            dialog.modal('show');
-        },
-        close_dialog: function(dialog){
-            dialog.modal('hide');
-        }
+
+    function Xmltool(element, options){
+        this.options = options;
+        // TODO: should be in options:
+        this.dtd_url_selector = '#_xml_dtd_url';
+        this.init(element);
+    }
+
+    Xmltool.prototype.init = function(element) {
+        this.element = element;
+        this.$form = $(element);
+        this.dtd_url = this.$form.find(this.dtd_url_selector).val();
     };
 
-    $.fn.xmltool = function(options){
-        var self = $(this);
-        var settings = $.extend({}, default_options, options);
-
-        var add_node = function(data){
+    Xmltool.prototype.add_node = function(data){
             //jstree
             var jstree_data = $(data.jstree_data);
             var previous = $(data.previous);
@@ -269,7 +267,84 @@ var create_nodes = function(tree, data, parentobj, position){
             }
         };
 
-        var delete_node = function(node_id){
+    Xmltool.prototype.addElement = function($btn, elt_id){
+        var that = this;
+        var params = {
+            elt_id: elt_id,
+            dtd_url: this.dtd_url
+        };
+        $.ajax({
+            type: 'GET',
+            url: this.options.add_element_url,
+            data: params,
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR){
+                var objs = $(data.html);
+                that.set_btn_event($('<div/>').append(objs));
+                if($btn.hasClass('btn-list')){
+                    $btn.after(objs);
+                    // Last is the button to add more
+                    var last = $(objs[objs.length-1]);
+                    var nexts = last.nextAll();
+                    // TODO: Make sure this is correclty tested
+                    var longprefix = xmltool.get_prefix(elt_id);
+                    var prefix = xmltool.get_prefix(longprefix);
+                    xmltool.increment_id(prefix, nexts);
+                }
+                else {
+                    $btn.replaceWith(objs);
+                }
+
+                if ($btn.is('select')) {
+                    $btn.val($btn.find('option:first').val());
+                }
+
+                //jstree
+                that.add_node(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown){
+                console.log('Error ajax loading');
+            }
+        });
+    };
+
+    Xmltool.prototype.removeElement = function($btn){
+        var $addBtn = $btn.prev('.btn');
+        var $parent = this.$form.find(xmltool.escape_id($btn.data('target')));
+        if($btn.hasClass('btn-list')) {
+            var nexts = $parent.nextAll();
+            // Remove the add button
+            $parent.prev().remove();
+            $parent.remove();
+            var longprefix = xmltool.get_prefix($parent.data('id'));
+            var prefix = xmltool.get_prefix(longprefix);
+            xmltool.decrement_id(prefix, nexts);
+        }
+        else {
+            $parent.replaceWith($addBtn);
+            $addBtn.removeClass('hidden');
+        }
+        this.delete_node('tree_' + $parent.data('id'));
+    };
+
+
+    var default_options = {
+        open_dialog: function(dialog){
+            dialog.modal('show');
+        },
+        close_dialog: function(dialog){
+            dialog.modal('hide');
+        }
+    };
+
+    $.fn.xmltool = function(options){
+        var self = $(this);
+        var settings = $.extend({}, default_options, options);
+
+        var xt = new Xmltool(this, settings);
+
+
+        Xmltool.prototype.delete_node = function(node_id){
             var tree = $('#tree');
             var node = tree.find('#' + xmltool.escape_id(node_id));
             if (node.length > 1){
@@ -283,8 +358,7 @@ var create_nodes = function(tree, data, parentobj, position){
             tree.jstree('delete_node', node);
         };
 
-        $.extend(self, {
-            set_btn_event: function(p){
+        Xmltool.prototype.set_btn_event = function(p){
                     p.find('textarea').autosize().focus(
                         function(){
                             var id = xmltool.escape_id($(this).attr('id'));
@@ -328,184 +402,18 @@ var create_nodes = function(tree, data, parentobj, position){
                 set_fielset(p);
             }
 
-
             p.find('.btn-delete').on('click', function(){
-                // TODO: Perhaps one delete button class is sufficient since we
-                // can know if we are in a list or in a fieldset easily
-                var add_btn = $(this).prev('.btn');
-                // TODO: this condition should certainly be removed, if we can
-                // delete the block, we should be able to read it!
-                var parent_obj = $(this).parent();
-                if(add_btn.length){
-                    parent_obj.replaceWith(add_btn);
-                    add_btn.removeClass('hidden');
-                }
-                else{
-                    parent_obj.remove();
-                }
-                delete_node('tree_' + parent_obj.data('id'));
+                var $btn = $(this);
+                xt.removeElement($btn);
             });
 
-            p.find('.btn-delete-fieldset').on('click', function(){
-                var fieldset = $(this).parent('legend').parent('fieldset');
-                if (fieldset.parent('.list-container').length){
-                    fieldset.prev().remove(); // the add btn
-                }
-                var add_btn = $(this).prev('.btn');
-                var is_list = fieldset.parent('.list-container').length;
-                if (is_list){
-                    var longprefix = xmltool.get_prefix(fieldset.attr('id'));
-                    var prefix = xmltool.get_prefix(longprefix);
-                    var nexts = fieldset.nextAll();
-                    xmltool.decrement_id(prefix, nexts);
-                }
-                if(add_btn.length){
-                    fieldset.replaceWith(add_btn);
-                    add_btn.removeClass('hidden');
-                }
-                else{
-                    fieldset.remove();
-                }
-                delete_node('tree_' + fieldset.attr('id'));
-
+            p.find('a.btn-add-ajax').on('click', function(){
+                var $btn = $(this);
+                xt.addElement($btn, $btn.data('id'));
             });
-
-            p.find('.btn-delete-list').on('click', function(){
-                var parent_obj = $(this).parent();
-                var nexts = parent_obj.nextAll();
-                parent_obj.prev().remove();
-                parent_obj.remove();
-                delete_node('tree_' + parent_obj.data('id'));
-
-                var longprefix = xmltool.get_prefix(parent_obj.data('id'));
-                var prefix = xmltool.get_prefix(longprefix);
-                xmltool.decrement_id(prefix, nexts);
-            });
-
-            p.find('.btn-add-ajax').on('click', function(){
-                var $this = $(this);
-                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
-                var params = {
-                    elt_id: $(this).data('id'),
-                    dtd_url: dtd_url
-                };
-                $.ajax({
-                     type: 'GET',
-                     url: settings.add_element_url,
-                     data: params,
-                     dataType: 'json',
-                     success: function(data, textStatus, jqXHR){
-                         var obj = $(data.html);
-                         self.set_btn_event(obj);
-                         $this.replaceWith(obj);
-
-                        //jstree
-                        add_node(data);
-                    },
-                    error: function(jqXHR, textStatus, errorThrown){
-                      console.log('Error ajax loading');
-                    }
-                });
-            });
-            p.find('.btn-add-ajax-choice').on('change', function(){
-                // Same as before, the only difference is the way to get the
-                // the value and the event.
-                var $this = $(this);
-                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
-                var params = {
-                    elt_id: $(this).val(),
-                    dtd_url: dtd_url
-                };
-                $.ajax({
-                     type: 'GET',
-                     url: settings.add_element_url,
-                     data: params,
-                     dataType: 'json',
-                     success: function(data, textStatus, jqXHR){
-                         var obj = $(data.html);
-                         self.set_btn_event(obj);
-                         $this.replaceWith(obj);
-
-                        //jstree
-                        add_node(data);
-                        $this.val($this.find('option:first').val());
-                    },
-                    error: function(jqXHR, textStatus, errorThrown){
-                      console.log('Error ajax loading');
-                    }
-                });
-            });
-
-            p.find('.btn-add-ajax-choice-list').on('change', function(){
-                // Same as before, the only difference is the way to get the
-                // the value and the event.
-                var $this = $(this);
-                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
-                var params = {
-                    elt_id: $(this).val(),
-                    dtd_url: dtd_url
-                };
-                $.ajax({
-                     type: 'GET',
-                     url: settings.add_element_url,
-                     data: params,
-                     dataType: 'json',
-                     success: function(data, textStatus, jqXHR){
-                         var obj = $(data.html);
-                        // We use a fake 'div' since we don't get a container,
-                        // and we need one to attach the events!
-                        self.set_btn_event($('<div/>').append(obj));
-                        $this.after(obj);
-                        var tmp = $(obj[obj.length-1]);
-                        var nexts = tmp.nextAll();
-                        // TODO: check it works fine
-                        var longprefix = xmltool.get_prefix($this.val());
-                        var prefix = xmltool.get_prefix(longprefix);
-                        xmltool.increment_id(prefix, nexts);
-
-                        //jstree
-                        add_node(data);
-                        $this.val($this.find('option:first').val());
-                    },
-                    error: function(jqXHR, textStatus, errorThrown){
-                      console.log('Error ajax loading');
-                    }
-                });
-            });
-
-            p.find('.btn-add-ajax-list').on('click', function(){
-                var $this = $(this);
-                var dtd_url = $('form#xmltool-form #_xml_dtd_url').val();
-                var params = {
-                    elt_id: $(this).data('id'),
-                    dtd_url: dtd_url
-                };
-                // TODO: do nothing if elt_id is empty
-                $.ajax({
-                     type: 'GET',
-                     url: settings.add_element_url,
-                     data: params,
-                     dataType: 'json',
-                     success: function(data, textStatus, jqXHR){
-                        var obj = $(data.html);
-                        // We use a fake 'div' since we don't get a container,
-                        // and we need one to attach the events!
-                        self.set_btn_event($('<div/>').append(obj));
-                        $this.after(obj);
-                        var tmp = $(obj[obj.length-1]);
-                        var nexts = tmp.nextAll();
-                        var longprefix = xmltool.get_prefix($this.data('id'));
-                        var prefix = xmltool.get_prefix(longprefix);
-                        xmltool.increment_id(prefix, nexts);
-
-                        //jstree
-                        add_node(data);
-
-                    },
-                    error: function(jqXHR, textStatus, errorThrown){
-                      console.log('Error ajax loading');
-                    }
-                });
+            p.find('select.btn-add-ajax').on('change', function(){
+                var $btn = $(this);
+                xt.addElement($btn, $btn.val());
             });
 
             p.find('.btn-comment').on('click', function(){
@@ -553,11 +461,10 @@ var create_nodes = function(tree, data, parentobj, position){
                 settings.open_dialog(modal);
                 return false;
              });
-            }
-        });
+            };
 
         return this.each(function(){
-            self.set_btn_event($(this));
+            xt.set_btn_event($(this));
         });
     };
 })(window.jQuery);

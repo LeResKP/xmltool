@@ -282,13 +282,19 @@ class Element(object):
             css_classes += [':'.join(tmp_prefixes)]
         legend = self._tagname
         legend += self._comment_to_html(prefixes, index)
-        # Don't allow to delete root element!
         if (not self._required and self._parent and add_btn) or self._is_choice:
             legend += self._get_html_add_button(prefixes or [], index, 'hidden')
+
+        # Don't allow to delete root element!
         if (not self._required and self._parent) or delete_btn or partial or self._is_choice:
-            legend += '<a class="btn-delete-fieldset">Delete</a>'
-        html = ['<fieldset class="%s" id="%s"><legend>%s</legend>' % (
+            # NOTE: we assume the parent is a list if index is not None
+            if (index is not None):
+                legend += '<a class="btn-delete btn-list" data-target="#%s">Delete</a>' % ':'.join(tmp_prefixes)
+            else:
+                legend += '<a class="btn-delete" data-target="#%s">Delete</a>' % ':'.join(tmp_prefixes)
+        html = ['<fieldset class="%s" id="%s" data-id="%s"><legend>%s</legend>' % (
             ' '.join(css_classes),
+            ':'.join(tmp_prefixes),
             ':'.join(tmp_prefixes),
             legend)]
         html.extend(sub_html)
@@ -456,7 +462,7 @@ class TextElement(Element):
         else:
             css_class = ':'.join(prefixes + [self._tagname])
         prefixes += [self._tagname]
-        html_id =  ':'.join(prefixes)
+        html_id = ':'.join(prefixes)
         prefixes += ['_value']
         name = ':'.join(prefixes)
         attrs = [
@@ -480,20 +486,27 @@ class TextElement(Element):
         if (not parent_is_list and not self._required) or self._is_choice:
             add_button = self._get_html_add_button(prefixes, index, 'hidden')
 
+        parent_prefix = ['parent'] + (prefixes or [])
+        if index is not None:
+            parent_prefix += [index]
+        parent_prefix += [self._tagname]
+
+        parent_id = ':'.join(map(str, parent_prefix))
         delete_button = ''
         if delete_btn or not self._required or self._is_choice or parent_is_list:
             if parent_is_list:
-                delete_button = '<a class="btn-delete-list">Delete</a>'
+                delete_button = '<a class="btn-delete btn-list" data-target="#%s">Delete</a>' % parent_id
             else:
-                delete_button = '<a class="btn-delete">Delete</a>'
+                delete_button = '<a class="btn-delete" data-target="#%s">Delete</a>' % parent_id
 
         return (
-            u'<div data-id="{data_id}"><label>{label}</label>'
+            u'<div data-id="{data_id}" id="{parent_id}"><label>{label}</label>'
             u'{add_button}'
             u'{delete_button}'
             u'{comment}'
             u'{xmlattrs}'
             u'<textarea{attrs} rows="1">{value}</textarea></div>').format(
+                parent_id=parent_id,
                 data_id=self._get_str_prefix(prefixes, index),
                 label=self._tagname,
                 add_button=add_button,
@@ -566,7 +579,7 @@ class ListElement(list, MultipleMixin, Element):
             # This element is a list, we should always have an index.
             index = 0
         if len(cls._elts) == 1:
-            css_classes = ['btn btn-add-ajax-list']
+            css_classes = ['btn btn-add-ajax btn-list']
             if css_class:
                 css_classes += [css_class]
 
@@ -582,7 +595,7 @@ class ListElement(list, MultipleMixin, Element):
             return button
 
         assert not css_class
-        button = '<select class="btn btn-add-ajax-choice-list">'
+        button = '<select class="btn btn-add-ajax btn-list">'
         options = '/'.join([e._tagname for e in cls._elts])
         button += '<option>New %s</option>' % options
 
@@ -677,7 +690,7 @@ class ChoiceElement(MultipleMixin, Element):
 
         elt = cls._get_sub_element(tagname)
         if value and not issubclass(elt, TextElement):
-            raise Exception, "Can't set value to non TextElement"
+            raise Exception("Can't set value to non TextElement")
 
         tmpobj = elt()
         tmpobj._parent = parent_obj
@@ -692,7 +705,7 @@ class ChoiceElement(MultipleMixin, Element):
         ..note:: index is not used here since we never have list of this
         element.
         """
-        css_classes = ['btn', 'btn-add-ajax-choice']
+        css_classes = ['btn', 'btn-add-ajax']
         if css_class:
             css_classes += [css_class]
 
@@ -727,6 +740,7 @@ class ChoiceElement(MultipleMixin, Element):
     def to_jstree_dict(self, prefixes, index=None):
         # Nothing to add in for this object
         return {}
+
 
 def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     # Will raise an exception if both dtd_url or dtd_str are None or set
