@@ -20,7 +20,7 @@ var create_nodes = function(tree, data, parentobj, position){
     var re_split = new RegExp('^(.*):([^:]+)$');
 
     var attrnames = ['name', 'id', 'class', 'value'];
-    var datanames = ['id', 'comment-name'];
+    var datanames = ['id', 'comment-name', 'target'];
 
     var functions = {
         escape_id: function(id){
@@ -268,6 +268,12 @@ var create_nodes = function(tree, data, parentobj, position){
         };
 
     Xmltool.prototype.addElement = function($btn, elt_id){
+        if ($btn.is('select')) {
+            elt_id = $btn.val();
+        }
+        else {
+            elt_id = $btn.data('elt-id');
+        }
         var that = this;
         var params = {
             elt_id: elt_id,
@@ -309,14 +315,14 @@ var create_nodes = function(tree, data, parentobj, position){
     };
 
     Xmltool.prototype.removeElement = function($btn){
-        var $addBtn = $btn.prev('.btn');
+        var $addBtn = $btn.prev('.btn-add');
         var $parent = this.$form.find(xmltool.escape_id($btn.data('target')));
         if($btn.hasClass('btn-list')) {
             var nexts = $parent.nextAll();
             // Remove the add button
             $parent.prev().remove();
             $parent.remove();
-            var longprefix = xmltool.get_prefix($parent.data('id'));
+            var longprefix = xmltool.get_prefix($parent.attr('id'));
             var prefix = xmltool.get_prefix(longprefix);
             xmltool.decrement_id(prefix, nexts);
         }
@@ -324,7 +330,7 @@ var create_nodes = function(tree, data, parentobj, position){
             $parent.replaceWith($addBtn);
             $addBtn.removeClass('hidden');
         }
-        this.delete_node('tree_' + $parent.data('id'));
+        this.delete_node('tree_' + $parent.attr('id'));
     };
 
 
@@ -361,7 +367,7 @@ var create_nodes = function(tree, data, parentobj, position){
         Xmltool.prototype.set_btn_event = function(p){
                     p.find('textarea').autosize().focus(
                         function(){
-                            var id = xmltool.escape_id($(this).attr('id'));
+                            var id = xmltool.escape_id($(this).parent().attr('id'));
                             var tree = $('#tree');
                             tree.jstree('hover_node', $('#tree_' + id));
                             $(this).on('keyup.xmltool', function(){
@@ -370,7 +376,7 @@ var create_nodes = function(tree, data, parentobj, position){
                                 self.trigger('field_change.xmltool');
                             });
                         }).blur(function(){
-                            var id = xmltool.escape_id($(this).attr('id'));
+                            var id = xmltool.escape_id($(this).parent().attr('id'));
                             var a = $('#tree_' + id).find('a');
                             var elt = a.find('._tree_text');
                             if (elt.length === 0){
@@ -403,17 +409,14 @@ var create_nodes = function(tree, data, parentobj, position){
             }
 
             p.find('.btn-delete').on('click', function(){
-                var $btn = $(this);
-                xt.removeElement($btn);
+                xt.removeElement($(this));
             });
 
-            p.find('a.btn-add-ajax').on('click', function(){
-                var $btn = $(this);
-                xt.addElement($btn, $btn.data('id'));
+            p.find('a.btn-add').on('click', function(){
+                xt.addElement($(this));
             });
-            p.find('select.btn-add-ajax').on('change', function(){
-                var $btn = $(this);
-                xt.addElement($btn, $btn.val());
+            p.find('select.btn-add').on('change', function(){
+                xt.addElement($(this));
             });
 
             p.find('.btn-comment').on('click', function(){

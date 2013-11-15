@@ -2,12 +2,12 @@
 
 import os
 from lxml import etree
-import simplejson as json
 import dtd_parser
 import utils
 from distutils.version import StrictVersion
 
 DEFAULT_ENCODING = 'UTF-8'
+TREE_PREFIX = 'tree_'
 
 
 class Element(object):
@@ -28,7 +28,6 @@ class Element(object):
     _xml_filename = None
     _xml_dtd_url = None
     _xml_encoding = None
-
 
     @classmethod
     def _get_allowed_tagnames(cls):
@@ -81,7 +80,7 @@ class Element(object):
             raise Exception('%s already defined' % tagname)
 
         if value and not issubclass(cls, TextElement):
-            raise Exception, "Can't set value to non TextElement"
+            raise Exception("Can't set value to non TextElement")
 
         tmpobj = cls()
         setattr(parent_obj, tagname, tmpobj)
@@ -107,7 +106,7 @@ class Element(object):
 
     def _load_attributes_from_xml(self, xml):
         for k, v in xml.attrib.items():
-            self.add_attribute(k,v)
+            self.add_attribute(k, v)
 
     def _load_attributes_from_dict(self, dic):
         if not dic:
@@ -116,7 +115,7 @@ class Element(object):
         if not attrs:
             return
         for k, v in attrs.items():
-            self.add_attribute(k,v)
+            self.add_attribute(k, v)
 
     def _attributes_to_xml(self, xml):
         if not self._attributes:
@@ -246,14 +245,13 @@ class Element(object):
             return cls._parent._get_html_add_button(prefixes, index, css_class)
 
         value = cls._get_str_prefix(prefixes, index)
-        css_classes = ['btn btn-add-ajax']
+        css_classes = ['btn-add']
         if css_class:
             css_classes += [css_class]
-        return ('<a class="%s" data-id="%s">'
-                'Add %s</a>') % (
-                    ' '.join(css_classes),
-                    value,
-                    cls._tagname)
+        return '<a class="%s" data-elt-id="%s">Add %s</a>' % (
+            ' '.join(css_classes),
+            value,
+            cls._tagname)
 
     @classmethod
     def _to_html(cls, parent_obj, prefixes=None, index=None):
@@ -277,25 +275,24 @@ class Element(object):
             if tmp:
                 sub_html += [tmp]
 
-        css_classes = [self._tagname]
-        if len(tmp_prefixes) > 1:
-            css_classes += [':'.join(tmp_prefixes)]
         legend = self._tagname
         legend += self._comment_to_html(prefixes, index)
         if (not self._required and self._parent and add_btn) or self._is_choice:
             legend += self._get_html_add_button(prefixes or [], index, 'hidden')
 
+        ident = ':'.join(tmp_prefixes)
         # Don't allow to delete root element!
         if (not self._required and self._parent) or delete_btn or partial or self._is_choice:
             # NOTE: we assume the parent is a list if index is not None
             if (index is not None):
-                legend += '<a class="btn-delete btn-list" data-target="#%s">Delete</a>' % ':'.join(tmp_prefixes)
+                legend += ('<a class="btn-delete btn-list" '
+                           'data-target="#%s">Delete</a>') % ident
             else:
-                legend += '<a class="btn-delete" data-target="#%s">Delete</a>' % ':'.join(tmp_prefixes)
-        html = ['<fieldset class="%s" id="%s" data-id="%s"><legend>%s</legend>' % (
-            ' '.join(css_classes),
-            ':'.join(tmp_prefixes),
-            ':'.join(tmp_prefixes),
+                legend += ('<a class="btn-delete" '
+                           'data-target="#%s">Delete</a>') % ident
+        html = ['<fieldset class="%s" id="%s"><legend>%s</legend>' % (
+            self._tagname,
+            ident,
             legend)]
         html.extend(sub_html)
         html += ['</fieldset>']
@@ -318,16 +315,16 @@ class Element(object):
             data += u' <span class="_tree_text">(%s)</span>' % (
                 utils.truncate(value))
 
-        css_class = 'tree_' +  ':'.join(prefixes or [])
+        css_class = TREE_PREFIX + ':'.join(prefixes or [])
         if index is not None:
-            css_class += ' tree_' +  ':'.join((prefixes+[str(index)]))
+            css_class += ' ' + TREE_PREFIX + ':'.join((prefixes+[str(index)]))
         else:
             css_class += ':' + self._tagname
 
         dic = {
             'data': data,
             'attr': {
-                'id': 'tree_' +  ':'.join(tmp_prefixes),
+                'id': TREE_PREFIX + ':'.join(tmp_prefixes),
                 'class': css_class,
             },
         }
@@ -392,9 +389,8 @@ class Element(object):
             utils.validate_xml(xml, dtd_str)
 
         doctype = '<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
-                      'root_tag': self._tagname,
-                      'dtd_url': dtd_url,
-                    }
+            'root_tag': self._tagname,
+            'dtd_url': dtd_url}
 
         if StrictVersion(etree.__version__) < StrictVersion('2.3'):
             xml_str = etree.tostring(
@@ -430,7 +426,7 @@ class TextElement(Element):
         self._load_extra_from_xml(xml)
         self._value = xml.text
         # We use _exists to know if the tag is defined in the XML.
-        self._exists= True
+        self._exists = True
 
     def load_from_dict(self, dic):
         data = dic[self._tagname]
@@ -456,19 +452,13 @@ class TextElement(Element):
     def _get_html_attrs(self, prefixes, index=None):
         prefixes = list(prefixes or [])
         if index is not None:
-            # Don't add the index to the css_class
-            css_class = ':'.join(prefixes)
             prefixes += [str(index)]
-        else:
-            css_class = ':'.join(prefixes + [self._tagname])
+
         prefixes += [self._tagname]
-        html_id = ':'.join(prefixes)
         prefixes += ['_value']
         name = ':'.join(prefixes)
         attrs = [
             ('name', name),
-            ('id', html_id),
-            ('class', css_class),
         ]
         attr = ' '.join(['%s="%s"' % (attrname, value)
                          for attrname, value in attrs])
@@ -478,7 +468,7 @@ class TextElement(Element):
                 add_btn=True, partial=False):
 
         if (not self._exists and not self._value and
-            not self._required and not partial):
+           not self._required and not partial):
             return self._get_html_add_button(prefixes, index)
 
         parent_is_list = isinstance(self._parent, ListElement)
@@ -486,28 +476,24 @@ class TextElement(Element):
         if (not parent_is_list and not self._required) or self._is_choice:
             add_button = self._get_html_add_button(prefixes, index, 'hidden')
 
-        parent_prefix = ['parent'] + (prefixes or [])
-        if index is not None:
-            parent_prefix += [index]
-        parent_prefix += [self._tagname]
-
-        parent_id = ':'.join(map(str, parent_prefix))
         delete_button = ''
+        ident = self._get_str_prefix(prefixes, index)
         if delete_btn or not self._required or self._is_choice or parent_is_list:
             if parent_is_list:
-                delete_button = '<a class="btn-delete btn-list" data-target="#%s">Delete</a>' % parent_id
+                delete_button = ('<a class="btn-delete btn-list" '
+                                 'data-target="#%s">Delete</a>') % ident
             else:
-                delete_button = '<a class="btn-delete" data-target="#%s">Delete</a>' % parent_id
+                delete_button = ('<a class="btn-delete" '
+                                 'data-target="#%s">Delete</a>') % ident
 
         return (
-            u'<div data-id="{data_id}" id="{parent_id}"><label>{label}</label>'
+            u'<div id="{ident}"><label>{label}</label>'
             u'{add_button}'
             u'{delete_button}'
             u'{comment}'
             u'{xmlattrs}'
             u'<textarea{attrs} rows="1">{value}</textarea></div>').format(
-                parent_id=parent_id,
-                data_id=self._get_str_prefix(prefixes, index),
+                ident=ident,
                 label=self._tagname,
                 add_button=add_button,
                 delete_button=delete_button,
@@ -541,7 +527,7 @@ class ListElement(list, MultipleMixin, Element):
     def _add(cls, tagname, parent_obj, value=None):
         elt = cls._get_sub_element(tagname)
         if value and not issubclass(elt, TextElement):
-            raise Exception, "Can't set value to non TextElement"
+            raise Exception("Can't set value to non TextElement")
 
         tg = cls._tagname
         if len(cls._elts) == 1:
@@ -579,7 +565,7 @@ class ListElement(list, MultipleMixin, Element):
             # This element is a list, we should always have an index.
             index = 0
         if len(cls._elts) == 1:
-            css_classes = ['btn btn-add-ajax btn-list']
+            css_classes = ['btn-add btn-list']
             if css_class:
                 css_classes += [css_class]
 
@@ -588,14 +574,14 @@ class ListElement(list, MultipleMixin, Element):
             data_id = ':'.join(
                 map(str, filter((lambda x: x is not None), tmp_prefixes)))
             button = ('<a class="%s" '
-                      'data-id="%s">New %s</a>') % (
+                      'data-elt-id="%s">New %s</a>') % (
                           ' '.join(css_classes),
                           data_id,
                           cls._elts[0]._tagname)
             return button
 
         assert not css_class
-        button = '<select class="btn btn-add-ajax btn-list">'
+        button = '<select class="btn-add btn-list">'
         options = '/'.join([e._tagname for e in cls._elts])
         button += '<option>New %s</option>' % options
 
@@ -705,7 +691,7 @@ class ChoiceElement(MultipleMixin, Element):
         ..note:: index is not used here since we never have list of this
         element.
         """
-        css_classes = ['btn', 'btn-add-ajax']
+        css_classes = ['btn-add']
         if css_class:
             css_classes += [css_class]
 
@@ -786,7 +772,9 @@ def _get_previous_js_selectors(obj, prefixes, index):
         if int(index) > 0:
             index = int(index) - 1
             lis += [
-                ('after', '.tree_%s' % ':'.join(tmp_prefixes + [str(index)]))]
+                ('after', '.%s%s' % (
+                    TREE_PREFIX,
+                    ':'.join(tmp_prefixes + [str(index)])))]
             return lis
         tmp_prefixes = tmp_prefixes[:-1]
 
@@ -796,10 +784,14 @@ def _get_previous_js_selectors(obj, prefixes, index):
         if elt == sub:
             break
         tmp_prefix = list(tmp_prefixes) + [elt._tagname]
-        lis += [('after', '.tree_%s' % ':'.join(tmp_prefix))]
+        lis += [('after', '.%s%s' % (
+            TREE_PREFIX,
+            ':'.join(tmp_prefix)))]
 
     lis.reverse()
-    lis += [('inside', '#tree_%s' % ':'.join(tmp_prefixes))]
+    lis += [('inside', '#%s%s' % (
+        TREE_PREFIX,
+        ':'.join(tmp_prefixes)))]
     return lis
 
 
@@ -813,6 +805,7 @@ def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
 
     return obj.to_html(prefixes[:-1], index, partial=True)
 
+
 def _get_html_from_obj(obj, prefixes, index):
     if isinstance(obj._parent, ListElement):
         index = int(index or 0)
@@ -822,6 +815,7 @@ def _get_html_from_obj(obj, prefixes, index):
 
     return obj.to_html(prefixes[:-1], index, partial=True)
 
+
 def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     return {
@@ -829,4 +823,3 @@ def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
         'previous': _get_previous_js_selectors(obj, prefixes, index),
         'html': _get_html_from_obj(obj, prefixes, index),
     }
-
