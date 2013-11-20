@@ -1,12 +1,15 @@
-var xmltool = xmltool || {};
+if (typeof xmltool === 'undefined') {
+    /*jshint -W020 */
+    xmltool = {};
+}
 
 var create_nodes = function(tree, data, parentobj, position){
     var node = tree.jstree("create_node", parentobj, position, data);
     var css_class = node.attr('class').split(' ')[0];
-    var nexts = node.nextAll('.'+xmltool.escape_id(css_class));
-    var longprefix = xmltool.get_prefix(node.attr('id'));
-    var prefix = xmltool.get_prefix(longprefix);
-    xmltool.increment_id(prefix, nexts);
+    var nexts = node.nextAll('.'+xmltool.utils.escape_id(css_class));
+    var longprefix = xmltool.utils.get_prefix(node.attr('id'));
+    var prefix = xmltool.utils.get_prefix(longprefix);
+    xmltool.utils.increment_id(prefix, nexts);
     if (typeof(data.children) !== 'undefined'){
         for(var i=0; i < data.children.length; i++){
             tree.jstree("create_node", node, 'last', data.children[i]);
@@ -14,144 +17,6 @@ var create_nodes = function(tree, data, parentobj, position){
     }
     tree.jstree('open_all', node);
 };
-
-
-(function($, ns){
-    var re_split = new RegExp('^(.*):([^:]+)$');
-
-    var attrnames = ['name', 'id', 'class', 'value'];
-    var datanames = ['id', 'comment-name', 'target'];
-
-    var functions = {
-        escape_id: function(id){
-            return id.replace(/:/g, '\\:');
-        },
-        get_prefix: function(id){
-            return id.replace(re_split, '$1');
-        },
-        get_index: function(id){
-            return parseInt(id.replace(re_split, '$2'), 10);
-        },
-        _attr: function(elt, name, value){
-            if(typeof value === 'undefined'){
-                return elt.attr(name);
-            }
-            else{
-                elt.attr(name, value);
-            }
-        },
-        _data: function(elt, name, value){
-            if(typeof value === 'undefined'){
-                return elt.data(name);
-            }
-            else{
-                elt.data(name, value);
-            }
-        },
-        _increment_id: function(prefix, elt, func, names, diff){
-            var re_id = new RegExp('^'+prefix+':(\\d+)');
-            for (var key in names){
-                var name = names[key];
-                var value = func(elt, name);
-                if(value){
-                    var values = value.split(' ');
-                    var output = [];
-                    for(var i=0; i<values.length; i++){
-                        var v = values[i];
-                        var index = parseInt(v.replace(re_id, '$1'), 10);
-                        var re = new RegExp('^'+prefix+':'+index);
-                        var new_value = v.replace(re, prefix + ':' + (index+diff));
-                        output.push(new_value);
-                    }
-                    func(elt, name, output.join(' '));
-                }
-            }
-        },
-        increment_id: function(prefix, elts){
-            for (var i=0; i< elts.length; i++){
-                var elt = $(elts[i]);
-                xmltool._increment_id(prefix, elt, xmltool._attr, attrnames, 1);
-                xmltool._increment_id(prefix, elt, xmltool._data, datanames, 1);
-                xmltool.increment_id(prefix, elt.children());
-            }
-        },
-        _replace_id: function(prefix, elt, func, names, index){
-            var re_id = new RegExp('^'+prefix+':(\\d+)');
-            for (var key in names){
-                var name = names[key];
-                var value = func(elt, name);
-                if(value){
-                    var values = value.split(' ');
-                    var output = [];
-                    for(var i=0; i<values.length; i++){
-                        var v = values[i];
-                        var old_index = parseInt(v.replace(re_id, '$1'), 10);
-                        var re = new RegExp('^'+prefix+':'+old_index);
-                        var new_value = v.replace(re, prefix + ':' + index);
-                        output.push(new_value);
-                    }
-                    func(elt, name, output.join(' '));
-                }
-            }
-        },
-        replace_id: function(prefix, elts, step, force_index){
-            step = step || 1;
-            var index = 0;
-            for (var i=0; i< elts.length; i++){
-                var elt = $(elts[i]);
-                var tmp_index;
-                if (typeof force_index !== 'undefined'){
-                    tmp_index = force_index;
-                }
-                else{
-                    tmp_index = index;
-                }
-                xmltool._replace_id(prefix, elt, xmltool._attr, attrnames, tmp_index);
-                xmltool._replace_id(prefix, elt, xmltool._data, datanames, tmp_index);
-                xmltool.replace_id(prefix, elt.children(), 1, tmp_index);
-
-                if (step === 1){
-                    index += 1;
-                }
-                else if(((i+1) % step) === 0 && i !== 0){
-                    index += 1;
-                }
-            }
-        },
-        decrement_id: function(prefix, elts){
-            for (var i=0; i< elts.length; i++){
-                var elt = $(elts[i]);
-                xmltool._increment_id(prefix, elt, xmltool._attr, attrnames, -1);
-                xmltool._increment_id(prefix, elt, xmltool._data, datanames, -1);
-                xmltool.decrement_id(prefix, elt.children());
-            }
-        },
-        truncate: function (str, limit) {
-            var bits, i;
-            bits = str.split('');
-            if (bits.length > limit) {
-                for (i = bits.length - 1; i > -1; --i) {
-                    if (i > limit) {
-                        bits.length = i;
-                    }
-                    else if (' ' === bits[i]) {
-                        bits.length = i;
-                        break;
-                    }
-                }
-                bits.push('...');
-            }
-            return bits.join('');
-        },
-        get_first_class: function(obj){
-            return obj.attr('class').split(' ')[0];
-        }
-    };
-
-    for (var key in functions){
-        ns[key] = functions[key];
-    }
-})(window.jQuery, xmltool);
 
 
 (function($, ns){
@@ -171,7 +36,7 @@ var create_nodes = function(tree, data, parentobj, position){
                 return false;
             },
             same_class: function(node1, node2){
-                if (xmltool.get_first_class(node1) === xmltool.get_first_class(node2)){
+                if (xmltool.utils.get_first_class(node1) === xmltool.utils.get_first_class(node2)){
                     return true;
                 }
                 return false;
@@ -196,8 +61,8 @@ var create_nodes = function(tree, data, parentobj, position){
                 var drag_node_id = data.rslt.o.attr('id').replace(/^tree_/, '');
                 var reference_node = data.rslt.r; // The reference where we are moving the node
                 var reference_node_id = reference_node.attr('id').replace(/^tree_/, '');
-                var drag_elt = $('#' + xmltool.escape_id(drag_node_id));
-                var reference_elt = $('#' + xmltool.escape_id(reference_node_id));
+                var drag_elt = $('#' + xmltool.utils.escape_id(drag_node_id));
+                var reference_elt = $('#' + xmltool.utils.escape_id(reference_node_id));
 
                 if(drag_elt.is('textarea')){
                     drag_elt = drag_elt.parent();
@@ -216,13 +81,13 @@ var create_nodes = function(tree, data, parentobj, position){
                 }
 
                 var elts = drag_node.parent().children();
-                var longprefix = xmltool.get_prefix(drag_node.attr('id'));
-                var prefix = xmltool.get_prefix(longprefix);
-                xmltool.replace_id(prefix, elts);
+                var longprefix = xmltool.utils.get_prefix(drag_node.attr('id'));
+                var prefix = xmltool.utils.get_prefix(longprefix);
+                xmltool.utils.replace_id(prefix, elts);
 
                 elts = drag_elt.parent().children();
                 prefix = prefix.replace(/^tree_/, '');
-                xmltool.replace_id(prefix, elts, 2);
+                xmltool.utils.replace_id(prefix, elts, 2);
             }
         });
         return self;
@@ -254,7 +119,7 @@ var create_nodes = function(tree, data, parentobj, position){
 
             for(var i=0; i < previous.length; i++){
                 var position = previous[i][0];
-                var selector = xmltool.escape_id(previous[i][1]);
+                var selector = xmltool.utils.escape_id(previous[i][1]);
                 var parentobj = $(selector + ':last');
                 if (parentobj.length > 1){
                     alert('not expected');
@@ -293,9 +158,9 @@ var create_nodes = function(tree, data, parentobj, position){
                     var last = $(objs[objs.length-1]);
                     var nexts = last.nextAll();
                     // TODO: Make sure this is correclty tested
-                    var longprefix = xmltool.get_prefix(elt_id);
-                    var prefix = xmltool.get_prefix(longprefix);
-                    xmltool.increment_id(prefix, nexts);
+                    var longprefix = xmltool.utils.get_prefix(elt_id);
+                    var prefix = xmltool.utils.get_prefix(longprefix);
+                    xmltool.utils.increment_id(prefix, nexts);
                 }
                 else {
                     $btn.replaceWith(objs);
@@ -316,15 +181,15 @@ var create_nodes = function(tree, data, parentobj, position){
 
     Xmltool.prototype.removeElement = function($btn){
         var $addBtn = $btn.prev('.btn-add');
-        var $parent = this.$form.find(xmltool.escape_id($btn.data('target')));
+        var $parent = this.$form.find(xmltool.utils.escape_id($btn.data('target')));
         if($btn.hasClass('btn-list')) {
             var nexts = $parent.nextAll();
             // Remove the add button
             $parent.prev().remove();
             $parent.remove();
-            var longprefix = xmltool.get_prefix($parent.attr('id'));
-            var prefix = xmltool.get_prefix(longprefix);
-            xmltool.decrement_id(prefix, nexts);
+            var longprefix = xmltool.utils.get_prefix($parent.attr('id'));
+            var prefix = xmltool.utils.get_prefix(longprefix);
+            xmltool.utils.decrement_id(prefix, nexts);
         }
         else {
             $parent.replaceWith($addBtn);
@@ -352,22 +217,22 @@ var create_nodes = function(tree, data, parentobj, position){
 
         Xmltool.prototype.delete_node = function(node_id){
             var tree = $('#tree');
-            var node = tree.find('#' + xmltool.escape_id(node_id));
+            var node = tree.find('#' + xmltool.utils.escape_id(node_id));
             if (node.length > 1){
                 alert('Too many values to delete');
             }
             var css_class = node.attr('class').split(' ')[0];
-            var nexts = node.nextAll('.'+xmltool.escape_id(css_class));
-            var longprefix = xmltool.get_prefix(node.attr('id'));
-            var prefix = xmltool.get_prefix(longprefix);
-            xmltool.decrement_id(prefix, nexts);
+            var nexts = node.nextAll('.'+xmltool.utils.escape_id(css_class));
+            var longprefix = xmltool.utils.get_prefix(node.attr('id'));
+            var prefix = xmltool.utils.get_prefix(longprefix);
+            xmltool.utils.decrement_id(prefix, nexts);
             tree.jstree('delete_node', node);
         };
 
         Xmltool.prototype.set_btn_event = function(p){
                     p.find('textarea').autosize().focus(
                         function(){
-                            var id = xmltool.escape_id($(this).parent().attr('id'));
+                            var id = xmltool.utils.escape_id($(this).parent().attr('id'));
                             var tree = $('#tree');
                             tree.jstree('hover_node', $('#tree_' + id));
                             $(this).on('keyup.xmltool', function(){
@@ -376,14 +241,14 @@ var create_nodes = function(tree, data, parentobj, position){
                                 self.trigger('field_change.xmltool');
                             });
                         }).blur(function(){
-                            var id = xmltool.escape_id($(this).parent().attr('id'));
+                            var id = xmltool.utils.escape_id($(this).parent().attr('id'));
                             var a = $('#tree_' + id).find('a');
                             var elt = a.find('._tree_text');
                             if (elt.length === 0){
                                 elt = $('<span class="_tree_text"/>').appendTo(a);
                             }
                             if($(this).val()){
-                                elt.text(' (' + xmltool.truncate($(this).val(), 30) + ')');
+                                elt.text(' (' + xmltool.utils.truncate($(this).val(), 30) + ')');
                             }
                             else{
                                 elt.text('');
@@ -393,11 +258,11 @@ var create_nodes = function(tree, data, parentobj, position){
 
             var set_fielset = function(fieldsets){
                 fieldsets.togglefieldset().bind('hide.togglefieldset', function(e){
-                    var o = $('#tree_' + xmltool.escape_id($(this).attr('id')));
+                    var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
                     $('#tree').jstree("close_node", o);
                     return false;
                 }).bind('show.togglefieldset', function(e){
-                    var o = $('#tree_' + xmltool.escape_id($(this).attr('id')));
+                    var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
                     $('#tree').jstree("open_node", o);
                     return false;
                 });
