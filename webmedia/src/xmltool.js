@@ -10,6 +10,7 @@ if (typeof xmltool === 'undefined') {
         this.options = options;
         // TODO: should be in options:
         this.dtd_url_selector = '#_xml_dtd_url';
+        this.$tree = null;
         this.init(element);
     }
 
@@ -17,6 +18,66 @@ if (typeof xmltool === 'undefined') {
         this.element = element;
         this.$form = $(element);
         this.dtd_url = this.$form.find(this.dtd_url_selector).val();
+        if(typeof this.options.jstreeSelector !== 'undefined') {
+            var $tree = $(this.options.jstreeSelector);
+            if ($tree.length) {
+                this.$tree = $tree;
+            }
+        }
+        if(typeof this.options.jstreeData !== 'undefined') {
+            this.loadJstree(this.options.jstreeData);
+        }
+    };
+
+    Xmltool.prototype.loadJstree = function(data){
+        var that = this;
+        this.$tree.jstree({
+            "json_data" : {'data': [data]},
+            "plugins" : ["themes", "json_data", "ui", 'crrm', 'dnd'],
+            "core": {
+                html_titles: true
+            },
+            "ui" : {select_multiple_modifier: false},
+            "crrm" : {
+                "move" : {
+                    "check_move" : xmltool.jstree.check_move,
+                }
+            },
+            "dnd" : {
+                "drop_target" : false,
+                "drag_target" : false
+            },
+        }).bind("select_node.jstree", function (e, data) {
+            var id = data.rslt.obj.attr("id");
+            id = id.replace(/^tree_/, '');
+            var elt = $('#' + id.replace(/:/g,'\\:'));
+            elt.focus();
+            var t =  elt.offset().top + $('.ui-layout-center').scrollTop() - $('.ui-layout-center').offset().top - 30;
+            $('.ui-layout-center').animate({
+                scrollTop: t,
+                }, 1000
+            );
+        }).bind("loaded.jstree", function (event, data) {
+            that.$tree.jstree('open_all');
+            that.$tree.height(that.$tree.parent().parent().height());
+            $('body').data('layout').show('east');
+        }).bind("move_node.jstree", function(event, data){
+            $(document).message('info', 'Moving...', {overlay: true, modal: true});
+            setTimeout(function(){
+                xmltool.jstree.move_node(event, data);
+                $(document).message('success', 'Moved!');
+            }, 50);
+        }).bind('close_node.jstree', function(event, data){
+            var id = data.rslt.obj.attr("id");
+            id = id.replace(/^tree_/, '');
+            var elt = $('#' + id.replace(/:/g,'\\:'));
+            // elt.data('togglefieldset').hide(false);
+        }).bind('open_node.jstree', function(event, data){
+            var id = data.rslt.obj.attr("id");
+            id = id.replace(/^tree_/, '');
+            var elt = $('#' + id.replace(/:/g,'\\:'));
+            // elt.data('togglefieldset').show(false);
+        });
     };
 
     Xmltool.prototype.add_node = function(data){
@@ -33,7 +94,7 @@ if (typeof xmltool === 'undefined') {
                 }
                 if (parentobj.length){
                     // Create node
-                    xmltool.jstree.create_nodes($('#tree'), jstree_data[0], parentobj, position);
+                    xmltool.jstree.create_nodes(this.$tree, jstree_data[0], parentobj, position);
                     break;
                 }
             }
@@ -106,8 +167,7 @@ if (typeof xmltool === 'undefined') {
     };
 
     Xmltool.prototype.delete_node = function(node_id){
-        var tree = $('#tree');
-        var node = tree.find('#' + xmltool.utils.escape_id(node_id));
+        var node = this.$tree.find('#' + xmltool.utils.escape_id(node_id));
         if (node.length > 1){
             alert('Too many values to delete');
         }
@@ -116,7 +176,7 @@ if (typeof xmltool === 'undefined') {
         var longprefix = xmltool.utils.get_prefix(node.attr('id'));
         var prefix = xmltool.utils.get_prefix(longprefix);
         xmltool.utils.decrement_id(prefix, nexts);
-        tree.jstree('delete_node', node);
+        this.$tree.jstree('delete_node', node);
     };
 
     Xmltool.prototype.set_btn_event = function(p){
@@ -124,12 +184,11 @@ if (typeof xmltool === 'undefined') {
         p.find('textarea').autosize().focus(
             function(){
                 var id = xmltool.utils.escape_id($(this).parent().attr('id'));
-                var tree = $('#tree');
-                tree.jstree('hover_node', $('#tree_' + id));
+                that.$tree.jstree('hover_node', $('#tree_' + id));
                 $(this).on('keyup.xmltool', function(){
                     // TODO: this method should be improved to make
                     // sure the user has made an update
-                    this.$form.trigger('field_change.xmltool');
+                    that.$form.trigger('field_change.xmltool');
                 });
             }).blur(function(){
                 var id = xmltool.utils.escape_id($(this).parent().attr('id'));
@@ -150,11 +209,11 @@ if (typeof xmltool === 'undefined') {
         var set_fielset = function(fieldsets){
             fieldsets.togglefieldset().bind('hide.togglefieldset', function(e){
                 var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
-                $('#tree').jstree("close_node", o);
+                that.$tree.jstree("close_node", o);
                 return false;
             }).bind('show.togglefieldset', function(e){
                 var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
-                $('#tree').jstree("open_node", o);
+                that.$tree.jstree("open_node", o);
                 return false;
             });
         };
