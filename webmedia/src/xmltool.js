@@ -18,6 +18,7 @@ if (typeof xmltool === 'undefined') {
         this.element = element;
         this.$form = $(element);
         this.dtd_url = this.$form.find(this.dtd_url_selector).val();
+        this.setEvents();
         if(typeof this.options.jstreeSelector !== 'undefined') {
             var $tree = $(this.options.jstreeSelector);
             if ($tree.length) {
@@ -119,7 +120,6 @@ if (typeof xmltool === 'undefined') {
             dataType: 'json',
             success: function(data, textStatus, jqXHR){
                 var objs = $(data.html);
-                that.set_btn_event($('<div/>').append(objs));
                 if($btn.hasClass('btn-list')){
                     $btn.after(objs);
                     // Last is the button to add more
@@ -133,6 +133,8 @@ if (typeof xmltool === 'undefined') {
                 else {
                     $btn.replaceWith(objs);
                 }
+
+                that.set_btn_event(objs);
 
                 if ($btn.is('select')) {
                     $btn.val($btn.find('option:first').val());
@@ -179,62 +181,37 @@ if (typeof xmltool === 'undefined') {
         this.$tree.jstree('delete_node', node);
     };
 
-    Xmltool.prototype.set_btn_event = function(p){
+    Xmltool.prototype.setEvents = function(){
         var that = this;
-        p.find('textarea').autosize().focus(
-            function(){
-                var id = xmltool.utils.escape_id($(this).parent().attr('id'));
-                that.$tree.jstree('hover_node', $('#tree_' + id));
-                $(this).on('keyup.xmltool', function(){
-                    // TODO: this method should be improved to make
-                    // sure the user has made an update
-                    that.$form.trigger('field_change.xmltool');
-                });
-            }).blur(function(){
-                var id = xmltool.utils.escape_id($(this).parent().attr('id'));
-                var a = $('#tree_' + id).find('a');
-                var elt = a.find('._tree_text');
-                if (elt.length === 0){
-                    elt = $('<span class="_tree_text"/>').appendTo(a);
-                }
-                if($(this).val()){
-                    elt.text(' (' + xmltool.utils.truncate($(this).val(), 30) + ')');
-                }
-                else{
-                    elt.text('');
-                }
-                $(this).unbind('keyup.xmltool');
+        $(document).on('focus', 'textarea', function(){
+            var id = xmltool.utils.escape_id($(this).parent().attr('id'));
+            that.$tree.jstree('hover_node', $('#tree_' + id));
+            $(this).on('keyup.xmltool', function(){
+                // TODO: this method should be improved to make
+                // sure the user has made an update
+                that.$form.trigger('field_change.xmltool');
             });
-
-        var set_fielset = function(fieldsets){
-            fieldsets.togglefieldset().bind('hide.togglefieldset', function(e){
-                var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
-                that.$tree.jstree("close_node", o);
-                return false;
-            }).bind('show.togglefieldset', function(e){
-                var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
-                that.$tree.jstree("open_node", o);
-                return false;
-            });
-        };
-
-        set_fielset(p.find('fieldset'));
-        if(p.is('fieldset')){
-            set_fielset(p);
-        }
-
-        p.find('.btn-delete').on('click', function(){
+        }).on('blur', 'textarea', function(){
+            var id = xmltool.utils.escape_id($(this).parent().attr('id'));
+            var a = $('#tree_' + id).find('a');
+            var elt = a.find('._tree_text');
+            if (elt.length === 0){
+                elt = $('<span class="_tree_text"/>').appendTo(a);
+            }
+            if($(this).val()){
+                elt.text(' (' + xmltool.utils.truncate($(this).val(), 30) + ')');
+            }
+            else{
+                elt.text('');
+            }
+            $(this).unbind('keyup.xmltool');
+        }).on('click', '.btn-delete', function(){
             that.removeElement($(this));
-        });
-
-        p.find('a.btn-add').on('click', function(){
+        }).on('click', 'a.btn-add', function(){
             that.addElement($(this));
-        });
-        p.find('select.btn-add').on('change', function(){
+        }).on('change', 'select.btn-add', function(){
             that.addElement($(this));
-        });
-
-        p.find('.btn-comment').on('click', function(){
+        }).on('click', '.btn-comment',function(){
             var self = $(this);
 
             var comment_textarea = self.next('._comment');
@@ -278,8 +255,30 @@ if (typeof xmltool === 'undefined') {
             }
             that.options.open_dialog(modal);
             return false;
-         });
+        });
+    };
+
+    Xmltool.prototype.set_btn_event = function(p){
+        var that = this;
+        p.find('textarea').autosize();
+
+        var set_fielset = function(fieldsets){
+            fieldsets.togglefieldset().bind('hide.togglefieldset', function(e){
+                var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
+                that.$tree.jstree("close_node", o);
+                return false;
+            }).bind('show.togglefieldset', function(e){
+                var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
+                that.$tree.jstree("open_node", o);
+                return false;
+            });
         };
+
+        set_fielset(p.find('fieldset'));
+        if(p.is('fieldset')){
+            set_fielset(p);
+        }
+    };
 
 
     var default_options = {
