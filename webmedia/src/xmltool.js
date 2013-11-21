@@ -34,7 +34,7 @@ if (typeof xmltool === 'undefined') {
         var that = this;
         this.$tree.jstree({
             "json_data" : {'data': [data]},
-            "plugins" : ["themes", "json_data", "ui", 'crrm', 'dnd'],
+            "plugins" : ["themes", "json_data", "ui"], // 'crrm', 'dnd'],
             "core": {
                 html_titles: true
             },
