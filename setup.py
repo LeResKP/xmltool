@@ -46,6 +46,7 @@ setup(name='xmltool',
           'FormEncode',
           'tw2.core',
           'WebTest',
+          'sieve>=0.1.9',
       ],
       entry_points="""
       # -*- Entry points: -*-
