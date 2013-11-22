@@ -70,7 +70,8 @@ class TestFactory(TestCase):
             '<input type="hidden" name="_xml_encoding" id="_xml_encoding" '
             'value="UTF-8" />' in html)
 
-        self.assertTrue('<fieldset class="Exercise" id="Exercise">' in html)
+        self.assertTrue('<div class="panel panel-default '
+                        'Exercise" id="Exercise">' in html)
 
     def test_generate_form_from_obj(self):
         obj = factory.load('tests/exercise.xml')

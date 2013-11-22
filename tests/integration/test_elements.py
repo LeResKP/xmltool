@@ -130,42 +130,42 @@ class TestElementPCDATA(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div id="texts:text">'
         '<label>text</label>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment">'
         'Comment</a>'
-        '<textarea name="texts:text:_value" rows="1">'
+        '<textarea class="form-control" name="texts:text:_value" rows="1">'
         'Hello world</textarea>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
     submit_data = {'texts:text:_value': 'Hello world'}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div id="texts:text">'
          '<label>text</label>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:text',
          '<div id="texts:text">'
          '<label>text</label>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
         )
     ]
@@ -222,42 +222,42 @@ class TestElementPCDATAEmpty(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div id="texts:text">'
         '<label>text</label>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment">'
         'Comment</a>'
-        '<textarea name="texts:text:_value" rows="1">'
+        '<textarea class="form-control" name="texts:text:_value" rows="1">'
         '</textarea>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
     submit_data = {}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div id="texts:text">'
          '<label>text</label>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:text',
          '<div id="texts:text">'
          '<label>text</label>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
         )
     ]
@@ -279,32 +279,32 @@ class TestElementPCDATANotRequired(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div id="texts:text">'
         '<label>text</label>'
         '<a class="btn-add hidden" data-elt-id="texts:text">Add text</a>'
         '<a class="btn-delete" data-target="#texts:text">Delete</a>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment">'
         'Comment</a>'
-        '<textarea name="texts:text:_value" rows="1">Hello world</textarea>'
+        '<textarea class="form-control" name="texts:text:_value" rows="1">Hello world</textarea>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {'texts:text:_value': 'Hello world'}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:text',
          '<div id="texts:text">'
@@ -313,7 +313,7 @@ class TestElementPCDATANotRequired(ElementTester):
          '<a class="btn-delete" data-target="#texts:text">Delete</a>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
         )
     ]
@@ -333,24 +333,24 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
 <texts/>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
-        '</fieldset>'
+        '</div></div>'
     )
     submit_data = {}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:text',
          '<div id="texts:text">'
@@ -359,7 +359,7 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
          '<a class="btn-delete" data-target="#texts:text">Delete</a>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
         )
     ]
@@ -381,32 +381,32 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div id="texts:text">'
         '<label>text</label>'
         '<a class="btn-add hidden" data-elt-id="texts:text">Add text</a>'
         '<a class="btn-delete" data-target="#texts:text">Delete</a>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment">'
         'Comment</a>'
-        '<textarea name="texts:text:_value" rows="1"></textarea>'
+        '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {'texts:text:_value': ''}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:text',
          '<div id="texts:text">'
@@ -415,7 +415,7 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
          '<a class="btn-delete" data-target="#texts:text">Delete</a>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
         )
     ]
@@ -437,10 +437,10 @@ class TestListElement(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
@@ -450,7 +450,7 @@ class TestListElement(ElementTester):
         'data-target="#texts:list__text:0:text">Delete</a>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text:0:text:_value" '
+        '<textarea class="form-control" name="texts:list__text:0:text:_value" '
         'rows="1">'
         'Tag 1</textarea>'
         '</div>'
@@ -462,14 +462,14 @@ class TestListElement(ElementTester):
         'data-target="#texts:list__text:1:text">Delete</a>'
         '<a data-comment-name="texts:list__text:1:text:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text:1:text:_value" '
+        '<textarea class="form-control" name="texts:list__text:1:text:_value" '
         'rows="1">'
         'Tag 2</textarea>'
         '</div>'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text:2:text">New text</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {
@@ -479,11 +479,11 @@ class TestListElement(ElementTester):
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
@@ -493,13 +493,13 @@ class TestListElement(ElementTester):
          'data-target="#texts:list__text:0:text">Delete</a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:0:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:1:text">New text</a>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:list__text:0:text',
          '<div id="texts:list__text:0:text">'
@@ -508,7 +508,7 @@ class TestListElement(ElementTester):
          'data-target="#texts:list__text:0:text">Delete</a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:0:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -521,7 +521,7 @@ class TestListElement(ElementTester):
          'data-target="#texts:list__text:10:text">Delete</a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:10:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -578,10 +578,10 @@ class TestListElementEmpty(ElementTester):
 '''
 
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
@@ -591,25 +591,25 @@ class TestListElementEmpty(ElementTester):
         'data-target="#texts:list__text:0:text">Delete</a>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text:0:text:_value" '
+        '<textarea class="form-control" name="texts:list__text:0:text:_value" '
         'rows="1">'
         '</textarea>'
         '</div>'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text:1:text">New text</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
@@ -619,13 +619,13 @@ class TestListElementEmpty(ElementTester):
          'data-target="#texts:list__text:0:text">Delete</a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:0:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:1:text">New text</a>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:list__text:0:text',
          '<div id="texts:list__text:0:text">'
@@ -634,7 +634,7 @@ class TestListElementEmpty(ElementTester):
          'data-target="#texts:list__text:0:text">Delete</a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:0:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -647,7 +647,7 @@ class TestListElementEmpty(ElementTester):
          'data-target="#texts:list__text:10:text">Delete</a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:10:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -674,10 +674,10 @@ class TestListElementNotRequired(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
@@ -687,7 +687,7 @@ class TestListElementNotRequired(ElementTester):
         'data-target="#texts:list__text:0:text">Delete</a>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text:0:text:_value" '
+        '<textarea class="form-control" name="texts:list__text:0:text:_value" '
         'rows="1">'
         'Tag 1</textarea>'
         '</div>'
@@ -699,14 +699,14 @@ class TestListElementNotRequired(ElementTester):
         'data-target="#texts:list__text:1:text">Delete</a>'
         '<a data-comment-name="texts:list__text:1:text:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text:1:text:_value" '
+        '<textarea class="form-control" name="texts:list__text:1:text:_value" '
         'rows="1">'
         'Tag 2</textarea>'
         '</div>'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text:2:text">New text</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {
@@ -716,16 +716,16 @@ class TestListElementNotRequired(ElementTester):
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:list__text:0:text',
          '<div id="texts:list__text:0:text">'
@@ -734,7 +734,7 @@ class TestListElementNotRequired(ElementTester):
          'data-target="#texts:list__text:0:text">Delete</a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:0:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -747,7 +747,7 @@ class TestListElementNotRequired(ElementTester):
          'data-target="#texts:list__text:10:text">Delete</a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:10:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -770,32 +770,32 @@ class TestListElementEmptyNotRequired(ElementTester):
 <texts/>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" '
         'class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:list__text:0:text',
          '<div id="texts:list__text:0:text">'
@@ -804,7 +804,7 @@ class TestListElementEmptyNotRequired(ElementTester):
          'data-target="#texts:list__text:0:text">Delete</a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:0:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -817,7 +817,7 @@ class TestListElementEmptyNotRequired(ElementTester):
          'data-target="#texts:list__text:10:text">Delete</a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:10:text:_value" '
+         '<textarea class="form-control" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
@@ -850,86 +850,86 @@ class TestListElementElementEmpty(ElementTester):
 '''
 
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">'
         'New text</a>'
-        '<fieldset class="text" '
+        '<div class="panel panel-default text" '
         'id="texts:list__text:0:text">'
-        '<legend>text'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment">Comment</a>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text:0:text">Delete</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
         '<div id="texts:list__text:0:text:subtext">'
         '<label>subtext</label>'
         '<a data-comment-name="texts:list__text:0:text:subtext:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text:0:text:subtext:_value" '
+        '<textarea class="form-control" name="texts:list__text:0:text:subtext:_value" '
         'rows="1"></textarea>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
         '<a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">'
         'New text</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {}
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">'
          'Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
          '<a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">'
          'New text</a>'
-         '<fieldset class="text" '
+         '<div class="panel panel-default text" '
          'id="texts:list__text:0:text">'
-         '<legend>text'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment">Comment</a>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:0:text">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
          '<div id="texts:list__text:0:text:subtext">'
          '<label>subtext</label>'
          '<a data-comment-name="texts:list__text:0:text:subtext:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:0:text:subtext:_value" '
+         '<textarea class="form-control" name="texts:list__text:0:text:subtext:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:1:text">'
          'New text</a>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:list__text:1:text',
-         '<fieldset class="text" id="texts:list__text:1:text">'
-         '<legend>text'
+         '<div class="panel panel-default text" id="texts:list__text:1:text">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text'
          '<a data-comment-name="texts:list__text:1:text:_comment" '
          'class="btn-comment">Comment</a>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:1:text">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">'
          '<div id="texts:list__text:1:text:subtext">'
          '<label>subtext</label>'
          '<a data-comment-name="texts:list__text:1:text:subtext:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text:1:text:subtext:_value" '
+         '<textarea class="form-control" name="texts:list__text:1:text:subtext:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text:2:text">'
          'New text</a>'
@@ -945,17 +945,17 @@ class TestListElementElementEmpty(ElementTester):
 
 choice_str_to_html = [
     ('texts',
-     '<fieldset class="texts" id="texts">'
-     '<legend>texts'
+     '<div class="panel panel-default texts" id="texts">'
+     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
      '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
      '<a class="btn-delete" data-target="#texts">Delete</a>'
-     '</legend>'
+     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
      '<select class="btn-add">'
      '<option>New text1/text2</option>'
      '<option value="texts:text1">text1</option>'
      '<option value="texts:text2">text2</option>'
      '</select>'
-     '</fieldset>'
+     '</div></div>'
     ),
     ('texts:text1',
      '<div id="texts:text1">'
@@ -968,7 +968,7 @@ choice_str_to_html = [
      '<a class="btn-delete" data-target="#texts:text1">Delete</a>'
      '<a data-comment-name="texts:text1:_comment" class="btn-comment">'
      'Comment</a>'
-     '<textarea name="texts:text1:_value" rows="1"></textarea>'
+     '<textarea class="form-control" name="texts:text1:_value" rows="1"></textarea>'
      '</div>'
     )
 ]
@@ -991,10 +991,10 @@ class TestElementChoice(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div id="texts:text1">'
         '<label>text1</label>'
         '<select class="btn-add hidden">'
@@ -1005,10 +1005,10 @@ class TestElementChoice(ElementTester):
         '<a class="btn-delete" data-target="#texts:text1">Delete</a>'
         '<a data-comment-name="texts:text1:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:text1:_value" '
+        '<textarea class="form-control" name="texts:text1:_value" '
         'rows="1">Tag 1</textarea>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {
@@ -1063,17 +1063,17 @@ class TestElementChoiceEmpty(ElementTester):
 <texts/>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" '
         'class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<select class="btn-add">'
         '<option>New text1/text2</option>'
         '<option value="texts:text1">text1</option>'
         '<option value="texts:text2">text2</option>'
         '</select>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {}
@@ -1094,10 +1094,10 @@ class TestElementChoiceNotRequired(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div id="texts:text1">'
         '<label>text1</label>'
         '<select class="btn-add hidden">'
@@ -1111,10 +1111,10 @@ class TestElementChoiceNotRequired(ElementTester):
         '<a class="btn-delete" data-target="#texts:text1">Delete</a>'
         '<a data-comment-name="texts:text1:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:text1:_value" '
+        '<textarea class="form-control" name="texts:text1:_value" '
         'rows="1">Tag 1</textarea>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {
@@ -1134,17 +1134,17 @@ class TestElementChoiceEmptyNotRequired(ElementTester):
 <texts/>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" '
         'class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<select class="btn-add">'
         '<option>New text1/text2</option>'
         '<option value="texts:text1">text1</option>'
         '<option value="texts:text2">text2</option>'
         '</select>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {}
@@ -1154,11 +1154,11 @@ class TestElementChoiceEmptyNotRequired(ElementTester):
 
 choicelist_str_to_html = [
     ('texts',
-     '<fieldset class="texts" id="texts">'
-     '<legend>texts'
+     '<div class="panel panel-default texts" id="texts">'
+     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
      '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
      '<a class="btn-delete" data-target="#texts">Delete</a>'
-     '</legend>'
+     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
      '<div class="list-container">'
      '<select class="btn-add btn-list">'
      '<option>New text1/text2</option>'
@@ -1166,7 +1166,7 @@ choicelist_str_to_html = [
      '<option value="texts:list__text1_text2:0:text2">text2</option>'
      '</select>'
      '</div>'
-     '</fieldset>'
+     '</div></div>'
     ),
     ('texts:list__text1_text2:0:text1',
      '<div id="texts:list__text1_text2:0:text1">'
@@ -1175,7 +1175,7 @@ choicelist_str_to_html = [
      'data-target="#texts:list__text1_text2:0:text1">Delete</a>'
      '<a data-comment-name="texts:list__text1_text2:0:text1:_comment" '
      'class="btn-comment">Comment</a>'
-     '<textarea name="texts:list__text1_text2:0:text1:_value" '
+     '<textarea class="form-control" name="texts:list__text1_text2:0:text1:_value" '
      'rows="1"></textarea>'
      '</div>'
      '<select class="btn-add btn-list">'
@@ -1191,7 +1191,7 @@ choicelist_str_to_html = [
      'data-target="#texts:list__text1_text2:10:text1">Delete</a>'
      '<a data-comment-name="texts:list__text1_text2:10:text1:_comment" '
      'class="btn-comment">Comment</a>'
-     '<textarea name="texts:list__text1_text2:10:text1:_value" '
+     '<textarea class="form-control" name="texts:list__text1_text2:10:text1:_value" '
      'rows="1"></textarea>'
      '</div>'
      '<select class="btn-add btn-list">'
@@ -1221,10 +1221,10 @@ class TestElementChoiceList(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
@@ -1237,7 +1237,7 @@ class TestElementChoiceList(ElementTester):
         'data-target="#texts:list__text1_text2:0:text1">Delete</a>'
         '<a data-comment-name="texts:list__text1_text2:0:text1:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1_text2:0:text1:_value" '
+        '<textarea class="form-control" name="texts:list__text1_text2:0:text1:_value" '
         'rows="1">Tag 1</textarea>'
         '</div>'
         '<select class="btn-add btn-list">'
@@ -1251,7 +1251,7 @@ class TestElementChoiceList(ElementTester):
         'data-target="#texts:list__text1_text2:1:text2">Delete</a>'
         '<a data-comment-name="texts:list__text1_text2:1:text2:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1_text2:1:text2:_value" '
+        '<textarea class="form-control" name="texts:list__text1_text2:1:text2:_value" '
         'rows="1">Tag 2</textarea>'
         '</div>'
         '<select class="btn-add btn-list">'
@@ -1265,7 +1265,7 @@ class TestElementChoiceList(ElementTester):
         'data-target="#texts:list__text1_text2:2:text1">Delete</a>'
         '<a data-comment-name="texts:list__text1_text2:2:text1:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1_text2:2:text1:_value" '
+        '<textarea class="form-control" name="texts:list__text1_text2:2:text1:_value" '
         'rows="1">Tag 3</textarea>'
         '</div>'
         '<select class="btn-add btn-list">'
@@ -1274,7 +1274,7 @@ class TestElementChoiceList(ElementTester):
         '<option value="texts:list__text1_text2:3:text2">text2</option>'
         '</select>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {
@@ -1321,10 +1321,10 @@ class TestElementChoiceListEmpty(ElementTester):
 <texts/>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
@@ -1332,7 +1332,7 @@ class TestElementChoiceListEmpty(ElementTester):
         '<option value="texts:list__text1_text2:0:text2">text2</option>'
         '</select>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {}
@@ -1354,10 +1354,10 @@ class TestElementChoiceListNotRequired(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
@@ -1370,7 +1370,7 @@ class TestElementChoiceListNotRequired(ElementTester):
         'data-target="#texts:list__text1_text2:0:text1">Delete</a>'
         '<a data-comment-name="texts:list__text1_text2:0:text1:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1_text2:0:text1:_value" '
+        '<textarea class="form-control" name="texts:list__text1_text2:0:text1:_value" '
         'rows="1">Tag 1</textarea>'
         '</div>'
         '<select class="btn-add btn-list">'
@@ -1384,7 +1384,7 @@ class TestElementChoiceListNotRequired(ElementTester):
         'data-target="#texts:list__text1_text2:1:text2">Delete</a>'
         '<a data-comment-name="texts:list__text1_text2:1:text2:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1_text2:1:text2:_value" '
+        '<textarea class="form-control" name="texts:list__text1_text2:1:text2:_value" '
         'rows="1">Tag 2</textarea>'
         '</div>'
         '<select class="btn-add btn-list">'
@@ -1398,7 +1398,7 @@ class TestElementChoiceListNotRequired(ElementTester):
         'data-target="#texts:list__text1_text2:2:text1">Delete</a>'
         '<a data-comment-name="texts:list__text1_text2:2:text1:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1_text2:2:text1:_value" '
+        '<textarea class="form-control" name="texts:list__text1_text2:2:text1:_value" '
         'rows="1">Tag 3</textarea>'
         '</div>'
         '<select class="btn-add btn-list">'
@@ -1407,7 +1407,7 @@ class TestElementChoiceListNotRequired(ElementTester):
         '<option value="texts:list__text1_text2:3:text2">text2</option>'
         '</select>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {
@@ -1430,10 +1430,10 @@ class TestElementChoiceListEmptyNotRequired(ElementTester):
 <texts/>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
@@ -1441,7 +1441,7 @@ class TestElementChoiceListEmptyNotRequired(ElementTester):
         '<option value="texts:list__text1_text2:0:text2">text2</option>'
         '</select>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {}
@@ -1467,21 +1467,21 @@ class TestListElementOfList(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text1:0:text1">New text1</a>'
-        '<fieldset class="text1" '
+        '<div class="panel panel-default text1" '
         'id="texts:list__text1:0:text1">'
-        '<legend>text1'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__text1\:0\:text1">text1'
         '<a data-comment-name="texts:list__text1:0:text1:_comment" '
         'class="btn-comment">Comment</a>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1:0:text1">Delete</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1:0:text1">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text1:0:text1:list__text2:0:text2">New text2</a>'
@@ -1492,7 +1492,7 @@ class TestListElementOfList(ElementTester):
         '>Delete</a>'
         '<a data-comment-name="texts:list__text1:0:text1:list__text2:0:text2:'
         '_comment" class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1:0:text1:list__text2:0:text2:_value" '
+        '<textarea class="form-control" name="texts:list__text1:0:text1:list__text2:0:text2:_value" '
         'rows="1">text2-1</textarea>'
         '</div>'
         '<a class="btn-add btn-list" '
@@ -1504,23 +1504,23 @@ class TestListElementOfList(ElementTester):
         '>Delete</a>'
         '<a data-comment-name="texts:list__text1:0:text1:list__text2:1:text2'
         ':_comment" class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1:0:text1:list__text2:1:text2:_value" '
+        '<textarea class="form-control" name="texts:list__text1:0:text1:list__text2:1:text2:_value" '
         'rows="1">text2-2</textarea>'
         '</div>'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text1:0:text1:list__text2:2:text2">New text2</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text1:1:text1">New text1</a>'
-        '<fieldset class="text1" '
+        '<div class="panel panel-default text1" '
         'id="texts:list__text1:1:text1">'
-        '<legend>text1'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__text1\:1\:text1">text1'
         '<a data-comment-name="texts:list__text1:1:text1:_comment" '
         'class="btn-comment">Comment</a>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1:1:text1">Delete</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1:1:text1">'
         '<div class="list-container">'
         '<a class="btn-add btn-list" data-elt-id="texts:list__text1:1:text1:'
         'list__text2:0:text2">New text2</a>'
@@ -1531,17 +1531,17 @@ class TestListElementOfList(ElementTester):
         '>Delete</a>'
         '<a data-comment-name="texts:list__text1:1:text1:list__text2:0:text2:'
         '_comment" class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1:1:text1:list__text2:0:text2:_value" '
+        '<textarea class="form-control" name="texts:list__text1:1:text1:list__text2:0:text2:_value" '
         'rows="1">text2-3</textarea>'
         '</div>'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text1:1:text1:list__text2:1:text2">New text2</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
         '<a class="btn-add btn-list" '
         'data-elt-id="texts:list__text1:2:text1">New text1</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     submit_data = {
@@ -1551,26 +1551,26 @@ class TestListElementOfList(ElementTester):
     }
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text1:0:text1">New text1</a>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
         ),
         ('texts:list__text1:0:text1',
-         '<fieldset class="text1" id="texts:list__text1:0:text1">'
-         '<legend>'
+         '<div class="panel panel-default text1" id="texts:list__text1:0:text1">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__text1\:0\:text1">'
          'text1'
          '<a data-comment-name="texts:list__text1:0:text1:_comment" '
          'class="btn-comment">Comment</a>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text1:0:text1">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1:0:text1">'
          '<div class="list-container">'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text1:0:text1:list__text2:0:text2">New text2</a>'
@@ -1581,14 +1581,14 @@ class TestListElementOfList(ElementTester):
          '>Delete</a>'
          '<a data-comment-name="texts:list__text1:0:text1:list__text2:0:'
          'text2:_comment" class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text1:0:text1:list__text2:0:text2:'
+         '<textarea class="form-control" name="texts:list__text1:0:text1:list__text2:0:text2:'
          '_value" rows="1"></textarea>'
          '</div>'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text1:0:text1:list__text2:1:text2">'
          'New text2</a>'
          '</div>'
-         '</fieldset>'
+         '</div></div>'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text1:1:text1">New text1</a>'
         ),
@@ -1600,7 +1600,7 @@ class TestListElementOfList(ElementTester):
          '>Delete</a>'
          '<a data-comment-name="texts:list__text1:0:text1:list__text2:3:'
          'text2:_comment" class="btn-comment">Comment</a>'
-         '<textarea name="texts:list__text1:0:text1:list__text2:3:text2:_value" '
+         '<textarea class="form-control" name="texts:list__text1:0:text1:list__text2:3:text2:_value" '
          'rows="1">'
          '</textarea>'
          '</div>'
@@ -1635,10 +1635,10 @@ class TestElementWithAttributes(ElementTester):
 </texts>
 '''
     expected_html = (
-        '<fieldset class="texts" id="texts">'
-        '<legend>texts'
+        '<div class="panel panel-default texts" id="texts">'
+        '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment">Comment</a>'
-        '</legend>'
+        '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<input value="id_texts" name="texts:_attrs:idtexts" '
         'id="texts:_attrs:idtexts" class="_attrs" />'
         '<input value="my texts" name="texts:_attrs:name" '
@@ -1649,7 +1649,7 @@ class TestElementWithAttributes(ElementTester):
         'class="btn-comment">Comment</a>'
         '<input value="id_text" name="texts:text:_attrs:idtext" '
         'id="texts:text:_attrs:idtext" class="_attrs" />'
-        '<textarea name="texts:text:_value" rows="1">Hello world</textarea>'
+        '<textarea class="form-control" name="texts:text:_value" rows="1">Hello world</textarea>'
         '</div>'
         '<div class="list-container">'
         '<a class="btn-add btn-list" data-elt-id="texts:list__text1:0:text1">'
@@ -1664,7 +1664,7 @@ class TestElementWithAttributes(ElementTester):
         'name="texts:list__text1:0:text1:_attrs:idtext1" '
         'id="texts:list__text1:0:text1:_attrs:idtext1" '
         'class="_attrs" />'
-        '<textarea name="texts:list__text1:0:text1:_value" rows="1">'
+        '<textarea class="form-control" name="texts:list__text1:0:text1:_value" rows="1">'
         'My text 1</textarea>'
         '</div>'
         '<a class="btn-add btn-list" data-elt-id="texts:list__text1:1:text1">'
@@ -1675,34 +1675,34 @@ class TestElementWithAttributes(ElementTester):
         'data-target="#texts:list__text1:1:text1">Delete</a>'
         '<a data-comment-name="texts:list__text1:1:text1:_comment" '
         'class="btn-comment">Comment</a>'
-        '<textarea name="texts:list__text1:1:text1:_value" rows="1">'
+        '<textarea class="form-control" name="texts:list__text1:1:text1:_value" rows="1">'
         'My text 2</textarea>'
         '</div>'
         '<a class="btn-add btn-list" data-elt-id="texts:list__text1:2:text1">'
         'New text1</a>'
         '</div>'
-        '</fieldset>'
+        '</div></div>'
     )
 
     str_to_html = [
         ('texts',
-         '<fieldset class="texts" id="texts">'
-         '<legend>texts'
+         '<div class="panel panel-default texts" id="texts">'
+         '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment">'
          'Comment</a>'
          '<a class="btn-delete" data-target="#texts">Delete</a>'
-         '</legend>'
+         '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div id="texts:text">'
          '<label>text</label>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment">Comment</a>'
-         '<textarea name="texts:text:_value" rows="1"></textarea>'
+         '<textarea class="form-control" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
          '<div class="list-container">'
          '<a class="btn-add btn-list" '
          'data-elt-id="texts:list__text1:0:text1">New text1</a>'
          '</div>'
-         '</fieldset>')
+         '</div></div>')
     ]
 
     js_selector = [

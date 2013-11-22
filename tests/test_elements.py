@@ -479,17 +479,17 @@ class TestElement(TestCase):
     def test_to_html(self):
         obj = self.cls()
         html = obj.to_html()
-        expected1 = ('<fieldset class="tag" id="tag"><legend>tag'
+        expected1 = ('<div class="panel panel-default tag" id="tag"><div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag">tag'
                     '<a data-comment-name="tag:_comment" class="btn-comment">'
                     'Comment</a>'
-                    '</legend>'
-                    '<fieldset class="subtag" id="tag:subtag">'
-                    '<legend>subtag'
+                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
+                    '<div class="panel panel-default subtag" id="tag:subtag">'
+                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
                     'class="btn-comment">Comment</a>'
-                    '</legend>'
-                    '</fieldset>'
-                    '</fieldset>')
+                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
+                    '</div></div>'
+                    '</div></div>')
         self.assertEqual(html, expected1)
 
         obj._parent = 'my fake parent'
@@ -499,21 +499,21 @@ class TestElement(TestCase):
         self.assertEqual(html, expected_button)
 
         html = obj.to_html(partial=True)
-        expected2 = ('<fieldset class="tag" id="tag">'
-                    '<legend>tag'
+        expected2 = ('<div class="panel panel-default tag" id="tag">'
+                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag">tag'
                     '<a data-comment-name="tag:_comment" class="btn-comment">'
                     'Comment</a>'
                     '<a class="btn-add hidden" data-elt-id="tag">'
                     'Add tag</a>'
                     '<a class="btn-delete" data-target="#tag">Delete</a>'
-                    '</legend>'
-                    '<fieldset class="subtag" id="tag:subtag">'
-                    '<legend>subtag'
+                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
+                    '<div class="panel panel-default subtag" id="tag:subtag">'
+                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
                     'class="btn-comment">Comment</a>'
-                    '</legend>'
-                    '</fieldset>'
-                    '</fieldset>')
+                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
+                    '</div></div>'
+                    '</div></div>')
         self.assertEqual(html, expected2)
 
         obj._required = True
@@ -818,7 +818,7 @@ class TestTextElement(TestCase):
                     'Delete</a>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment">Comment</a>'
-                    '<textarea name="tag:_value" '
+                    '<textarea class="form-control" name="tag:_value" '
                     'rows="1"></textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -829,7 +829,7 @@ class TestTextElement(TestCase):
                     '<label>tag</label>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment">Comment</a>'
-                    '<textarea name="tag:_value" rows="1">'
+                    '<textarea class="form-control" name="tag:_value" rows="1">'
                     '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -842,7 +842,7 @@ class TestTextElement(TestCase):
                     'data-target="#tag">Delete</a>'
                     '<a data-comment-name="tag:_comment" class="btn-comment">'
                     'Comment</a>'
-                    '<textarea name="tag:_value" rows="1">'
+                    '<textarea class="form-control" name="tag:_value" rows="1">'
                     '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -992,14 +992,14 @@ class TestListElement(TestCase):
         self.assertEqual(html, expected)
 
         html = obj.to_html(partial=True)
-        expected = ('<fieldset class="tag" id="list_cls:0:tag">'
-                    '<legend>tag'
+        expected = ('<div class="panel panel-default tag" id="list_cls:0:tag">'
+                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
                     '<a data-comment-name="list_cls:0:tag:_comment" '
                     'class="btn-comment">Comment</a>'
                     '<a class="btn-delete btn-list" '
                     'data-target="#list_cls:0:tag">Delete</a>'
-                    '</legend>'
-                    '</fieldset>'
+                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
+                    '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:1:tag">New tag</a>')
         self.assertEqual(html, expected)
@@ -1009,15 +1009,15 @@ class TestListElement(TestCase):
         expected = ('<div class="list-container">'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:0:tag">New tag</a>'
-                    '<fieldset class="tag" '
+                    '<div class="panel panel-default tag" '
                     'id="list_cls:0:tag">'
-                    '<legend>tag'
+                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
                     '<a data-comment-name="list_cls:0:tag:_comment" '
                     'class="btn-comment">Comment</a>'
                     '<a class="btn-delete btn-list" '
                     'data-target="#list_cls:0:tag">Delete</a>'
-                    '</legend>'
-                    '</fieldset>'
+                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
+                    '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:1:tag">New tag</a>'
                     '</div>')
@@ -1027,14 +1027,14 @@ class TestListElement(TestCase):
         expected = ('<div class="list-container">'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:10:tag">New tag</a>'
-                    '<fieldset class="tag" id="list_cls:10:tag">'
-                    '<legend>tag'
+                    '<div class="panel panel-default tag" id="list_cls:10:tag">'
+                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:10\:tag">tag'
                     '<a data-comment-name="list_cls:10:tag:_comment" '
                     'class="btn-comment">Comment</a>'
                     '<a class="btn-delete btn-list" '
                     'data-target="#list_cls:10:tag">Delete</a>'
-                    '</legend>'
-                    '</fieldset>'
+                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:10:tag">'
+                    '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:11:tag">New tag</a>'
                     '</div>')
@@ -1213,12 +1213,12 @@ class TestChoiceElement(TestCase):
         parent_obj.tag1 = obj
         html = self.cls._to_html(parent_obj)
         expected = (
-            '<fieldset class="choice_cls" id="choice_cls">'
-            '<legend>choice_cls'
+            '<div class="panel panel-default choice_cls" id="choice_cls">'
+            '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-choice_cls">choice_cls'
             '<a data-comment-name="choice_cls:_comment" '
             'class="btn-comment">Comment</a>'
-            '</legend>'
-            '</fieldset>')
+            '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-choice_cls">'
+            '</div></div>')
         self.assertEqual(html, expected)
 
     def test_to_jstree_dict(self):
@@ -1248,7 +1248,7 @@ class TestFunctions(TestCase):
             '<label>text</label>'
             '<a data-comment-name="texts:text:_comment" '
             'class="btn-comment">Comment</a>'
-            '<textarea name="texts:text:_value" '
+            '<textarea class="form-control" name="texts:text:_value" '
             'rows="1"></textarea>'
             '</div>')
         self.assertEqual(html, expected)
@@ -1266,7 +1266,7 @@ class TestFunctions(TestCase):
                     'data-target="#texts:list__text:0:text">Delete</a>'
                     '<a data-comment-name="texts:list__text:0:text:_comment" '
                     'class="btn-comment">Comment</a>'
-                    '<textarea name="texts:list__text:0:text:_value" '
+                    '<textarea class="form-control" name="texts:list__text:0:text:_value" '
                     'rows="1">'
                     '</textarea>'
                     '</div>'
@@ -1286,7 +1286,7 @@ class TestFunctions(TestCase):
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:0:list:text:_comment" '
             'class="btn-comment">Comment</a>'
-            '<textarea name="texts:list__list:0:list:text:_value" '
+            '<textarea class="form-control" name="texts:list__list:0:list:text:_value" '
             'rows="1"></textarea>'
             '</div>')
         self.assertEqual(html, expected)
@@ -1357,7 +1357,7 @@ class TestFunctions(TestCase):
             '<label>tag2</label>'
             '<a data-comment-name="texts:tag2:_comment" class="btn-comment">'
             'Comment</a>'
-            '<textarea name="texts:tag2:_value" '
+            '<textarea class="form-control" name="texts:tag2:_value" '
             'rows="1"></textarea>'
             '</div>')
         self.assertEqual(result, expected)
@@ -1367,22 +1367,22 @@ class TestFunctions(TestCase):
                                                dtd_str=dtd_str)
         result = elements._get_html_from_obj(obj, prefixes, index)
         expected = (
-            '<fieldset class="list" '
-            'id="texts:list__list:1:list"><legend>list'
+            '<div class="panel panel-default list" '
+            'id="texts:list__list:1:list"><div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__list\:1\:list">list'
             '<a data-comment-name="texts:list__list:1:list:_comment" '
             'class="btn-comment">Comment</a>'
             '<a class="btn-delete btn-list" '
             'data-target="#texts:list__list:1:list">'
             'Delete</a>'
-            '</legend>'
+            '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__list:1:list">'
             '<div id="texts:list__list:1:list:text">'
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:1:list:text:_comment" '
             'class="btn-comment">Comment</a>'
-            '<textarea name="texts:list__list:1:list:text:_value" '
+            '<textarea class="form-control" name="texts:list__list:1:list:text:_value" '
             'rows="1"></textarea>'
             '</div>'
-            '</fieldset>'
+            '</div></div>'
             '<a class="btn-add btn-list" '
             'data-elt-id="texts:list__list:2:list">New list</a>')
         self.assertEqual(result, expected)
@@ -1406,7 +1406,7 @@ class TestFunctions(TestCase):
                      '<label>tag2</label>'
                      '<a data-comment-name="texts:tag2:_comment" '
                      'class="btn-comment">Comment</a>'
-                     '<textarea name="texts:tag2:_value" '
+                     '<textarea class="form-control" name="texts:tag2:_value" '
                      'rows="1"></textarea></div>'),
             'jstree_data': {
                 'data': 'tag2',

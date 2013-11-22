@@ -290,12 +290,21 @@ class Element(object):
             else:
                 legend += ('<a class="btn-delete" '
                            'data-target="#%s">Delete</a>') % ident
-        html = ['<fieldset class="%s" id="%s"><legend>%s</legend>' % (
-            self._tagname,
-            ident,
-            legend)]
+        html = [(
+            '<div class="panel panel-default {css_class}" id="{ident}">'
+            '<div class="panel-heading">'
+            '<a data-toggle="collapse" '
+            'href="#collapse-{escaped_id}">{legend}</a>'
+            '</div>'
+            '<div class="panel-body panel-collapse collapse in" '
+            'id="collapse-{ident}">').format(
+                css_class=self._tagname,
+                ident=ident,
+                legend=legend,
+                escaped_id='\\:'.join(tmp_prefixes),
+            )]
         html.extend(sub_html)
-        html += ['</fieldset>']
+        html += ['</div></div>']
         return ''.join(html)
 
     @classmethod
@@ -492,7 +501,7 @@ class TextElement(Element):
             u'{delete_button}'
             u'{comment}'
             u'{xmlattrs}'
-            u'<textarea{attrs} rows="1">{value}</textarea></div>').format(
+            u'<textarea class="form-control"{attrs} rows="1">{value}</textarea></div>').format(
                 ident=ident,
                 label=self._tagname,
                 add_button=add_button,
