@@ -8,7 +8,7 @@ if (typeof xmltool === 'undefined') {
     var re_split = new RegExp('^(.*):([^:]+)$');
 
     var ATTRNAMES = ['name', 'id', 'class', 'value'];
-    var DATANAMES = ['id', 'comment-name', 'target'];
+    var DATANAMES = ['id', 'comment-name', 'target', 'elt-id'];
 
     ns.utils = {
         escape_id: function(id){
@@ -38,7 +38,7 @@ if (typeof xmltool === 'undefined') {
         },
         _increment_id: function(prefix, elt, func, names, diff){
             // TODO: Perhaps we might support empty prefix
-            var re_id = new RegExp('^'+prefix+':(\\d+)');
+            var re_id = new RegExp('^#?'+prefix+':(\\d+)');
             for (var key in names){
                 var name = names[key];
                 var value = func(elt, name);
@@ -48,8 +48,8 @@ if (typeof xmltool === 'undefined') {
                     for(var i=0; i<values.length; i++){
                         var v = values[i];
                         var index = parseInt(v.replace(re_id, '$1'), 10);
-                        var re = new RegExp('^'+prefix+':'+index);
-                        var new_value = v.replace(re, prefix + ':' + (index+diff));
+                        var re = new RegExp('^(#?)'+prefix+':'+index);
+                        var new_value = v.replace(re, '$1' + prefix + ':' + (index+diff));
                         output.push(new_value);
                     }
                     func(elt, name, output.join(' '));

@@ -61,7 +61,7 @@
     test("increment_id", function() {
         var elt = $('<div id="name:0:_value" data-id="name:0:_value" />');
         elt.append('<div class="class1 name:0:class1 otherprefix:0:class1" />');
-        elt.append('<div data-target="name:0:target" />');
+        elt.append('<div data-target="#name:0:target" />');
         var prefix = 'name';
         xmltool.utils.increment_id(prefix, elt);
         equal(elt.attr('id'), 'name:1:_value');
@@ -69,13 +69,13 @@
         var child1 = $(elt.children()[0]);
         equal(child1.attr('class'), 'class1 name:1:class1 otherprefix:0:class1');
         var child2 = $(elt.children()[1]);
-        equal(child2.data('target'), 'name:1:target');
+        equal(child2.data('target'), '#name:1:target');
     });
 
     test("decrement_id", function() {
         var elt = $('<div id="name:1:_value" data-id="name:1:_value" />');
         elt.append('<div class="class1 name:1:class1 otherprefix:1:class1" />');
-        elt.append('<div data-target="name:1:target" />');
+        elt.append('<div data-target="#name:1:target" />');
         var prefix = 'name';
         xmltool.utils.decrement_id(prefix, elt);
         equal(elt.attr('id'), 'name:0:_value');
@@ -83,7 +83,7 @@
         var child1 = $(elt.children()[0]);
         equal(child1.attr('class'), 'class1 name:0:class1 otherprefix:1:class1');
         var child2 = $(elt.children()[1]);
-        equal(child2.data('target'), 'name:0:target');
+        equal(child2.data('target'), '#name:0:target');
     });
 
     test("_replace_id", function() {
