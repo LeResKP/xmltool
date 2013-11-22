@@ -148,7 +148,7 @@ class TestFactory(TestCase):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    '<a class="btn-add" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -163,7 +163,7 @@ class TestFactory(TestCase):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    '<a class="btn-add" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -180,7 +180,7 @@ class TestFactory(TestCase):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    '<a class="btn-add" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)

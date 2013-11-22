@@ -2,23 +2,23 @@
 <input type="hidden" name="_xml_filename" id="_xml_filename" value="examples/movie.xml"><input type="hidden" name="_xml_dtd_url" id="_xml_dtd_url" value="http://xmltool.lereskp.fr/examples/movie.dtd"><input type="hidden" name="_xml_encoding" id="_xml_encoding" value="UTF-8"><fieldset class="movie" id="movie">
 <legend>movie<a data-comment-name="movie:_comment" class="btn-comment">Comment</a>
 </legend>
-<input value="M1" name="movie:_attrs:idmovie" id="movie:_attrs:idmovie" class="_attrs"><div data-id="movie:title">
-<label>title</label><a data-comment-name="movie:title:_comment" class="btn-comment">Comment</a><textarea name="movie:title:_value" id="movie:title" class="movie:title" rows="1">Full Metal Jacket</textarea>
+<input value="M1" name="movie:_attrs:idmovie" id="movie:_attrs:idmovie" class="_attrs"><div id="movie:title">
+<label>title</label><a data-comment-name="movie:title:_comment" class="btn-comment">Comment</a><textarea name="movie:title:_value" rows="1">Full Metal Jacket</textarea>
 </div>
-<div data-id="movie:realisator">
-<label>realisator</label><a data-comment-name="movie:realisator:_comment" class="btn-comment">Comment</a><textarea name="movie:realisator:_value" id="movie:realisator" class="movie:realisator" rows="1">Stanley Kubrick</textarea>
+<div id="movie:realisator">
+<label>realisator</label><a data-comment-name="movie:realisator:_comment" class="btn-comment">Comment</a><textarea name="movie:realisator:_value" rows="1">Stanley Kubrick</textarea>
 </div>
-<fieldset class="characters movie:characters" id="movie:characters">
+<fieldset class="characters" id="movie:characters">
 <legend>characters<a data-comment-name="movie:characters:_comment" class="btn-comment">Comment</a>
 </legend>
 <div class="list-container">
-<a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:0:character">New character</a><div data-id="movie:characters:list__character:0:character">
-<label>character</label><a class="btn-delete-list">Delete</a><a data-comment-name="movie:characters:list__character:0:character:_comment" class="btn-comment">Comment</a><input value="C1" name="movie:characters:list__character:0:character:_attrs:idcharacter" id="movie:characters:list__character:0:character:_attrs:idcharacter" class="_attrs"><textarea name="movie:characters:list__character:0:character:_value" id="movie:characters:list__character:0:character" class="movie:characters:list__character" rows="1">Matthew Modine</textarea>
+<a class="btn-add btn-list" data-elt-id="movie:characters:list__character:0:character">New character</a><div id="movie:characters:list__character:0:character">
+<label>character</label><a class="btn-delete btn-list" data-target="#movie:characters:list__character:0:character">Delete</a><a data-comment-name="movie:characters:list__character:0:character:_comment" class="btn-comment">Comment</a><input value="C1" name="movie:characters:list__character:0:character:_attrs:idcharacter" id="movie:characters:list__character:0:character:_attrs:idcharacter" class="_attrs"><textarea name="movie:characters:list__character:0:character:_value" rows="1">Matthew Modine</textarea>
 </div>
-<a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:1:character">New character</a><div data-id="movie:characters:list__character:1:character">
-<label>character</label><a class="btn-delete-list">Delete</a><a data-comment-name="movie:characters:list__character:1:character:_comment" class="btn-comment">Comment</a><input value="C2" name="movie:characters:list__character:1:character:_attrs:idcharacter" id="movie:characters:list__character:1:character:_attrs:idcharacter" class="_attrs"><textarea name="movie:characters:list__character:1:character:_value" id="movie:characters:list__character:1:character" class="movie:characters:list__character" rows="1">Vincent D'Onofrio</textarea>
+<a class="btn-add btn-list" data-elt-id="movie:characters:list__character:1:character">New character</a><div id="movie:characters:list__character:1:character">
+<label>character</label><a class="btn-delete btn-list" data-target="#movie:characters:list__character:1:character">Delete</a><a data-comment-name="movie:characters:list__character:1:character:_comment" class="btn-comment">Comment</a><input value="C2" name="movie:characters:list__character:1:character:_attrs:idcharacter" id="movie:characters:list__character:1:character:_attrs:idcharacter" class="_attrs"><textarea name="movie:characters:list__character:1:character:_value" rows="1">Vincent D'Onofrio</textarea>
 </div>
-<a class="btn btn-add-ajax-list" data-id="movie:characters:list__character:2:character">New character</a>
+<a class="btn-add btn-list" data-elt-id="movie:characters:list__character:2:character">New character</a>
 </div>
 </fieldset>
 </fieldset>

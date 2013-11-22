@@ -5,5 +5,12 @@ python:
 node_js:
  - 0.8
  - 0.6
-install: python setup.py install; npm install qunit@stable jsdom xmlhttprequest jQuery
-script: python setup.py test;npm test
+install:
+    - python setup.py install
+    - cd webmedia
+    - npm install grunt-cli
+    - npm install
+    - cd ..
+script:
+    - python setup.py test;
+    - cd webmedia; grunt qunit
