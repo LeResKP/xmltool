@@ -129,7 +129,8 @@ if (typeof xmltool === 'undefined') {
                     // TODO: Make sure this is correclty tested
                     var longprefix = xmltool.utils.get_prefix(elt_id);
                     var prefix = xmltool.utils.get_prefix(longprefix);
-                    xmltool.utils.increment_id(prefix, nexts);
+                    var index = xmltool.utils.get_index(longprefix);
+                    xmltool.utils.increment_id(prefix, nexts, index);
                 }
                 else {
                     $btn.replaceWith(objs);
@@ -161,7 +162,8 @@ if (typeof xmltool === 'undefined') {
             $parent.remove();
             var longprefix = xmltool.utils.get_prefix($parent.attr('id'));
             var prefix = xmltool.utils.get_prefix(longprefix);
-            xmltool.utils.decrement_id(prefix, nexts);
+            var index = xmltool.utils.get_index(longprefix);
+            xmltool.utils.decrement_id(prefix, nexts, index);
         }
         else {
             $parent.replaceWith($addBtn);
@@ -179,7 +181,8 @@ if (typeof xmltool === 'undefined') {
         var nexts = node.nextAll('.'+xmltool.utils.escape_id(css_class));
         var longprefix = xmltool.utils.get_prefix(node.attr('id'));
         var prefix = xmltool.utils.get_prefix(longprefix);
-        xmltool.utils.decrement_id(prefix, nexts);
+        var index = xmltool.utils.get_index(longprefix);
+        xmltool.utils.decrement_id(prefix, nexts, index);
         this.$tree.jstree('delete_node', node);
     };
 

@@ -79,7 +79,8 @@ if (typeof xmltool === 'undefined') {
                 var nexts = node.nextAll('.'+xmltool.utils.escape_id(css_class));
                 var longprefix = xmltool.utils.get_prefix(node.attr('id'));
                 var prefix = xmltool.utils.get_prefix(longprefix);
-                xmltool.utils.increment_id(prefix, nexts);
+                var index = xmltool.utils.get_index(longprefix);
+                xmltool.utils.increment_id(prefix, nexts, index);
                 if (typeof(data.children) !== 'undefined'){
                     for(var i=0; i < data.children.length; i++){
                         tree.jstree("create_node", node, 'last', data.children[i]);

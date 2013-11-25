@@ -36,8 +36,25 @@ if (typeof xmltool === 'undefined') {
                 elt.data(name, value);
             }
         },
-        _increment_id: function(prefix, elt, func, names, diff){
-            // TODO: Perhaps we might support empty prefix
+        increment_id: function(prefix, elts, index, force_index){
+            for (var i=0; i< elts.length; i++){
+                var elt = $(elts[i]);
+                var tmp_index;
+                if (typeof force_index !== 'undefined') {
+                    tmp_index = force_index;
+                }
+                else {
+                    tmp_index = index + i + 1;
+                }
+                ns.utils._replace_id(prefix, elt, ns.utils._attr, ATTRNAMES, tmp_index);
+                ns.utils._replace_id(prefix, elt, ns.utils._data, DATANAMES, tmp_index);
+                ns.utils.increment_id(prefix, elt.children(), 0, tmp_index);
+            }
+        },
+        decrement_id: function(prefix, elts, index){
+            return ns.utils.increment_id(prefix, elts, index-1);
+        },
+        _replace_id: function(prefix, elt, func, names, index){
             var re_id = new RegExp('^#?'+prefix+':(\\d+)');
             for (var key in names){
                 var name = names[key];
@@ -47,44 +64,9 @@ if (typeof xmltool === 'undefined') {
                     var output = [];
                     for(var i=0; i<values.length; i++){
                         var v = values[i];
-                        var index = parseInt(v.replace(re_id, '$1'), 10);
-                        var re = new RegExp('^(#?)'+prefix+':'+index);
-                        var new_value = v.replace(re, '$1' + prefix + ':' + (index+diff));
-                        output.push(new_value);
-                    }
-                    func(elt, name, output.join(' '));
-                }
-            }
-        },
-        increment_id: function(prefix, elts){
-            for (var i=0; i< elts.length; i++){
-                var elt = $(elts[i]);
-                ns.utils._increment_id(prefix, elt, ns.utils._attr, ATTRNAMES, 1);
-                ns.utils._increment_id(prefix, elt, ns.utils._data, DATANAMES, 1);
-                ns.utils.increment_id(prefix, elt.children());
-            }
-        },
-        decrement_id: function(prefix, elts){
-            for (var i=0; i< elts.length; i++){
-                var elt = $(elts[i]);
-                ns.utils._increment_id(prefix, elt, ns.utils._attr, ATTRNAMES, -1);
-                ns.utils._increment_id(prefix, elt, ns.utils._data, DATANAMES, -1);
-                ns.utils.decrement_id(prefix, elt.children());
-            }
-        },
-        _replace_id: function(prefix, elt, func, names, index){
-            var re_id = new RegExp('^'+prefix+':(\\d+)');
-            for (var key in names){
-                var name = names[key];
-                var value = func(elt, name);
-                if(value){
-                    var values = value.split(' ');
-                    var output = [];
-                    for(var i=0; i<values.length; i++){
-                        var v = values[i];
                         var old_index = parseInt(v.replace(re_id, '$1'), 10);
-                        var re = new RegExp('^'+prefix+':'+old_index);
-                        var new_value = v.replace(re, prefix + ':' + index);
+                        var re = new RegExp('^(#?)'+prefix+':'+old_index);
+                        var new_value = v.replace(re, '$1' + prefix + ':' + index);
                         output.push(new_value);
                     }
                     func(elt, name, output.join(' '));
