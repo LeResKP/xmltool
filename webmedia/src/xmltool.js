@@ -63,22 +63,40 @@ if (typeof xmltool === 'undefined') {
             that.$tree.jstree('open_all');
             that.$tree.height($(that.options.treeContainer).height());
             that.$form.trigger('loadedJstree');
+
+            // To not call this events when we call 'open_all' after loading we
+            // defined them here
+            $(this).bind('close_node.jstree', function(event, data){
+                if (event.isDefaultPrevented()) {
+                    return false;
+                }
+                var id = data.rslt.obj.attr("id");
+                id = id.replace(/^tree_/, '');
+                var elt = $('#' + id.replace(/:/g,'\\:') + ' > .panel-collapse');
+                if(!elt.data('bs.collapse')) {
+                    elt.collapse({'toggle': false});
+                }
+                elt.collapse('hide');
+                event.preventDefault();
+            }).bind('open_node.jstree', function(event, data){
+                if (event.isDefaultPrevented()) {
+                    return false;
+                }
+                var id = data.rslt.obj.attr("id");
+                id = id.replace(/^tree_/, '');
+                var elt = $('#' + id.replace(/:/g,'\\:') + ' > .panel-collapse');
+                if(!elt.data('bs.collapse')) {
+                    elt.collapse({'toggle': false});
+                }
+                elt.collapse('show');
+                event.preventDefault();
+            });
         }).bind("move_node.jstree", function(event, data){
             that.message('info', 'Moving...', {overlay: true, modal: true});
             setTimeout(function(){
                 xmltool.jstree.move_node(event, data);
                 that.message('success', 'Moved!');
             }, 50);
-        }).bind('close_node.jstree', function(event, data){
-            var id = data.rslt.obj.attr("id");
-            id = id.replace(/^tree_/, '');
-            var elt = $('#' + id.replace(/:/g,'\\:') + ' > .panel-collapse');
-            elt.collapse('hide');
-        }).bind('open_node.jstree', function(event, data){
-            var id = data.rslt.obj.attr("id");
-            id = id.replace(/^tree_/, '');
-            var elt = $('#' + id.replace(/:/g,'\\:') + ' > .panel-collapse');
-            elt.collapse('show');
         });
     };
 
