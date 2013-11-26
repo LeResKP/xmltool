@@ -72,13 +72,13 @@ if (typeof xmltool === 'undefined') {
         }).bind('close_node.jstree', function(event, data){
             var id = data.rslt.obj.attr("id");
             id = id.replace(/^tree_/, '');
-            var elt = $('#' + id.replace(/:/g,'\\:'));
-            // elt.data('togglefieldset').hide(false);
+            var elt = $('#' + id.replace(/:/g,'\\:') + ' > .panel-collapse');
+            elt.collapse('hide');
         }).bind('open_node.jstree', function(event, data){
             var id = data.rslt.obj.attr("id");
             id = id.replace(/^tree_/, '');
-            var elt = $('#' + id.replace(/:/g,'\\:'));
-            // elt.data('togglefieldset').show(false);
+            var elt = $('#' + id.replace(/:/g,'\\:') + ' > .panel-collapse');
+            elt.collapse('show');
         });
     };
 
@@ -188,6 +188,26 @@ if (typeof xmltool === 'undefined') {
 
     Xmltool.prototype.setEvents = function(){
         var that = this;
+
+        $(this.$form).on('shown.bs.collapse', '.panel-collapse', function (e) {
+            if (e.isDefaultPrevented()) {
+                return false;
+            }
+            var id = $(this).attr('id');
+            id = id.replace(/^collapse-/, '');
+            var o = $('#tree_' + xmltool.utils.escape_id(id));
+            that.$tree.jstree("open_node", o);
+            e.preventDefault();
+        }).on('hidden.bs.collapse', '.panel-collapse', function (e) {
+            if (e.isDefaultPrevented()) {
+                return false;
+            }
+            var id = $(this).attr('id');
+            id = id.replace(/^collapse-/, '');
+            var o = $('#tree_' + xmltool.utils.escape_id(id));
+            that.$tree.jstree("close_node", o);
+            e.preventDefault();
+        });
         $(this.$form).on('focus', 'textarea', function(){
             var id = xmltool.utils.escape_id($(this).parent().attr('id'));
             that.$tree.jstree('hover_node', $('#tree_' + id));
@@ -264,25 +284,7 @@ if (typeof xmltool === 'undefined') {
     };
 
     Xmltool.prototype.set_btn_event = function(p){
-        var that = this;
         p.find('textarea').autosize();
-
-        var set_fielset = function(fieldsets){
-            fieldsets.togglefieldset().bind('hide.togglefieldset', function(e){
-                var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
-                that.$tree.jstree("close_node", o);
-                return false;
-            }).bind('show.togglefieldset', function(e){
-                var o = $('#tree_' + xmltool.utils.escape_id($(this).attr('id')));
-                that.$tree.jstree("open_node", o);
-                return false;
-            });
-        };
-
-        set_fielset(p.find('fieldset'));
-        if(p.is('fieldset')){
-            set_fielset(p);
-        }
     };
 
 
