@@ -495,20 +495,26 @@ class TextElement(Element):
                 delete_button = ('<a class="btn-delete" '
                                  'data-target="#%s">Delete</a>') % ident
 
+        value = self._value or ''
+        cnt = value.count('\n')
+        if cnt:
+            cnt += 1
+        rows = max(cnt, 1)
         return (
             u'<div id="{ident}"><label>{label}</label>'
             u'{add_button}'
             u'{delete_button}'
             u'{comment}'
             u'{xmlattrs}'
-            u'<textarea class="form-control"{attrs} rows="1">{value}</textarea></div>').format(
+            u'<textarea class="form-control"{attrs} rows="{rows}">{value}</textarea></div>').format(
                 ident=ident,
                 label=self._tagname,
                 add_button=add_button,
                 delete_button=delete_button,
                 comment=self._comment_to_html(prefixes, index),
                 attrs=self._get_html_attrs(prefixes, index),
-                value=self._value or '',
+                rows=rows,
+                value=value,
                 xmlattrs=self._attributes_to_html(prefixes, index),
             )
 

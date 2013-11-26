@@ -834,6 +834,19 @@ class TestTextElement(TestCase):
                     '</div>')
         self.assertEqual(html, expected)
 
+        obj._value = 'line1\nline2'
+        html = obj.to_html()
+        expected = ('<div id="tag">'
+                    '<label>tag</label>'
+                    '<a data-comment-name="tag:_comment" '
+                    'class="btn-comment">Comment</a>'
+                    '<textarea class="form-control" name="tag:_value" rows="2">'
+                    'line1\nline2'
+                    '</textarea>'
+                    '</div>')
+        self.assertEqual(html, expected)
+
+        obj._value = None
         obj._parent = ListElement()
         html = obj.to_html()
         expected = ('<div id="tag">'

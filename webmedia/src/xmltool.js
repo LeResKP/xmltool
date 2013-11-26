@@ -18,7 +18,6 @@ if (typeof xmltool === 'undefined') {
         this.$form = $(element);
         this.dtdUrl = this.$form.find(this.options.dtdUrlSelector).val();
         this.setEvents();
-        this.set_btn_event(this.$form);
         if(typeof this.options.jstreeSelector !== 'undefined') {
             var $tree = $(this.options.jstreeSelector);
             if ($tree.length) {
@@ -154,8 +153,6 @@ if (typeof xmltool === 'undefined') {
                     $btn.replaceWith(objs);
                 }
 
-                that.set_btn_event(objs);
-
                 if ($btn.is('select')) {
                     $btn.val($btn.find('option:first').val());
                 }
@@ -227,6 +224,7 @@ if (typeof xmltool === 'undefined') {
             e.preventDefault();
         });
         $(this.$form).on('focus', 'textarea', function(){
+            $(this).autosize();
             var id = xmltool.utils.escape_id($(this).parent().attr('id'));
             that.$tree.jstree('hover_node', $('#tree_' + id));
             $(this).on('keyup.xmltool', function(){
@@ -300,11 +298,6 @@ if (typeof xmltool === 'undefined') {
             return false;
         });
     };
-
-    Xmltool.prototype.set_btn_event = function(p){
-        p.find('textarea').autosize();
-    };
-
 
     Xmltool.DEFAULTS = {
         open_dialog: function(dialog){
