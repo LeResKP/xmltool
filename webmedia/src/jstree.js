@@ -64,13 +64,17 @@ if (typeof xmltool === 'undefined') {
                     reference_elt.after(button);
                 }
 
-                var elts = drag_node.parent().children();
+                var css_class = xmltool.utils.get_first_class(drag_node);
+                var elts = drag_node.parent().children('.' + xmltool.utils.escape_id(css_class));
                 var longprefix = xmltool.utils.get_prefix(drag_node.attr('id'));
                 var prefix = xmltool.utils.get_prefix(longprefix);
                 xmltool.utils.replace_id(prefix, elts);
 
                 elts = drag_elt.parent().children();
                 prefix = prefix.replace(/^tree_/, '');
+                // We need to update the index only the 2 steps because we have
+                // button + div + button + div so we want to keep the same
+                // index for each button + div group
                 xmltool.utils.replace_id(prefix, elts, 2);
             },
             create_nodes: function(tree, data, parentobj, position){

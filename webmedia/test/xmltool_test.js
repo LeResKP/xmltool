@@ -136,6 +136,62 @@
         equal(elt.data('name'), 'data-name:5:_value');
     });
 
+    test("replace_id many elts", function() {
+        var container = $('<div/>');
+        var elt1 = $('<div id="name:1:_value" data-id="name:1:_value" />');
+        elt1.append('<div class="class1 name:0:class1 otherprefix:1:class1" />');
+        elt1.append('<div data-target="#name:1:target" />');
+        var elt2 = $('<div id="name:5:_value" data-id="name:5:_value" />');
+        elt2.append('<div class="class5 name:1:class1 otherprefix:5:class1" />');
+        elt2.append('<div data-target="#name:5:target" />');
+        var prefix = 'name';
+        var elts = container.append(elt1).append(elt2).children();
+        xmltool.utils.replace_id(prefix, elts);
+        equal(elt1.attr('id'), 'name:0:_value');
+        equal(elt1.data('id'), 'name:0:_value');
+        var child11 = $(elt1.children()[0]);
+        equal(child11.attr('class'), 'class1 name:0:class1 otherprefix:1:class1');
+        var child12 = $(elt1.children()[1]);
+        equal(child12.data('target'), '#name:0:target');
+
+        equal(elt2.attr('id'), 'name:1:_value');
+        equal(elt2.data('id'), 'name:1:_value');
+        var child21 = $(elt2.children()[0]);
+        equal(child21.attr('class'), 'class5 name:1:class1 otherprefix:5:class1');
+        var child22 = $(elt2.children()[1]);
+        equal(child22.data('target'), '#name:1:target');
+    });
+
+    test("replace_id with step", function() {
+        var container = $('<div/>');
+        var elt1_a = $('<a id="name:1:_link" />');
+        var elt1 = $('<div id="name:1:_value" data-id="name:1:_value" />');
+        elt1.append('<div class="class1 name:0:class1 otherprefix:1:class1" />');
+        elt1.append('<div data-target="#name:1:target" />');
+        var elt2_a = $('<div id="name:5:_link" />');
+        var elt2 = $('<div id="name:5:_value" data-id="name:5:_value" />');
+        elt2.append('<div class="class5 name:1:class1 otherprefix:5:class1" />');
+        elt2.append('<div data-target="#name:5:target" />');
+        var prefix = 'name';
+        var elts = container.append(elt1_a).append(elt1).append(elt2_a).append(elt2).children();
+        xmltool.utils.replace_id(prefix, elts, 2);
+        equal(elt1_a.attr('id'), 'name:0:_link');
+        equal(elt1.attr('id'), 'name:0:_value');
+        equal(elt1.data('id'), 'name:0:_value');
+        var child11 = $(elt1.children()[0]);
+        equal(child11.attr('class'), 'class1 name:0:class1 otherprefix:1:class1');
+        var child12 = $(elt1.children()[1]);
+        equal(child12.data('target'), '#name:0:target');
+
+        equal(elt2_a.attr('id'), 'name:1:_link');
+        equal(elt2.attr('id'), 'name:1:_value');
+        equal(elt2.data('id'), 'name:1:_value');
+        var child21 = $(elt2.children()[0]);
+        equal(child21.attr('class'), 'class5 name:1:class1 otherprefix:5:class1');
+        var child22 = $(elt2.children()[1]);
+        equal(child22.data('target'), '#name:1:target');
+    });
+
     test('truncate', function(){
         expect(2);
         var text = 'Short text';

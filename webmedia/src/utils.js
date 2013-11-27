@@ -89,11 +89,11 @@ if (typeof xmltool === 'undefined') {
                 ns.utils._replace_id(prefix, elt, ns.utils._data, DATANAMES, tmp_index);
                 ns.utils.replace_id(prefix, elt.children(), 1, tmp_index);
 
-                // TODO: find why we need to have this step!
-                // Perhaps by writing some tests!
                 if (step === 1){
                     index += 1;
                 }
+                // In some cases we have btn + div + btn + div ...
+                // We want btn + div have the same index
                 else if(((i+1) % step) === 0 && i !== 0){
                     index += 1;
                 }
