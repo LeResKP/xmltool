@@ -21,8 +21,8 @@ module.exports = function(grunt) {
         stripBanners: true
       },
       dist: {
-        src: ['src/*.js'],
-        dest: 'dist/<%= pkg.name %>.js'
+        src: ['libs/bootstrap-3.0.2/js/*.js', 'src/*.js'],
+        dest: 'dist/js/<%= pkg.name %>.js'
       },
     },
     uglify: {
@@ -31,7 +31,7 @@ module.exports = function(grunt) {
       },
       dist: {
         src: '<%= concat.dist.dest %>',
-        dest: 'dist/<%= pkg.name %>.min.js'
+        dest: 'dist/js/<%= pkg.name %>.min.js'
       },
     },
     qunit: {
@@ -57,6 +57,25 @@ module.exports = function(grunt) {
         src: ['test/**/*.js']
       },
     },
+    less: {
+        development: {
+            options: {
+                paths: ['libs/bootstrap-3.0.2/less/']
+            },
+            files: {
+                "dist/css/<%= pkg.name %>.css": "css/xmltool.less"
+            }
+        },
+        production: {
+            options: {
+                paths: ['libs/bootstrap-3.0.2/less/'],
+                cleancss: true
+            },
+            files: {
+                "dist/css/<%= pkg.name %>.min.css": "css/xmltool.less"
+            }
+        }
+    },
     watch: {
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
@@ -80,8 +99,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-less');
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify']);
+  grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify', 'less']);
 
 };
