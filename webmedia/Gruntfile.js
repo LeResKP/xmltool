@@ -76,6 +76,18 @@ module.exports = function(grunt) {
             }
         }
     },
+    copy: {
+        main: {
+            files: [
+                {
+                    expand: true,
+                    cwd: 'libs/bootstrap-3.0.2/fonts',
+                    src: ['*'],
+                    dest: 'dist/fonts/'
+                }
+            ]
+        }
+    },
     watch: {
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
@@ -100,8 +112,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-less');
+  grunt.loadNpmTasks('grunt-contrib-copy');
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify', 'less']);
+  grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify', 'less', 'copy']);
 
 };
