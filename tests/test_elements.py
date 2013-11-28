@@ -258,13 +258,13 @@ class TestElement(TestCase):
         obj = self.cls()
         html = obj._comment_to_html(['prefix'], None)
         expected = ('<a data-comment-name="prefix:tag:_comment" '
-                    'class="btn-comment">Comment</a>')
+                    'class="btn-comment" title="Add comment"></a>')
         self.assertEqual(html, expected)
 
         obj._comment = 'my comment'
         html = obj._comment_to_html(['prefix'], None)
         expected = ('<a data-comment-name="prefix:tag:_comment" '
-                    'class="btn-comment has-comment" title="my comment">Comment</a>'
+                    'class="btn-comment has-comment" title="my comment"></a>'
                     '<textarea class="_comment" name="prefix:tag:_comment">'
                     'my comment</textarea>')
         self.assertEqual(html, expected)
@@ -480,13 +480,13 @@ class TestElement(TestCase):
         obj = self.cls()
         html = obj.to_html()
         expected1 = ('<div class="panel panel-default tag" id="tag"><div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag">tag'
-                    '<a data-comment-name="tag:_comment" class="btn-comment">'
-                    'Comment</a>'
+                    '<a data-comment-name="tag:_comment" class="btn-comment" '
+                    'title="Add comment"></a>'
                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
                     '<div class="panel panel-default subtag" id="tag:subtag">'
                      '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
-                    'class="btn-comment">Comment</a>'
+                    'class="btn-comment" title="Add comment"></a>'
                      '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
                     '</div></div>'
                     '</div></div>')
@@ -501,16 +501,16 @@ class TestElement(TestCase):
         html = obj.to_html(partial=True)
         expected2 = ('<div class="panel panel-default tag" id="tag">'
                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag">tag'
-                    '<a data-comment-name="tag:_comment" class="btn-comment">'
-                    'Comment</a>'
                     '<a class="btn-add hidden" data-elt-id="tag">'
                     'Add tag</a>'
-                    '<a class="btn-delete" data-target="#tag">Delete</a>'
+                    '<a class="btn-delete" data-target="#tag" title="Delete"></a>'
+                    '<a data-comment-name="tag:_comment" class="btn-comment" '
+                    'title="Add comment"></a>'
                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
                     '<div class="panel panel-default subtag" id="tag:subtag">'
                      '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
-                    'class="btn-comment">Comment</a>'
+                    'class="btn-comment" title="Add comment"></a>'
                      '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
                     '</div></div>'
                     '</div></div>')
@@ -814,10 +814,10 @@ class TestTextElement(TestCase):
                     '<label>tag</label>'
                     '<a class="btn-add hidden" '
                     'data-elt-id="tag">Add tag</a>'
-                    '<a class="btn-delete" data-target="#tag">'
-                    'Delete</a>'
+                    '<a class="btn-delete" data-target="#tag" '
+                    'title="Delete"></a>'
                     '<a data-comment-name="tag:_comment" '
-                    'class="btn-comment">Comment</a>'
+                    'class="btn-comment" title="Add comment"></a>'
                     '<textarea class="form-control" name="tag:_value" '
                     'rows="1"></textarea>'
                     '</div>')
@@ -828,7 +828,7 @@ class TestTextElement(TestCase):
         expected = ('<div id="tag">'
                     '<label>tag</label>'
                     '<a data-comment-name="tag:_comment" '
-                    'class="btn-comment">Comment</a>'
+                    'class="btn-comment" title="Add comment"></a>'
                     '<textarea class="form-control" name="tag:_value" rows="1">'
                     '</textarea>'
                     '</div>')
@@ -839,7 +839,7 @@ class TestTextElement(TestCase):
         expected = ('<div id="tag">'
                     '<label>tag</label>'
                     '<a data-comment-name="tag:_comment" '
-                    'class="btn-comment">Comment</a>'
+                    'class="btn-comment" title="Add comment"></a>'
                     '<textarea class="form-control" name="tag:_value" rows="2">'
                     'line1\nline2'
                     '</textarea>'
@@ -852,9 +852,9 @@ class TestTextElement(TestCase):
         expected = ('<div id="tag">'
                     '<label>tag</label>'
                     '<a class="btn-delete btn-list" '
-                    'data-target="#tag">Delete</a>'
-                    '<a data-comment-name="tag:_comment" class="btn-comment">'
-                    'Comment</a>'
+                    'data-target="#tag" title="Delete"></a>'
+                    '<a data-comment-name="tag:_comment" class="btn-comment"'
+                    ' title="Add comment"></a>'
                     '<textarea class="form-control" name="tag:_value" rows="1">'
                     '</textarea>'
                     '</div>')
@@ -1007,10 +1007,10 @@ class TestListElement(TestCase):
         html = obj.to_html(partial=True)
         expected = ('<div class="panel panel-default tag" id="list_cls:0:tag">'
                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
-                    '<a data-comment-name="list_cls:0:tag:_comment" '
-                    'class="btn-comment">Comment</a>'
                     '<a class="btn-delete btn-list" '
-                    'data-target="#list_cls:0:tag">Delete</a>'
+                    'data-target="#list_cls:0:tag" title="Delete"></a>'
+                    '<a data-comment-name="list_cls:0:tag:_comment" '
+                    'class="btn-comment" title="Add comment"></a>'
                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
                     '</div></div>'
                     '<a class="btn-add btn-list" '
@@ -1025,10 +1025,10 @@ class TestListElement(TestCase):
                     '<div class="panel panel-default tag" '
                     'id="list_cls:0:tag">'
                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
-                    '<a data-comment-name="list_cls:0:tag:_comment" '
-                    'class="btn-comment">Comment</a>'
                     '<a class="btn-delete btn-list" '
-                    'data-target="#list_cls:0:tag">Delete</a>'
+                    'data-target="#list_cls:0:tag" title="Delete"></a>'
+                    '<a data-comment-name="list_cls:0:tag:_comment" '
+                    'class="btn-comment" title="Add comment"></a>'
                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
                     '</div></div>'
                     '<a class="btn-add btn-list" '
@@ -1042,10 +1042,10 @@ class TestListElement(TestCase):
                     'data-elt-id="list_cls:10:tag">New tag</a>'
                     '<div class="panel panel-default tag" id="list_cls:10:tag">'
                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:10\:tag">tag'
-                    '<a data-comment-name="list_cls:10:tag:_comment" '
-                    'class="btn-comment">Comment</a>'
                     '<a class="btn-delete btn-list" '
-                    'data-target="#list_cls:10:tag">Delete</a>'
+                    'data-target="#list_cls:10:tag" title="Delete"></a>'
+                    '<a data-comment-name="list_cls:10:tag:_comment" '
+                    'class="btn-comment" title="Add comment"></a>'
                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:10:tag">'
                     '</div></div>'
                     '<a class="btn-add btn-list" '
@@ -1229,7 +1229,7 @@ class TestChoiceElement(TestCase):
             '<div class="panel panel-default choice_cls" id="choice_cls">'
             '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-choice_cls">choice_cls'
             '<a data-comment-name="choice_cls:_comment" '
-            'class="btn-comment">Comment</a>'
+            'class="btn-comment" title="Add comment"></a>'
             '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-choice_cls">'
             '</div></div>')
         self.assertEqual(html, expected)
@@ -1260,7 +1260,7 @@ class TestFunctions(TestCase):
             '<div id="texts:text">'
             '<label>text</label>'
             '<a data-comment-name="texts:text:_comment" '
-            'class="btn-comment">Comment</a>'
+            'class="btn-comment" title="Add comment"></a>'
             '<textarea class="form-control" name="texts:text:_value" '
             'rows="1"></textarea>'
             '</div>')
@@ -1276,9 +1276,9 @@ class TestFunctions(TestCase):
         expected = ('<div id="texts:list__text:0:text">'
                     '<label>text</label>'
                     '<a class="btn-delete btn-list" '
-                    'data-target="#texts:list__text:0:text">Delete</a>'
+                    'data-target="#texts:list__text:0:text" title="Delete"></a>'
                     '<a data-comment-name="texts:list__text:0:text:_comment" '
-                    'class="btn-comment">Comment</a>'
+                    'class="btn-comment" title="Add comment"></a>'
                     '<textarea class="form-control" name="texts:list__text:0:text:_value" '
                     'rows="1">'
                     '</textarea>'
@@ -1298,7 +1298,7 @@ class TestFunctions(TestCase):
             '<div id="texts:list__list:0:list:text">'
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:0:list:text:_comment" '
-            'class="btn-comment">Comment</a>'
+            'class="btn-comment" title="Add comment"></a>'
             '<textarea class="form-control" name="texts:list__list:0:list:text:_value" '
             'rows="1"></textarea>'
             '</div>')
@@ -1368,8 +1368,8 @@ class TestFunctions(TestCase):
         expected = (
             '<div id="texts:tag2">'
             '<label>tag2</label>'
-            '<a data-comment-name="texts:tag2:_comment" class="btn-comment">'
-            'Comment</a>'
+            '<a data-comment-name="texts:tag2:_comment" class="btn-comment" '
+            'title="Add comment"></a>'
             '<textarea class="form-control" name="texts:tag2:_value" '
             'rows="1"></textarea>'
             '</div>')
@@ -1382,16 +1382,16 @@ class TestFunctions(TestCase):
         expected = (
             '<div class="panel panel-default list" '
             'id="texts:list__list:1:list"><div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__list\:1\:list">list'
-            '<a data-comment-name="texts:list__list:1:list:_comment" '
-            'class="btn-comment">Comment</a>'
             '<a class="btn-delete btn-list" '
-            'data-target="#texts:list__list:1:list">'
-            'Delete</a>'
+            'data-target="#texts:list__list:1:list" '
+            'title="Delete"></a>'
+            '<a data-comment-name="texts:list__list:1:list:_comment" '
+            'class="btn-comment" title="Add comment"></a>'
             '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__list:1:list">'
             '<div id="texts:list__list:1:list:text">'
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:1:list:text:_comment" '
-            'class="btn-comment">Comment</a>'
+            'class="btn-comment" title="Add comment"></a>'
             '<textarea class="form-control" name="texts:list__list:1:list:text:_value" '
             'rows="1"></textarea>'
             '</div>'
@@ -1418,7 +1418,7 @@ class TestFunctions(TestCase):
             'html': ('<div id="texts:tag2">'
                      '<label>tag2</label>'
                      '<a data-comment-name="texts:tag2:_comment" '
-                     'class="btn-comment">Comment</a>'
+                     'class="btn-comment" title="Add comment"></a>'
                      '<textarea class="form-control" name="texts:tag2:_value" '
                      'rows="1"></textarea></div>'),
             'jstree_data': {

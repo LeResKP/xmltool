@@ -175,14 +175,14 @@ class Element(object):
         name = self._get_str_prefix(prefixes, index, name='_comment')
         if not self._comment:
             return (
-                u'<a data-comment-name="%s" class="btn-comment">'
-                u'Comment</a>') % name
+                u'<a data-comment-name="%s" class="btn-comment" '
+                u'title="Add comment"></a>') % name
         else:
             return (
                 u'<a data-comment-name="{name}" '
-                u'class="btn-comment has-comment" title="{comment}">'
-                u'Comment</a>'
-                u'<textarea class="_comment" name="{name}">{comment}</textarea>'
+                u'class="btn-comment has-comment" title="{comment}"></a>'
+                u'<textarea class="_comment" name="{name}">{comment}'
+                '</textarea>'
             ).format(
                 name=name,
                 comment=self._comment
@@ -276,7 +276,6 @@ class Element(object):
                 sub_html += [tmp]
 
         legend = self._tagname
-        legend += self._comment_to_html(prefixes, index)
         if (not self._required and self._parent and add_btn) or self._is_choice:
             legend += self._get_html_add_button(prefixes or [], index, 'hidden')
 
@@ -286,10 +285,11 @@ class Element(object):
             # NOTE: we assume the parent is a list if index is not None
             if (index is not None):
                 legend += ('<a class="btn-delete btn-list" '
-                           'data-target="#%s">Delete</a>') % ident
+                           'data-target="#%s" title="Delete"></a>') % ident
             else:
                 legend += ('<a class="btn-delete" '
-                           'data-target="#%s">Delete</a>') % ident
+                           'data-target="#%s" title="Delete"></a>') % ident
+        legend += self._comment_to_html(prefixes, index)
         html = [(
             '<div class="panel panel-default {css_class}" id="{ident}">'
             '<div class="panel-heading">'
@@ -489,11 +489,13 @@ class TextElement(Element):
         ident = self._get_str_prefix(prefixes, index)
         if delete_btn or not self._required or self._is_choice or parent_is_list:
             if parent_is_list:
-                delete_button = ('<a class="btn-delete btn-list" '
-                                 'data-target="#%s">Delete</a>') % ident
+                delete_button = (
+                    '<a class="btn-delete btn-list" '
+                    'data-target="#%s" title="Delete"></a>') % ident
             else:
-                delete_button = ('<a class="btn-delete" '
-                                 'data-target="#%s">Delete</a>') % ident
+                delete_button = (
+                    '<a class="btn-delete" '
+                    'data-target="#%s" title="Delete"></a>') % ident
 
         value = self._value or ''
         cnt = value.count('\n')
@@ -506,7 +508,8 @@ class TextElement(Element):
             u'{delete_button}'
             u'{comment}'
             u'{xmlattrs}'
-            u'<textarea class="form-control"{attrs} rows="{rows}">{value}</textarea></div>').format(
+            u'<textarea class="form-control"{attrs} rows="{rows}">{value}'
+            u'</textarea></div>').format(
                 ident=ident,
                 label=self._tagname,
                 add_button=add_button,
