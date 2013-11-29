@@ -162,7 +162,7 @@ if (typeof xmltool === 'undefined') {
             },
             error: function(jqXHR, textStatus, errorThrown){
                 var msg = jqXHR.status + ' ' + jqXHR.statusText;
-                this.message('error', msg);
+                that.message('error', msg);
             }
         });
     };
@@ -290,7 +290,7 @@ if (typeof xmltool === 'undefined') {
                     },
                     error: function(jqXHR, textStatus, errorThrown){
                         var msg = jqXHR.status + ' ' + jqXHR.statusText;
-                        this.message('error', msg);
+                        that.message('error', msg);
                     }
                 });
             }
