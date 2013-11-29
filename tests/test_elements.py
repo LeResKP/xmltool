@@ -588,6 +588,49 @@ class TestElement(TestCase):
                 'data': 'subtag'}]}
         self.assertEqual(result, expected)
 
+    def test_to_jstree_dict_with_ListElement(self):
+        sub_cls = type('Element', (Element,),
+                       {'_tagname': 'sub',
+                        '_sub_elements': [],
+                        '_attribute_names': ['attr']})
+        list_cls = type('ListElement', (ListElement,),
+                        {'_tagname': 'element',
+                         '_elts': [sub_cls]})
+        cls = type('Cls', (Element, ),
+                   {'_tagname': 'tag',
+                   '_sub_elements': [list_cls]})
+        obj = cls()
+        result = obj.to_jstree_dict([])
+        expected = {
+            'data': 'tag',
+            'attr': {
+                'id': 'tree_tag',
+                'class': 'tree_:tag'},
+            'children': []}
+        self.assertEqual(result, expected)
+
+        list_cls._required = True
+        result = obj.to_jstree_dict([])
+        expected = {
+            'data': 'tag',
+            'attr': {
+                'id': 'tree_tag',
+                'class': 'tree_:tag'
+            },
+            'children': [
+                [{
+                    'data': 'sub',
+                    'attr': {
+                        'id': 'tree_tag:element:0:sub',
+                        'class': 'tree_tag:element tree_tag:element:0'
+                    },
+                    'children': []
+                }
+                ]
+            ]
+        }
+        self.assertEqual(result, expected)
+
     def test___getitem__(self):
         obj = self.cls()
         obj.tag = 'Hello world'

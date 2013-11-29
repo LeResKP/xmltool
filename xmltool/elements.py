@@ -313,7 +313,7 @@ class Element(object):
         if not v and cls._required:
             # We always want an object since we need at least a add button.
             v = cls()
-        if v:
+        if v is not None:
             return v.to_jstree_dict(prefixes, index)
 
     def to_jstree_dict(self, prefixes, index=None):
