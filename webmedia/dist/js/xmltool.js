@@ -1,4 +1,4 @@
-/*! Xmltool - v0.1.0 - 2013-11-28
+/*! Xmltool - v0.1.0 - 2013-11-29
 * https://github.com/LeResKP/xmltool
 * Copyright (c) 2013 Aurélien Matouillot; Licensed MIT */
 +function ($) { "use strict";
@@ -2146,7 +2146,7 @@ if (typeof xmltool === 'undefined') {
             },
             error: function(jqXHR, textStatus, errorThrown){
                 var msg = jqXHR.status + ' ' + jqXHR.statusText;
-                this.message('error', msg);
+                that.message('error', msg);
             }
         });
     };
@@ -2274,7 +2274,7 @@ if (typeof xmltool === 'undefined') {
                     },
                     error: function(jqXHR, textStatus, errorThrown){
                         var msg = jqXHR.status + ' ' + jqXHR.statusText;
-                        this.message('error', msg);
+                        that.message('error', msg);
                     }
                 });
             }
