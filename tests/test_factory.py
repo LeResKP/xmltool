@@ -3,7 +3,7 @@
 from unittest import TestCase
 from lxml import etree
 import os.path
-from xmltool import factory
+from xmltool import factory, dtd_parser
 
 
 class TestFactory(TestCase):
@@ -77,12 +77,21 @@ class TestFactory(TestCase):
         obj = factory.load('tests/exercise.xml')
         html = factory.generate_form_from_obj(obj)
         self.assertTrue('<form method="POST" id="xmltool-form">' in html)
+        self.assertTrue('id="_xml_filename" value=""' in html)
 
         html = factory.generate_form_from_obj(
             obj,
             form_attrs={'data-action': 'action'})
         self.assertTrue('<form method="POST" data-action="action" '
                         'id="xmltool-form">' in html)
+
+        # Empty object
+        dtd_url = 'http://xmltool.lereskp.fr/static/exercise.dtd'
+        dic = dtd_parser.parse(dtd_url=dtd_url)
+        obj = dic['Exercise']()
+        html = factory.generate_form_from_obj(obj)
+        self.assertTrue('<form method="POST" id="xmltool-form">' in html)
+        self.assertTrue('id="_xml_filename" value=""' in html)
 
     def test_update(self):
         filename = 'tests/test.xml'

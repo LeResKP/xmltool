@@ -78,7 +78,7 @@ def generate_form_from_obj(obj, form_action=None, form_filename=None,
         '<input type="hidden" name="_xml_encoding" '
         'id="_xml_encoding" value="%s" />'
     ) % (
-        form_filename,
+        form_filename or '',
         obj._xml_dtd_url,
         obj._xml_encoding or elements.DEFAULT_ENCODING,
     )
