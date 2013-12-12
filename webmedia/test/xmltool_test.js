@@ -78,6 +78,66 @@
         equal(child22.data('target'), '#name:2:target');
     });
 
+    test("increment_id many elts with step", function() {
+        var container = $('<div/>');
+        var a1 = $('<a id="name:0:_link" />');
+        var elt1 = $('<div id="name:0:_value" data-id="name:0:_value" />');
+        elt1.append('<div class="class1 name:0:class1 otherprefix:0:class1" />');
+        elt1.append('<div data-target="#name:0:target" />');
+        var a2 = $('<a id="name:1:_link" />');
+        var elt2 = $('<div id="name:1:_value" data-id="name:1:_value" />');
+        elt2.append('<div class="class1 name:1:class1 otherprefix:1:class1" />');
+        elt2.append('<div data-target="#name:1:target" />');
+        var prefix = 'name';
+        var elts = container.append(a1).append(elt1).append(a2).append(elt2).children();
+        xmltool.utils.increment_id(prefix, elts, 0, 2);
+        equal(a1.attr('id'), 'name:1:_link');
+        equal(elt1.attr('id'), 'name:2:_value');
+        equal(elt1.data('id'), 'name:2:_value');
+        var child11 = $(elt1.children()[0]);
+        equal(child11.attr('class'), 'class1 name:2:class1 otherprefix:0:class1');
+        var child12 = $(elt1.children()[1]);
+        equal(child12.data('target'), '#name:2:target');
+
+        equal(a2.attr('id'), 'name:2:_link');
+        equal(elt2.attr('id'), 'name:3:_value');
+        equal(elt2.data('id'), 'name:3:_value');
+        var child21 = $(elt2.children()[0]);
+        equal(child21.attr('class'), 'class1 name:3:class1 otherprefix:1:class1');
+        var child22 = $(elt2.children()[1]);
+        equal(child22.data('target'), '#name:3:target');
+    });
+
+    test("increment_id many elts with step and offset", function() {
+        var container = $('<div/>');
+        var a1 = $('<a id="name:0:_link" />');
+        var elt1 = $('<div id="name:0:_value" data-id="name:0:_value" />');
+        elt1.append('<div class="class1 name:0:class1 otherprefix:0:class1" />');
+        elt1.append('<div data-target="#name:0:target" />');
+        var a2 = $('<a id="name:1:_link" />');
+        var elt2 = $('<div id="name:1:_value" data-id="name:1:_value" />');
+        elt2.append('<div class="class1 name:1:class1 otherprefix:1:class1" />');
+        elt2.append('<div data-target="#name:1:target" />');
+        var prefix = 'name';
+        var elts = container.append(a1).append(elt1).append(a2).append(elt2).children();
+        xmltool.utils.increment_id(prefix, elts, 0, 2, 1);
+        equal(a1.attr('id'), 'name:1:_link');
+        equal(elt1.attr('id'), 'name:1:_value');
+        equal(elt1.data('id'), 'name:1:_value');
+        var child11 = $(elt1.children()[0]);
+        equal(child11.attr('class'), 'class1 name:1:class1 otherprefix:0:class1');
+        var child12 = $(elt1.children()[1]);
+        equal(child12.data('target'), '#name:1:target');
+
+        equal(a2.attr('id'), 'name:2:_link');
+        equal(elt2.attr('id'), 'name:2:_value');
+        equal(elt2.data('id'), 'name:2:_value');
+        var child21 = $(elt2.children()[0]);
+        equal(child21.attr('class'), 'class1 name:2:class1 otherprefix:1:class1');
+        var child22 = $(elt2.children()[1]);
+        equal(child22.data('target'), '#name:2:target');
+    });
+
     test("decrement_id", function() {
         var elt = $('<div id="name:1:_value" data-id="name:1:_value" />');
         elt.append('<div class="class1 name:1:class1 otherprefix:1:class1" />');
@@ -134,6 +194,16 @@
         xmltool.utils._replace_id(prefix, elt, func, names, 5);
         equal(elt.attr('id'), 'name:10:_value');
         equal(elt.data('name'), 'data-name:5:_value');
+    });
+
+    test("_replace_id_collapse", function() {
+        var prefix = 'name';
+        var elt = $('<div href="#collapse-name\\:0\\:test" id="#name:1:_value" />');
+        var func = xmltool.utils._attr;
+        var names = ['href', 'id'];
+        xmltool.utils._replace_id(prefix, elt, func, names, 10);
+        equal(elt.attr('href'), '#collapse-name\\:10\\:test');
+        equal(elt.attr('id'), '#name:10:_value');
     });
 
     test("replace_id many elts", function() {

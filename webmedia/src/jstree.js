@@ -85,12 +85,18 @@ if (typeof xmltool === 'undefined') {
                 var prefix = xmltool.utils.get_prefix(longprefix);
                 var index = xmltool.utils.get_index(longprefix);
                 xmltool.utils.increment_id(prefix, nexts, index);
+
+                xmltool.jstree.create_sub_nodes(tree, node, data);
+                tree.jstree('open_all', node);
+            },
+            create_sub_nodes: function(tree, node, data) {
                 if (typeof(data.children) !== 'undefined'){
                     for(var i=0; i < data.children.length; i++){
-                        tree.jstree("create_node", node, 'last', data.children[i]);
+                        var child = data.children[i];
+                        var n = tree.jstree("create_node", node, 'last', child);
+                        xmltool.jstree.create_sub_nodes(tree, n, child);
                     }
                 }
-                tree.jstree('open_all', node);
             }
         });
         return self;

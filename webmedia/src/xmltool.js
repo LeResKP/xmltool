@@ -147,7 +147,9 @@ if (typeof xmltool === 'undefined') {
                     var longprefix = xmltool.utils.get_prefix(elt_id);
                     var prefix = xmltool.utils.get_prefix(longprefix);
                     var index = xmltool.utils.get_index(longprefix);
-                    xmltool.utils.increment_id(prefix, nexts, index);
+                    console.log('prefix ' + prefix);
+                    console.log('index ' + index);
+                    xmltool.utils.increment_id(prefix, nexts, index, 2);
                 }
                 else {
                     $btn.replaceWith(objs);
@@ -158,7 +160,7 @@ if (typeof xmltool === 'undefined') {
                 }
 
                 //jstree
-                that.add_node(data);
+                    that.add_node(data);
             },
             error: function(jqXHR, textStatus, errorThrown){
                 var msg = jqXHR.status + ' ' + jqXHR.statusText;
@@ -178,7 +180,7 @@ if (typeof xmltool === 'undefined') {
             var longprefix = xmltool.utils.get_prefix($parent.attr('id'));
             var prefix = xmltool.utils.get_prefix(longprefix);
             var index = xmltool.utils.get_index(longprefix);
-            xmltool.utils.decrement_id(prefix, nexts, index);
+            xmltool.utils.decrement_id(prefix, nexts, index, 2, 1);
         }
         else {
             $parent.replaceWith($addBtn);

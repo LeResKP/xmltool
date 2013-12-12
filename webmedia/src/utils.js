@@ -7,7 +7,7 @@ if (typeof xmltool === 'undefined') {
 (function($, ns){
     var re_split = new RegExp('^(.*):([^:]+)$');
 
-    var ATTRNAMES = ['name', 'id', 'class', 'value'];
+    var ATTRNAMES = ['name', 'id', 'class', 'value', 'href'];
     var DATANAMES = ['id', 'comment-name', 'target', 'elt-id'];
 
     ns.utils = {
@@ -36,7 +36,9 @@ if (typeof xmltool === 'undefined') {
                 elt.data(name, value);
             }
         },
-        increment_id: function(prefix, elts, index, force_index){
+        increment_id: function(prefix, elts, index, step, offset, force_index){
+            step = step || 1;
+            offset = offset || 0;
             for (var i=0; i< elts.length; i++){
                 var elt = $(elts[i]);
                 var tmp_index;
@@ -44,18 +46,30 @@ if (typeof xmltool === 'undefined') {
                     tmp_index = force_index;
                 }
                 else {
-                    tmp_index = index + i + 1;
+                    tmp_index = index + 1;
                 }
+
                 ns.utils._replace_id(prefix, elt, ns.utils._attr, ATTRNAMES, tmp_index);
                 ns.utils._replace_id(prefix, elt, ns.utils._data, DATANAMES, tmp_index);
-                ns.utils.increment_id(prefix, elt.children(), 0, tmp_index);
+                ns.utils.increment_id(prefix, elt.children(), 0, 1, offset, tmp_index);
+
+                if (step === 1){
+                    index += 1;
+                }
+                // offet==0 : we have div + btn + div ...
+                //            We always want btn + div have the same index but
+                //            the first div is alone
+                // offet==1 : we have btn + div + btn + div ...
+                else if(((i+offset) % step) === 0){
+                    index += 1;
+                }
             }
         },
-        decrement_id: function(prefix, elts, index){
-            return ns.utils.increment_id(prefix, elts, index-1);
+        decrement_id: function(prefix, elts, index, step, offset){
+            return ns.utils.increment_id(prefix, elts, index-1, step, offset);
         },
         _replace_id: function(prefix, elt, func, names, index){
-            var re_id = new RegExp('^#?'+prefix+':(\\d+)');
+            var re_id = new RegExp('^#?(collapse-)?'+prefix+':(\\d+)');
             for (var key in names){
                 var name = names[key];
                 var value = func(elt, name);
@@ -64,9 +78,30 @@ if (typeof xmltool === 'undefined') {
                     var output = [];
                     for(var i=0; i<values.length; i++){
                         var v = values[i];
-                        var old_index = parseInt(v.replace(re_id, '$1'), 10);
-                        var re = new RegExp('^(#?)'+prefix+':'+old_index);
-                        var new_value = v.replace(re, '$1' + prefix + ':' + index);
+                        var old_index = parseInt(v.replace(re_id, '$2'), 10);
+                        var re_str = prefix+':'+old_index;
+                        var escaped = false;
+                        var re_id_escaped;
+                        if (isNaN(old_index)) {
+                            // Perhaps the ':' are escaped
+                            var s = '^#?(collapse-)?'+prefix+':(\\d+)';
+                            s = s.replace(/:/g, '\\\\:');
+                            re_id_escaped = new RegExp(s);
+                            old_index = parseInt(v.replace(re_id_escaped, '$2'), 10);
+                            re_str = (prefix+':'+old_index).replace(/:/g, '\\\\:');
+                            escaped = true;
+                        }
+                        if (isNaN(old_index)) {
+                            // Nothing to do, we keep the value
+                            output.push(v);
+                            continue;
+                        }
+                        var re = new RegExp('^(#?(collapse-)?)'+re_str);
+                        var out = '$1' + prefix + ':' + index;
+                        if (escaped) {
+                            out = out.replace(/:/g, '\\:');
+                        }
+                        var new_value = v.replace(re, out);
                         output.push(new_value);
                     }
                     func(elt, name, output.join(' '));
