@@ -2172,8 +2172,6 @@ if (typeof xmltool === 'undefined') {
                     var longprefix = xmltool.utils.get_prefix(elt_id);
                     var prefix = xmltool.utils.get_prefix(longprefix);
                     var index = xmltool.utils.get_index(longprefix);
-                    console.log('prefix ' + prefix);
-                    console.log('index ' + index);
                     xmltool.utils.increment_id(prefix, nexts, index, 2);
                 }
                 else {
