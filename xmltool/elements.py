@@ -341,7 +341,10 @@ class Element(object):
         for elt in self._sub_elements:
             v = elt._to_jstree_dict(self, tmp_prefixes)
             if v:
-                children += [v]
+                if isinstance(v, list):
+                    children += v
+                else:
+                    children += [v]
         dic['children'] = children
         return dic
 

@@ -618,7 +618,7 @@ class TestElement(TestCase):
                 'class': 'tree_:tag'
             },
             'children': [
-                [{
+                {
                     'data': 'sub',
                     'attr': {
                         'id': 'tree_tag:element:0:sub',
@@ -626,7 +626,6 @@ class TestElement(TestCase):
                     },
                     'children': []
                 }
-                ]
             ]
         }
         self.assertEqual(result, expected)
