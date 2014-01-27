@@ -479,15 +479,15 @@ class TestElement(TestCase):
     def test_to_html(self):
         obj = self.cls()
         html = obj.to_html()
-        expected1 = ('<div class="panel panel-default tag" id="tag"><div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag">tag'
+        expected1 = ('<div class="panel panel-default tag" id="tag"><div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag">tag'
                     '<a data-comment-name="tag:_comment" class="btn-comment" '
                     'title="Add comment"></a>'
-                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
                     '<div class="panel panel-default subtag" id="tag:subtag">'
-                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
+                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
+                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
                     '</div></div>'
                     '</div></div>')
         self.assertEqual(html, expected1)
@@ -500,18 +500,18 @@ class TestElement(TestCase):
 
         html = obj.to_html(partial=True)
         expected2 = ('<div class="panel panel-default tag" id="tag">'
-                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag">tag'
+                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag">tag'
                     '<a class="btn-add hidden" data-elt-id="tag">'
                     'Add tag</a>'
                     '<a class="btn-delete" data-target="#tag" title="Delete"></a>'
                     '<a data-comment-name="tag:_comment" class="btn-comment" '
                     'title="Add comment"></a>'
-                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
                     '<div class="panel panel-default subtag" id="tag:subtag">'
-                     '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
+                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
                     '<a data-comment-name="tag:subtag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                     '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
+                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
                     '</div></div>'
                     '</div></div>')
         self.assertEqual(html, expected2)
@@ -1048,12 +1048,12 @@ class TestListElement(TestCase):
 
         html = obj.to_html(partial=True)
         expected = ('<div class="panel panel-default tag" id="list_cls:0:tag">'
-                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
+                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
                     '<a class="btn-delete btn-list" '
                     'data-target="#list_cls:0:tag" title="Delete"></a>'
                     '<a data-comment-name="list_cls:0:tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
                     '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:1:tag">New tag</a>')
@@ -1066,12 +1066,12 @@ class TestListElement(TestCase):
                     'data-elt-id="list_cls:0:tag">New tag</a>'
                     '<div class="panel panel-default tag" '
                     'id="list_cls:0:tag">'
-                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
+                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
                     '<a class="btn-delete btn-list" '
                     'data-target="#list_cls:0:tag" title="Delete"></a>'
                     '<a data-comment-name="list_cls:0:tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
                     '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:1:tag">New tag</a>'
@@ -1083,12 +1083,12 @@ class TestListElement(TestCase):
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:10:tag">New tag</a>'
                     '<div class="panel panel-default tag" id="list_cls:10:tag">'
-                    '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-list_cls\:10\:tag">tag'
+                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-list_cls\:10\:tag">tag'
                     '<a class="btn-delete btn-list" '
                     'data-target="#list_cls:10:tag" title="Delete"></a>'
                     '<a data-comment-name="list_cls:10:tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                    '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:10:tag">'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:10:tag">'
                     '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:11:tag">New tag</a>'
@@ -1269,10 +1269,10 @@ class TestChoiceElement(TestCase):
         html = self.cls._to_html(parent_obj)
         expected = (
             '<div class="panel panel-default choice_cls" id="choice_cls">'
-            '<div class="panel-heading"><a data-toggle="collapse" href="#collapse-choice_cls">choice_cls'
+            '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-choice_cls">choice_cls'
             '<a data-comment-name="choice_cls:_comment" '
             'class="btn-comment" title="Add comment"></a>'
-            '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-choice_cls">'
+            '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-choice_cls">'
             '</div></div>')
         self.assertEqual(html, expected)
 
@@ -1423,13 +1423,13 @@ class TestFunctions(TestCase):
         result = elements._get_html_from_obj(obj, prefixes, index)
         expected = (
             '<div class="panel panel-default list" '
-            'id="texts:list__list:1:list"><div class="panel-heading"><a data-toggle="collapse" href="#collapse-texts\:list__list\:1\:list">list'
+            'id="texts:list__list:1:list"><div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__list\:1\:list">list'
             '<a class="btn-delete btn-list" '
             'data-target="#texts:list__list:1:list" '
             'title="Delete"></a>'
             '<a data-comment-name="texts:list__list:1:list:_comment" '
             'class="btn-comment" title="Add comment"></a>'
-            '</a></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__list:1:list">'
+            '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__list:1:list">'
             '<div id="texts:list__list:1:list:text">'
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:1:list:text:_comment" '

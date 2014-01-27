@@ -293,8 +293,8 @@ class Element(object):
         html = [(
             '<div class="panel panel-default {css_class}" id="{ident}">'
             '<div class="panel-heading">'
-            '<a data-toggle="collapse" '
-            'href="#collapse-{escaped_id}">{legend}</a>'
+            '<span data-toggle="collapse" '
+            'href="#collapse-{escaped_id}">{legend}</span>'
             '</div>'
             '<div class="panel-body panel-collapse collapse in" '
             'id="collapse-{ident}">').format(
