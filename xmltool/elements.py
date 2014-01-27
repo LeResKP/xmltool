@@ -404,7 +404,10 @@ class Element(object):
             'root_tag': self._tagname,
             'dtd_url': dtd_url}
 
-        if StrictVersion(etree.__version__) < StrictVersion('2.3'):
+        # Some etree versions are not valid according to StrictVersion so we
+        # split it.
+        etree_version = '.'.join(etree.__version__.split('.')[:2])
+        if StrictVersion(etree_version) < StrictVersion('2.3'):
             xml_str = etree.tostring(
                 xml.getroottree(),
                 pretty_print=True,
