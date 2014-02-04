@@ -27,7 +27,7 @@ _marker = object()
 
 
 class FakeClass(object):
-    pass
+    _root = None
 
 
 class TestElement(TestCase):
@@ -101,6 +101,7 @@ class TestElement(TestCase):
 
         obj = self.cls._add('tagname', parent_obj)
         self.assertEqual(obj._parent, parent_obj)
+        self.assertEqual(obj._root, parent_obj)
         self.assertTrue(isinstance(obj, Element))
         self.assertEqual(parent_obj.tagname, obj)
 
@@ -112,8 +113,7 @@ class TestElement(TestCase):
 
     def test_add(self):
         parent_obj = FakeClass()
-        obj = self.cls()
-        obj._parent = parent_obj
+        obj = self.cls(parent_obj)
         newobj = obj.add('subtag')
         self.assertTrue(newobj)
         try:
@@ -122,8 +122,7 @@ class TestElement(TestCase):
             self.assertEqual(str(e), 'Invalid child unexisting')
 
         parent_obj = FakeClass()
-        obj = self.cls()
-        obj._parent = parent_obj
+        obj = self.cls(parent_obj)
         try:
             newobj = obj.add('subtag', 'my value')
             assert 0
@@ -471,8 +470,7 @@ class TestElement(TestCase):
         html = self.sub_cls._to_html(parent_obj)
         self.assertTrue(html, expected)
 
-        parent_obj.subtag = self.sub_cls()
-        parent_obj.subtag._parent = parent_obj
+        parent_obj.subtag = self.sub_cls(parent_obj)
         html = self.sub_cls._to_html(parent_obj)
         self.assertTrue(html, expected)
 
@@ -541,8 +539,7 @@ class TestElement(TestCase):
         self.assertEqual(result, expected)
 
         self.sub_cls._required = False
-        parent_obj.subtag = self.sub_cls()
-        parent_obj.subtag._parent = parent_obj
+        parent_obj.subtag = self.sub_cls(parent_obj)
         expected = {
             'data': 'subtag',
             'attr': {
@@ -572,8 +569,7 @@ class TestElement(TestCase):
             'children': []}
         self.assertEqual(result, expected)
 
-        obj.subtag = self.sub_cls()
-        obj.subtag._parent = obj
+        obj.subtag = self.sub_cls(obj)
         result = obj.to_jstree_dict([], index=10)
         expected = {
             'data': u'tag <span class="_tree_text">(my value)</span>',
@@ -656,14 +652,14 @@ class TestElement(TestCase):
         subtag = obj.get_or_add('subtag')
         self.assertTrue(subtag)
         self.assertEqual(subtag._parent, obj)
+        self.assertEqual(subtag._root, obj)
 
         subtag1 = obj.get_or_add('subtag')
         self.assertEqual(subtag1, subtag)
 
     def test_walk(self):
         parent_obj = self.cls()
-        obj = self.sub_cls()
-        obj._parent = parent_obj
+        obj = self.sub_cls(parent_obj)
 
         lis = [e for e in parent_obj.walk()]
         self.assertEqual(lis, [])
@@ -683,8 +679,7 @@ class TestElement(TestCase):
 
     def test_findall(self):
         parent_obj = self.cls()
-        obj = self.sub_cls()
-        obj._parent = parent_obj
+        obj = self.sub_cls(parent_obj)
         lis = parent_obj.findall('subtag')
         self.assertEqual(lis, [])
 
@@ -938,7 +933,8 @@ class TestListElement(TestCase):
 
     def test__add(self):
         parent_obj = FakeClass()
-        parent_obj.tag = ListElement()
+        parent_obj.tag = ListElement(parent_obj)
+        self.assertEqual(parent_obj.tag._root, parent_obj)
         try:
             obj1 = self.cls._add('tag', parent_obj, 'my value')
             assert 0
@@ -948,12 +944,14 @@ class TestListElement(TestCase):
         obj1 = self.cls._add('tag', parent_obj)
         self.assertTrue(obj1._tagname, 'tag')
         self.assertEqual(obj1._parent, parent_obj.tag)
+        self.assertEqual(obj1._root, parent_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertEqual(parent_obj.tag, [obj1])
 
         obj2 = self.cls._add('tag', parent_obj)
         self.assertTrue(obj2._tagname, 'tag')
         self.assertEqual(obj2._parent, parent_obj.tag)
+        self.assertEqual(obj2._root, parent_obj)
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj.tag, [obj1, obj2])
 
@@ -967,10 +965,11 @@ class TestListElement(TestCase):
         self.cls._elts += [sub_cls]
 
         parent_obj = FakeClass()
-        parent_obj.list_cls = ListElement()
+        parent_obj.list_cls = ListElement(parent_obj)
         obj1 = self.cls._add('tag', parent_obj)
         self.assertTrue(obj1._tagname, 'tag')
         self.assertEqual(obj1._parent, parent_obj.list_cls)
+        self.assertEqual(obj1._root, parent_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertFalse(hasattr(parent_obj, 'tag'))
         self.assertEqual(parent_obj.list_cls, [obj1])
@@ -978,6 +977,7 @@ class TestListElement(TestCase):
         obj2 = self.cls._add('tag1', parent_obj)
         self.assertTrue(obj2._tagname, 'tag1')
         self.assertEqual(obj2._parent, parent_obj.list_cls)
+        self.assertEqual(obj2._root, parent_obj)
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj.list_cls, [obj1, obj2])
 
@@ -1116,10 +1116,8 @@ class TestListElement(TestCase):
         self.cls._elts += [sub_cls]
 
         parent_obj = self.cls()
-        obj1 = self.sub_cls()
-        obj1._parent = parent_obj
-        obj2 = sub_cls()
-        obj2._parent = parent_obj
+        obj1 = self.sub_cls(parent_obj)
+        obj2 = sub_cls(parent_obj)
 
         parent_obj.extend([obj1, obj2])
         lis = [e for e in parent_obj.walk()]
@@ -1142,8 +1140,7 @@ class TestListElement(TestCase):
                        {'_tagname': 'subsub',
                         '_sub_elements': []})
         self.sub_cls._sub_elements = [sub_sub_cls]
-        self.cls._parent = parent_obj
-        obj = self.cls()
+        obj = self.cls(parent_obj)
         parent_obj.tag = obj
         sub1 = self.sub_cls()
         sub2 = self.sub_cls()

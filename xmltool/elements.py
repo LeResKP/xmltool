@@ -29,6 +29,16 @@ class Element(object):
     _xml_dtd_url = None
     _xml_encoding = None
 
+    def __init__(self, parent=None, *args, **kw):
+        super(Element, self).__init__(*args, **kw)
+        self._root = None
+        self._parent = parent
+        if self._parent is not None:
+            if self._parent._root is not None:
+                self._root = self._parent._root
+            else:
+                self._root = self._parent
+
     @classmethod
     def _get_allowed_tagnames(cls):
         return [cls._tagname]
@@ -82,9 +92,8 @@ class Element(object):
         if value and not issubclass(cls, TextElement):
             raise Exception("Can't set value to non TextElement")
 
-        tmpobj = cls()
+        tmpobj = cls(parent_obj)
         setattr(parent_obj, tagname, tmpobj)
-        tmpobj._parent = parent_obj
         if value:
             tmpobj._value = value
         return tmpobj
@@ -193,7 +202,17 @@ class Element(object):
         self._load_comment_from_xml(xml)
         self._sourceline = xml.sourceline
 
+    def set_lxml_elt(self, xml):
+        root = self._root or self
+        self._lxml_elt = xml
+        d = getattr(root, '_cached_lxml_elts', None)
+        if not d:
+            d = {}
+            root._cached_lxml_elts = d
+        d[id(xml)] = self
+
     def load_from_xml(self, xml):
+        self.set_lxml_elt(xml)
         self._load_extra_from_xml(xml)
         for child in xml:
             if isinstance(child, etree._Comment):
@@ -427,6 +446,23 @@ class Element(object):
             xml_str = transform(xml_str)
         open(filename, 'w').write(xml_str)
 
+    def xpath(self, xpath):
+        root = self._root or self
+        lxml_elt = getattr(self, '_lxml_elt', None)
+        if lxml_elt is None:
+            raise Exception(
+                'The xpath is only supported '
+                'when the object is loaded from XML')
+        lis = self._lxml_elt.xpath(xpath)
+        o = []
+        for res in lis:
+            elt = root._cached_lxml_elts.get(id(res))
+            if elt:
+                o += [elt]
+            else:
+                o += [res]
+        return o
+
 
 class TextElement(Element):
     _value = None
@@ -438,6 +474,7 @@ class TextElement(Element):
             (self._value or '').strip())
 
     def load_from_xml(self, xml):
+        self.set_lxml_elt(xml)
         self._load_extra_from_xml(xml)
         self._value = xml.text
         # We use _exists to know if the tag is defined in the XML.
@@ -540,6 +577,11 @@ class MultipleMixin(object):
 
 class ListElement(list, MultipleMixin, Element):
 
+    def __init__(self, *args, **kw):
+        # We only want to call the __init__ from Element since the __init__
+        # with parameter from list wants to append an element to self
+        Element.__init__(self, *args, **kw)
+
     @classmethod
     def _get_allowed_tagnames(cls):
         lis = [cls._tagname]
@@ -558,12 +600,10 @@ class ListElement(list, MultipleMixin, Element):
             tg = tagname
 
         lis = getattr(parent_obj, tg, None)
-        if not lis:
-            lis = cls()
-            lis._parent = parent_obj
+        if lis is None:
+            lis = cls(parent_obj)
             setattr(parent_obj, tg, lis)
-        tmpobj = elt()
-        tmpobj._parent = lis
+        tmpobj = elt(lis)
         if value:
             tmpobj._value = value
         lis.append(tmpobj)
@@ -702,8 +742,7 @@ class ChoiceElement(MultipleMixin, Element):
         if value and not issubclass(elt, TextElement):
             raise Exception("Can't set value to non TextElement")
 
-        tmpobj = elt()
-        tmpobj._parent = parent_obj
+        tmpobj = elt(parent_obj)
         if value:
             tmpobj._value = value
         setattr(parent_obj, tagname, tmpobj)

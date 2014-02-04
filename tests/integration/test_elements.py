@@ -1923,3 +1923,47 @@ class TestWalk(TestCase):
             obj.text1[1].text11,
         ]
         self.assertEqual(lis, expected)
+
+
+class TestXPath(TestCase):
+    dtd_str = MOVIE_DTD
+    xml = MOVIE_XML_TITANIC_COMMENTS
+
+    def test_xpath(self):
+        root = etree.fromstring(self.xml)
+        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        obj = dic[root.tag]()
+
+        try:
+            res = obj.xpath('Movie')
+            assert(False)
+        except Exception, e:
+            self.assertEqual(
+                str(e),
+                'The xpath is only supported '
+                'when the object is loaded from XML')
+
+        obj.load_from_xml(root)
+        # Since obj is Movie it didn't match
+        res = obj.xpath('Movie')
+        self.assertEqual(len(res), 0)
+
+        res = obj.xpath('/Movie')
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0], obj)
+
+        res = obj.xpath('directors')
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0], obj['directors'])
+        res = obj.xpath('//actors/actor')
+        self.assertEqual(len(res), 3)
+        self.assertEqual(res, obj['actors']['actor'])
+
+        actor_obj = obj['actors']['actor'][0]
+        res = actor_obj.xpath('/Movie')
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0], obj)
+
+        res = actor_obj.xpath('..')
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0], actor_obj._parent._parent)
