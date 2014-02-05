@@ -481,13 +481,8 @@ class TestElement(TestCase):
                     '<a data-comment-name="tag:_comment" class="btn-comment" '
                     'title="Add comment"></a>'
                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
-                    '<div class="panel panel-default subtag" id="tag:subtag">'
-                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
-                    '<a data-comment-name="tag:subtag:_comment" '
-                    'class="btn-comment" title="Add comment"></a>'
-                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
-                    '</div></div>'
-                    '</div></div>')
+                    '<a class="btn-add" data-elt-id="tag:subtag">Add '
+                     'subtag</a></div></div>')
         self.assertEqual(html, expected1)
 
         obj._parent = 'my fake parent'
@@ -497,21 +492,19 @@ class TestElement(TestCase):
         self.assertEqual(html, expected_button)
 
         html = obj.to_html(partial=True)
-        expected2 = ('<div class="panel panel-default tag" id="tag">'
-                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag">tag'
-                    '<a class="btn-add hidden" data-elt-id="tag">'
-                    'Add tag</a>'
-                    '<a class="btn-delete" data-target="#tag" title="Delete"></a>'
-                    '<a data-comment-name="tag:_comment" class="btn-comment" '
-                    'title="Add comment"></a>'
-                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
-                    '<div class="panel panel-default subtag" id="tag:subtag">'
-                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag\:subtag">subtag'
-                    '<a data-comment-name="tag:subtag:_comment" '
-                    'class="btn-comment" title="Add comment"></a>'
-                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:subtag">'
-                    '</div></div>'
-                    '</div></div>')
+        expected2 = (
+            '<div class="panel panel-default tag" id="tag">'
+            '<div class="panel-heading">'
+            '<span data-toggle="collapse" href="#collapse-tag">'
+            'tag<a class="btn-add hidden" data-elt-id="tag">Add tag</a>'
+            '<a class="btn-delete" data-target="#tag" title="Delete"></a>'
+            '<a data-comment-name="tag:_comment" class="btn-comment" '
+            'title="Add comment"></a></span></div>'
+            '<div class="panel-body panel-collapse collapse in" '
+            'id="collapse-tag">'
+            '<a class="btn-add" data-elt-id="tag:subtag">Add subtag</a>'
+            '</div></div>'
+        )
         self.assertEqual(html, expected2)
 
         obj._required = True
@@ -519,7 +512,7 @@ class TestElement(TestCase):
         self.assertEqual(html, expected1)
 
         obj._required = False
-        obj.subtag = self.sub_cls()
+        obj.subtag = self.sub_cls(obj)
         html = obj.to_html()
         self.assertEqual(html, expected2)
 

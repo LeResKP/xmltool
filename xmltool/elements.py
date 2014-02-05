@@ -58,7 +58,7 @@ class Element(object):
     def _get_sub_value(cls, parent_obj):
         v = cls._get_value_from_parent(parent_obj)
         if not v and cls._required:
-            v = cls()
+            v = cls(parent_obj)
         return v
 
     def _has_value(self):
@@ -277,7 +277,7 @@ class Element(object):
         v = cls._get_value_from_parent(parent_obj)
         if not v:
             # We always want an object since we need at least a add button.
-            v = cls()
+            v = cls(parent_obj)
         return v.to_html(prefixes, index)
 
     def to_html(self, prefixes=None, index=None, delete_btn=False,
@@ -331,7 +331,7 @@ class Element(object):
         v = cls._get_value_from_parent(parent_obj)
         if not v and cls._required:
             # We always want an object since we need at least a add button.
-            v = cls()
+            v = cls(parent_obj)
         if v is not None:
             return v.to_jstree_dict(prefixes, index)
 
