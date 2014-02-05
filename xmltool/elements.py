@@ -310,13 +310,13 @@ class Element(object):
                            'data-target="#%s" title="Delete"></a>') % ident
         legend += self._comment_to_html(prefixes, index)
         html = [(
-            '<div class="panel panel-default {css_class}" id="{ident}">'
-            '<div class="panel-heading">'
-            '<span data-toggle="collapse" '
-            'href="#collapse-{escaped_id}">{legend}</span>'
-            '</div>'
-            '<div class="panel-body panel-collapse collapse in" '
-            'id="collapse-{ident}">').format(
+            u'<div class="panel panel-default {css_class}" id="{ident}">'
+            u'<div class="panel-heading">'
+            u'<span data-toggle="collapse" '
+            u'href="#collapse-{escaped_id}">{legend}</span>'
+            u'</div>'
+            u'<div class="panel-body panel-collapse collapse in" '
+            u'id="collapse-{ident}">').format(
                 css_class=self._tagname,
                 ident=ident,
                 legend=legend,
