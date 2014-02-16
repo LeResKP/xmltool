@@ -32,18 +32,31 @@ class Element(object):
     _xml_dtd_url = None
     _xml_encoding = None
 
+    # Old style support
+    def _get_root(self):
+        msg = "Instead of using obj._root use obj.root"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return self.root
+
+    def _set_root(self, value):
+        msg = "Instead of using obj._root = value use obj.root = value"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        self.root = value
+
+    _root = property(_get_root, _set_root)
+
     def __init__(self, parent=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
-        self._root = None
+        self.root = None
         self._parent = parent
         # Store the XML element here
         self.xml_elements = {}
 
         if self._parent is not None:
-            if self._parent._root is not None:
-                self._root = self._parent._root
+            if self._parent.root is not None:
+                self.root = self._parent.root
             else:
-                self._root = self._parent
+                self.root = self._parent
 
     @classmethod
     def _get_allowed_tagnames(cls):
@@ -209,7 +222,7 @@ class Element(object):
         self._sourceline = xml.sourceline
 
     def set_lxml_elt(self, xml):
-        root = self._root or self
+        root = self.root or self
         self._lxml_elt = xml
         d = getattr(root, '_cached_lxml_elts', None)
         if not d:
@@ -480,7 +493,7 @@ class Element(object):
         open(filename, 'w').write(xml_str)
 
     def xpath(self, xpath):
-        root = self._root or self
+        root = self.root or self
         lxml_elt = getattr(self, '_lxml_elt', None)
         if lxml_elt is None:
             raise Exception(

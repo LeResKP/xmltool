@@ -27,7 +27,7 @@ _marker = object()
 
 
 class FakeClass(object):
-    _root = None
+    root = None
 
     def __init__(self, *args, **kw):
         self.xml_elements = {}
