@@ -16,7 +16,7 @@ TREE_PREFIX = 'tree_'
 class Element(object):
     """After reading a dtd file we construct some Element
     """
-    _tagname = None
+    tagname = None
     _attribute_names = None
     _attributes = None
     _sub_elements = None
@@ -57,6 +57,18 @@ class Element(object):
 
     _parent = property(_get_parent, _set_parent)
 
+    def _get_tagname(self):
+        msg = "Instead of using obj._tagname use obj.tagname"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return self.tagname
+
+    def _set_tagname(self, value):
+        msg = "Instead of using obj._tagname = value use obj.tagname = value"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        self.tagname = value
+
+    _tagname = property(_get_tagname, _set_tagname)
+
     def __init__(self, parent=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
         self.root = None
@@ -72,7 +84,7 @@ class Element(object):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        return [cls._tagname]
+        return [cls.tagname]
 
     @classmethod
     def _get_sub_element(cls, tagname):
@@ -83,7 +95,7 @@ class Element(object):
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
-        return parent_obj.xml_elements.get(cls._tagname)
+        return parent_obj.xml_elements.get(cls.tagname)
 
     @classmethod
     def _get_sub_value(cls, parent_obj):
@@ -104,7 +116,7 @@ class Element(object):
         tmp_prefixes = list(prefixes or [])
         if index is not None:
             tmp_prefixes.append(str(index))
-        tmp_prefixes.append(cls._tagname)
+        tmp_prefixes.append(cls.tagname)
         if name is not None:
             tmp_prefixes.append(name)
         return tmp_prefixes
@@ -257,7 +269,7 @@ class Element(object):
         self._load_comment_from_dict(data)
 
     def load_from_dict(self, dic):
-        data = dic.get(self._tagname)
+        data = dic.get(self.tagname)
         if not data:
             return
         self._load_extra_from_dict(data)
@@ -272,7 +284,7 @@ class Element(object):
                 obj.load_from_dict(data)
 
     def to_xml(self):
-        xml = etree.Element(self._tagname)
+        xml = etree.Element(self.tagname)
         self._comment_to_xml(xml)
         self._attributes_to_xml(xml)
         for elt in self._sub_elements:
@@ -301,7 +313,7 @@ class Element(object):
         return '<a class="%s" data-elt-id="%s">Add %s</a>' % (
             ' '.join(css_classes),
             value,
-            cls._tagname)
+            cls.tagname)
 
     @classmethod
     def _to_html(cls, parent_obj, prefixes=None, index=None):
@@ -325,7 +337,7 @@ class Element(object):
             if tmp:
                 sub_html += [tmp]
 
-        legend = self._tagname
+        legend = self.tagname
         if (not self._required and self.parent and add_btn) or self._is_choice:
             legend += self._get_html_add_button(prefixes or [], index, 'hidden')
 
@@ -348,7 +360,7 @@ class Element(object):
             u'</div>'
             u'<div class="panel-body panel-collapse collapse in" '
             u'id="collapse-{ident}">').format(
-                css_class=self._tagname,
+                css_class=self.tagname,
                 ident=ident,
                 legend=legend,
                 escaped_id='\\:'.join(tmp_prefixes),
@@ -368,7 +380,7 @@ class Element(object):
 
     def to_jstree_dict(self, prefixes, index=None):
         tmp_prefixes = self._get_prefixes(prefixes, index)
-        data = self._tagname
+        data = self.tagname
         value = getattr(self, 'text', None)
         if value:
             data += u' <span class="_tree_text">(%s)</span>' % (
@@ -378,7 +390,7 @@ class Element(object):
         if index is not None:
             css_class += ' ' + TREE_PREFIX + ':'.join((prefixes+[str(index)]))
         else:
-            css_class += ':' + self._tagname
+            css_class += ':' + self.tagname
 
         dic = {
             'data': data,
@@ -459,7 +471,7 @@ class Element(object):
     def findall(self, tagname):
         lis = []
         for elt in self.walk():
-            if elt._tagname == tagname:
+            if elt.tagname == tagname:
                 lis += [elt]
         return lis
 
@@ -478,7 +490,7 @@ class Element(object):
             utils.validate_xml(xml, dtd_str)
 
         doctype = '<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
-            'root_tag': self._tagname,
+            'root_tag': self.tagname,
             'dtd_url': dtd_url}
 
         # Some etree versions are not valid according to StrictVersion so we
@@ -491,8 +503,8 @@ class Element(object):
                 xml_declaration=True,
                 encoding=encoding,
             )
-            xml_str = xml_str.replace('<%s' % self._tagname,
-                                      '%s\n<%s' % (doctype, self._tagname))
+            xml_str = xml_str.replace('<%s' % self.tagname,
+                                      '%s\n<%s' % (doctype, self.tagname))
         else:
             xml_str = etree.tostring(
                 xml.getroottree(),
@@ -541,7 +553,7 @@ class TextElement(Element):
 
     def __repr__(self):
         return '<TextElement %s "%s">' % (
-            self._tagname,
+            self.tagname,
             (self.text or '').strip())
 
     def load_from_xml(self, xml):
@@ -552,12 +564,12 @@ class TextElement(Element):
         self._exists = True
 
     def load_from_dict(self, dic):
-        data = dic[self._tagname]
+        data = dic[self.tagname]
         self._load_extra_from_dict(data)
         self.text = data.get('_value')
 
     def to_xml(self):
-        xml = etree.Element(self._tagname)
+        xml = etree.Element(self.tagname)
         # The comment can't be added here since we don't always have the parent
         # defined.
         self._attributes_to_xml(xml)
@@ -577,7 +589,7 @@ class TextElement(Element):
         if index is not None:
             prefixes += [str(index)]
 
-        prefixes += [self._tagname]
+        prefixes += [self.tagname]
         prefixes += ['_value']
         name = ':'.join(prefixes)
         attrs = [
@@ -625,7 +637,7 @@ class TextElement(Element):
             u'<textarea class="form-control"{attrs} rows="{rows}">{value}'
             u'</textarea></div>').format(
                 ident=ident,
-                label=self._tagname,
+                label=self.tagname,
                 add_button=add_button,
                 delete_button=delete_button,
                 comment=self._comment_to_html(prefixes, index),
@@ -642,7 +654,7 @@ class MultipleMixin(object):
     @classmethod
     def _get_sub_element(cls, tagname):
         for e in cls._elts:
-            if e._tagname == tagname:
+            if e.tagname == tagname:
                 return e
 
 
@@ -655,9 +667,9 @@ class ListElement(list, MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        lis = [cls._tagname]
+        lis = [cls.tagname]
         for e in cls._elts:
-            lis += [e._tagname]
+            lis += [e.tagname]
         return lis
 
     @classmethod
@@ -666,7 +678,7 @@ class ListElement(list, MultipleMixin, Element):
         if value and not issubclass(elt, TextElement):
             raise Exception("Can't set value to non TextElement")
 
-        tg = cls._tagname
+        tg = cls.tagname
         if len(cls._elts) == 1:
             tg = tagname
 
@@ -684,7 +696,7 @@ class ListElement(list, MultipleMixin, Element):
         lis = []
         if not len(self) and self._required:
             if len(self._elts) == 1:
-                e = self.add(self._elts[0]._tagname)
+                e = self.add(self._elts[0].tagname)
                 self.append(e)
 
         for e in self:
@@ -705,38 +717,38 @@ class ListElement(list, MultipleMixin, Element):
                 css_classes += [css_class]
 
             tmp_prefixes = list(prefixes or []) + [
-                cls._tagname, index, cls._elts[0]._tagname]
+                cls.tagname, index, cls._elts[0].tagname]
             data_id = ':'.join(
                 map(str, filter((lambda x: x is not None), tmp_prefixes)))
             button = ('<a class="%s" '
                       'data-elt-id="%s">New %s</a>') % (
                           ' '.join(css_classes),
                           data_id,
-                          cls._elts[0]._tagname)
+                          cls._elts[0].tagname)
             return button
 
         assert not css_class
         button = '<select class="btn-add btn-list">'
-        options = '/'.join([e._tagname for e in cls._elts])
+        options = '/'.join([e.tagname for e in cls._elts])
         button += '<option>New %s</option>' % options
 
         tmp_prefixes = list(prefixes or [])
-        tmp_prefixes.append(cls._tagname)
+        tmp_prefixes.append(cls.tagname)
         tmp_prefixes.append(str(index))
         prefix_str = ':'.join(tmp_prefixes)
         for e in cls._elts:
             button += '<option value="%s:%s">%s</option>' % (
                 prefix_str,
-                e._tagname,
-                e._tagname)
+                e.tagname,
+                e.tagname)
         button += '</select>'
         return button
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
-        tg = cls._tagname
+        tg = cls.tagname
         if len(cls._elts) == 1:
-            tg = cls._elts[0]._tagname
+            tg = cls._elts[0].tagname
         return parent_obj.xml_elements.get(tg)
 
     def to_html(self, prefixes=None, index=None, delete_btn=False,
@@ -748,7 +760,7 @@ class ListElement(list, MultipleMixin, Element):
 
         if not len(self) and (self._required or partial):
             if len(self._elts) == 1:
-                e = self.add(self._elts[0]._tagname)
+                e = self.add(self._elts[0].tagname)
                 self.append(e)
 
         i = -1
@@ -759,7 +771,7 @@ class ListElement(list, MultipleMixin, Element):
             force = False
             if i == 0 and (partial or self._required):
                 force = True
-            lis += [e.to_html(((prefixes or [])+[self._tagname]),
+            lis += [e.to_html(((prefixes or [])+[self.tagname]),
                               (i+offset),
                               delete_btn=True,
                               partial=force,
@@ -774,12 +786,12 @@ class ListElement(list, MultipleMixin, Element):
     def to_jstree_dict(self, prefixes, index=None, offset=0):
         if not len(self) and (self._required):
             if len(self._elts) == 1:
-                e = self.add(self._elts[0]._tagname)
+                e = self.add(self._elts[0].tagname)
                 self.append(e)
 
         lis = []
         for i, e in enumerate(self):
-            v = e.to_jstree_dict((prefixes or [])+[self._tagname], i+offset)
+            v = e.to_jstree_dict((prefixes or [])+[self.tagname], i+offset)
             if v:
                 lis += [v]
         return lis
@@ -800,14 +812,14 @@ class ChoiceElement(MultipleMixin, Element):
     def _get_allowed_tagnames(cls):
         lis = []
         for e in cls._elts:
-            lis += [e._tagname]
+            lis += [e.tagname]
         return lis
 
     @classmethod
     def _add(cls, tagname, parent_obj, value=None):
         for elt in cls._elts:
-            if elt._tagname in parent_obj.xml_elements:
-                raise Exception('%s already defined' % elt._tagname)
+            if elt.tagname in parent_obj.xml_elements:
+                raise Exception('%s already defined' % elt.tagname)
 
         elt = cls._get_sub_element(tagname)
         if value and not issubclass(elt, TextElement):
@@ -830,18 +842,18 @@ class ChoiceElement(MultipleMixin, Element):
             css_classes += [css_class]
 
         button = '<select class="%s">' % ' '.join(css_classes)
-        button += '<option>New %s</option>' % '/'.join([e._tagname for e in cls._elts])
+        button += '<option>New %s</option>' % '/'.join([e.tagname for e in cls._elts])
         for e in cls._elts:
             button += '<option value="%s">%s</option>' % (
                 e._get_str_prefix(prefixes, index, None),
-                e._tagname)
+                e.tagname)
         button += '</select>'
         return button
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
         for elt in cls._elts:
-            v = parent_obj.xml_elements.get(elt._tagname)
+            v = parent_obj.xml_elements.get(elt.tagname)
             if v:
                 return v
 
@@ -912,12 +924,12 @@ def _get_previous_js_selectors(obj, prefixes, index):
             return lis
         tmp_prefixes = tmp_prefixes[:-1]
 
-    sub = parent._get_sub_element(obj._tagname)
+    sub = parent._get_sub_element(obj.tagname)
 
     for elt in parent._sub_elements:
         if elt == sub:
             break
-        tmp_prefix = list(tmp_prefixes) + [elt._tagname]
+        tmp_prefix = list(tmp_prefixes) + [elt.tagname]
         lis += [('after', '.%s%s' % (
             TREE_PREFIX,
             ':'.join(tmp_prefix)))]
