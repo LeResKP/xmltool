@@ -5,6 +5,9 @@ from lxml import etree
 import dtd_parser
 import utils
 from distutils.version import StrictVersion
+import warnings
+
+warnings.simplefilter("always")
 
 DEFAULT_ENCODING = 'UTF-8'
 TREE_PREFIX = 'tree_'
@@ -98,7 +101,7 @@ class Element(object):
         tmpobj = cls(parent_obj)
         parent_obj.xml_elements[tagname] = tmpobj
         if value:
-            tmpobj._value = value
+            tmpobj.text = value
         return tmpobj
 
     def add(self, tagname, value=None):
@@ -341,7 +344,7 @@ class Element(object):
     def to_jstree_dict(self, prefixes, index=None):
         tmp_prefixes = self._get_prefixes(prefixes, index)
         data = self._tagname
-        value = getattr(self, '_value', None)
+        value = getattr(self, 'text', None)
         if value:
             data += u' <span class="_tree_text">(%s)</span>' % (
                 utils.truncate(value))
@@ -374,6 +377,9 @@ class Element(object):
         if self._get_sub_element(prop):
             # If it's an element set the value to the dict of elements
             self.xml_elements[prop] = value
+            msg = ("You should use the dict way to set a value: "
+                   "obj[prop] = value")
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
             return
         object.__setattr__(self, prop, value)
 
@@ -383,6 +389,9 @@ class Element(object):
             return v
         except AttributeError:
             if prop in self.xml_elements:
+                msg = ("You should use the dict way to get a value: "
+                       "obj[prop] or obj.get(prop)")
+                warnings.warn(msg, DeprecationWarning, stacklevel=2)
                 return self.xml_elements[prop]
             raise
 
@@ -489,25 +498,38 @@ class Element(object):
 
 
 class TextElement(Element):
-    _value = None
+    text = None
     _exists = False
+
+    # Old style support
+    def _set_value(self, v):
+        msg = "Instead of using obj._value = value use obj.text = value"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        self.text = v
+
+    def _get_value(self):
+        msg = "Instead of using obj._value use obj.text"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return self.text
+
+    _value = property(_get_value, _set_value)
 
     def __repr__(self):
         return '<TextElement %s "%s">' % (
             self._tagname,
-            (self._value or '').strip())
+            (self.text or '').strip())
 
     def load_from_xml(self, xml):
         self.set_lxml_elt(xml)
         self._load_extra_from_xml(xml)
-        self._value = xml.text
+        self.text = xml.text
         # We use _exists to know if the tag is defined in the XML.
         self._exists = True
 
     def load_from_dict(self, dic):
         data = dic[self._tagname]
         self._load_extra_from_dict(data)
-        self._value = data.get('_value')
+        self.text = data.get('_value')
 
     def to_xml(self):
         xml = etree.Element(self._tagname)
@@ -517,12 +539,12 @@ class TextElement(Element):
         # We never set self.text to None to make sure when we export as string
         # we get a HTML format (no autoclose tag)
         if self._is_empty:
-            if self._value:
+            if self.text:
                 raise Exception(
                     'It\'s forbidden to have a value to an EMPTY tag')
             xml.text = None
         else:
-            xml.text = self._value or ''
+            xml.text = self.text or ''
         return xml
 
     def _get_html_attrs(self, prefixes, index=None):
@@ -543,7 +565,7 @@ class TextElement(Element):
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False):
 
-        if (not self._exists and not self._value and
+        if (not self._exists and not self.text and
            not self._required and not partial):
             return self._get_html_add_button(prefixes, index)
 
@@ -564,7 +586,7 @@ class TextElement(Element):
                     '<a class="btn-delete" '
                     'data-target="#%s" title="Delete"></a>') % ident
 
-        value = self._value or ''
+        value = self.text or ''
         cnt = value.count('\n')
         if cnt:
             cnt += 1
@@ -629,7 +651,7 @@ class ListElement(list, MultipleMixin, Element):
             parent_obj.xml_elements[tg] = lis
         tmpobj = elt(lis)
         if value:
-            tmpobj._value = value
+            tmpobj.text = value
         lis.append(tmpobj)
         return tmpobj
 
@@ -768,7 +790,7 @@ class ChoiceElement(MultipleMixin, Element):
 
         tmpobj = elt(parent_obj)
         if value:
-            tmpobj._value = value
+            tmpobj.text = value
         parent_obj.xml_elements[tagname] = tmpobj
         return tmpobj
 

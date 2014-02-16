@@ -573,7 +573,7 @@ class TestElement(TestCase):
             'children': []}
         self.assertEqual(result, expected)
 
-        obj._value = 'my value'
+        obj.text = 'my value'
         result = obj.to_jstree_dict([], index=10)
         expected = {
             'data': u'tag <span class="_tree_text">(my value)</span>',
