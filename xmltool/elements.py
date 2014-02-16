@@ -22,7 +22,7 @@ class Element(object):
     _sub_elements = None
     _required = False
     parent = None
-    _sourceline = None
+    sourceline = None
     _comment = None
     _is_choice = False
     _is_empty = False
@@ -68,6 +68,18 @@ class Element(object):
         self.tagname = value
 
     _tagname = property(_get_tagname, _set_tagname)
+
+    def _get_sourceline(self):
+        msg = "Instead of using obj._sourceline use obj.sourceline"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return self.sourceline
+
+    def _set_sourceline(self, value):
+        msg = "Instead of using obj._sourceline = value use obj.sourceline = value"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        self.sourceline = value
+
+    _sourceline = property(_get_sourceline, _set_sourceline)
 
     def __init__(self, parent=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
@@ -243,7 +255,7 @@ class Element(object):
     def _load_extra_from_xml(self, xml):
         self._load_attributes_from_xml(xml)
         self._load_comment_from_xml(xml)
-        self._sourceline = xml.sourceline
+        self.sourceline = xml.sourceline
 
     def set_lxml_elt(self, xml):
         root = self.root or self
