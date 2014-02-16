@@ -33,6 +33,9 @@ class Element(object):
         super(Element, self).__init__(*args, **kw)
         self._root = None
         self._parent = parent
+        # Store the XML element here
+        self.xml_elements = {}
+
         if self._parent is not None:
             if self._parent._root is not None:
                 self._root = self._parent._root
@@ -52,7 +55,7 @@ class Element(object):
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
-        return getattr(parent_obj, cls._tagname, None)
+        return parent_obj.xml_elements.get(cls._tagname)
 
     @classmethod
     def _get_sub_value(cls, parent_obj):
@@ -85,7 +88,7 @@ class Element(object):
 
     @classmethod
     def _add(cls, tagname, parent_obj, value=None):
-        v = getattr(parent_obj, tagname, None)
+        v = parent_obj.xml_elements.get(tagname)
         if v:
             raise Exception('%s already defined' % tagname)
 
@@ -93,7 +96,7 @@ class Element(object):
             raise Exception("Can't set value to non TextElement")
 
         tmpobj = cls(parent_obj)
-        setattr(parent_obj, tagname, tmpobj)
+        parent_obj.xml_elements[tagname] = tmpobj
         if value:
             tmpobj._value = value
         return tmpobj
@@ -367,17 +370,38 @@ class Element(object):
         dic['children'] = children
         return dic
 
+    def __setattr__(self, prop, value):
+        if self._get_sub_element(prop):
+            # If it's an element set the value to the dict of elements
+            self.xml_elements[prop] = value
+            return
+        object.__setattr__(self, prop, value)
+
+    def __getattribute__(self, prop):
+        try:
+            v = object.__getattribute__(self, prop)
+            return v
+        except AttributeError:
+            if prop in self.xml_elements:
+                return self.xml_elements[prop]
+            raise
+
+    def __setitem__(self, tagname, value):
+        # TODO: Perhaps we should check the value type and if the tagname is
+        # allowed
+        self.xml_elements[tagname] = value
+
     def __getitem__(self, tagname):
-        v = getattr(self, tagname, None)
+        v = self.xml_elements.get(tagname)
         if not v:
             raise KeyError(tagname)
         return v
 
     def __contains__(self, tagname):
-        return hasattr(self, tagname)
+        return tagname in self.xml_elements
 
     def get_or_add(self, tagname):
-        v = getattr(self, tagname, None)
+        v = self.xml_elements.get(tagname)
         if v:
             return v
         return self.add(tagname)
@@ -599,10 +623,10 @@ class ListElement(list, MultipleMixin, Element):
         if len(cls._elts) == 1:
             tg = tagname
 
-        lis = getattr(parent_obj, tg, None)
+        lis = parent_obj.xml_elements.get(tg)
         if lis is None:
             lis = cls(parent_obj)
-            setattr(parent_obj, tg, lis)
+            parent_obj.xml_elements[tg] = lis
         tmpobj = elt(lis)
         if value:
             tmpobj._value = value
@@ -666,7 +690,7 @@ class ListElement(list, MultipleMixin, Element):
         tg = cls._tagname
         if len(cls._elts) == 1:
             tg = cls._elts[0]._tagname
-        return getattr(parent_obj, tg, None)
+        return parent_obj.xml_elements.get(tg)
 
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False, offset=0):
@@ -735,7 +759,7 @@ class ChoiceElement(MultipleMixin, Element):
     @classmethod
     def _add(cls, tagname, parent_obj, value=None):
         for elt in cls._elts:
-            if hasattr(parent_obj, elt._tagname):
+            if elt._tagname in parent_obj.xml_elements:
                 raise Exception('%s already defined' % elt._tagname)
 
         elt = cls._get_sub_element(tagname)
@@ -745,7 +769,7 @@ class ChoiceElement(MultipleMixin, Element):
         tmpobj = elt(parent_obj)
         if value:
             tmpobj._value = value
-        setattr(parent_obj, tagname, tmpobj)
+        parent_obj.xml_elements[tagname] = tmpobj
         return tmpobj
 
     @classmethod
@@ -770,7 +794,7 @@ class ChoiceElement(MultipleMixin, Element):
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
         for elt in cls._elts:
-            v = getattr(parent_obj, elt._tagname, None)
+            v = parent_obj.xml_elements.get(elt._tagname)
             if v:
                 return v
 
