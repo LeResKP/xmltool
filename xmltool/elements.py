@@ -21,7 +21,7 @@ class Element(object):
     _attributes = None
     _sub_elements = None
     _required = False
-    _parent = None
+    parent = None
     _sourceline = None
     _comment = None
     _is_choice = False
@@ -45,18 +45,30 @@ class Element(object):
 
     _root = property(_get_root, _set_root)
 
+    def _get_parent(self):
+        msg = "Instead of using obj._parent use obj.parent"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return self.parent
+
+    def _set_parent(self, value):
+        msg = "Instead of using obj._parent = value use obj.parent = value"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        self.parent = value
+
+    _parent = property(_get_parent, _set_parent)
+
     def __init__(self, parent=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
         self.root = None
-        self._parent = parent
+        self.parent = parent
         # Store the XML element here
         self.xml_elements = {}
 
-        if self._parent is not None:
-            if self._parent.root is not None:
-                self.root = self._parent.root
+        if self.parent is not None:
+            if self.parent.root is not None:
+                self.root = self.parent.root
             else:
-                self.root = self._parent
+                self.root = self.parent
 
     @classmethod
     def _get_allowed_tagnames(cls):
@@ -280,7 +292,7 @@ class Element(object):
     @classmethod
     def _get_html_add_button(cls, prefixes, index=None, css_class=None):
         if cls._is_choice:
-            return cls._parent._get_html_add_button(prefixes, index, css_class)
+            return cls.parent._get_html_add_button(prefixes, index, css_class)
 
         value = cls._get_str_prefix(prefixes, index)
         css_classes = ['btn-add']
@@ -302,7 +314,7 @@ class Element(object):
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True,  partial=False):
 
-        if not self._has_value() and not self._required and self._parent and not partial:
+        if not self._has_value() and not self._required and self.parent and not partial:
             # Add button!
             return self._get_html_add_button(prefixes, index)
 
@@ -314,12 +326,12 @@ class Element(object):
                 sub_html += [tmp]
 
         legend = self._tagname
-        if (not self._required and self._parent and add_btn) or self._is_choice:
+        if (not self._required and self.parent and add_btn) or self._is_choice:
             legend += self._get_html_add_button(prefixes or [], index, 'hidden')
 
         ident = ':'.join(tmp_prefixes)
         # Don't allow to delete root element!
-        if (not self._required and self._parent) or delete_btn or partial or self._is_choice:
+        if (not self._required and self.parent) or delete_btn or partial or self._is_choice:
             # NOTE: we assume the parent is a list if index is not None
             if (index is not None):
                 legend += ('<a class="btn-delete btn-list" '
@@ -582,7 +594,7 @@ class TextElement(Element):
            not self._required and not partial):
             return self._get_html_add_button(prefixes, index)
 
-        parent_is_list = isinstance(self._parent, ListElement)
+        parent_is_list = isinstance(self.parent, ListElement)
         add_button = ''
         if (not parent_is_list and not self._required) or self._is_choice:
             add_button = self._get_html_add_button(prefixes, index, 'hidden')
@@ -883,14 +895,14 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
 def _get_previous_js_selectors(obj, prefixes, index):
     lis = []
 
-    parent = obj._parent
+    parent = obj.parent
     if not parent:
         return lis
 
     parent_is_list = isinstance(parent, ListElement)
     tmp_prefixes = prefixes[:-1]
     if parent_is_list:
-        parent = parent._parent
+        parent = parent.parent
         if int(index) > 0:
             index = int(index) - 1
             lis += [
@@ -919,20 +931,20 @@ def _get_previous_js_selectors(obj, prefixes, index):
 
 def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    if isinstance(obj._parent, ListElement):
+    if isinstance(obj.parent, ListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
-        tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
+        tmp += obj.parent._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
     return obj.to_html(prefixes[:-1], index, partial=True)
 
 
 def _get_html_from_obj(obj, prefixes, index):
-    if isinstance(obj._parent, ListElement):
+    if isinstance(obj.parent, ListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
-        tmp += obj._parent._get_html_add_button(prefixes[:-2], index+1)
+        tmp += obj.parent._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
     return obj.to_html(prefixes[:-1], index, partial=True)

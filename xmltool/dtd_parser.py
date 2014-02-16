@@ -146,7 +146,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
             assert not subislist
             sub_cls = _create_new_class(class_dict, subname, subrequired,
                                         subislist, subconditionals)
-            sub_cls._parent = parent_cls
+            sub_cls.parent = parent_cls
             sub_cls._is_choice = not islist
             parent_cls._elts += [sub_cls]
         return parent_cls
@@ -163,7 +163,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
         '_required': required,
         '_tagname': 'list__%s' % name
     })
-    newcls._parent = listcls
+    newcls.parent = listcls
     return listcls
 
 
@@ -214,7 +214,7 @@ def _create_classes(dtd_dict):
                 continue
             sub_cls = _create_new_class(
                 class_dict, name, required, islist, conditionals)
-            sub_cls._parent = cls
+            sub_cls.parent = cls
             cls._sub_elements += [sub_cls]
 
     return class_dict

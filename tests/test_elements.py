@@ -475,7 +475,7 @@ class TestElement(TestCase):
 
         sub_cls = type('SubCls', (Element,), {'_tagname': 'tag'})
         cls = type('MultipleCls', (ChoiceElement,), {'_elts': [sub_cls]})
-        self.cls._parent = cls
+        self.cls.parent = cls
         self.cls._is_choice = True
         html = self.cls._get_html_add_button(['prefix'])
         expected = ('<select class="btn-add">'
