@@ -105,6 +105,14 @@ class TestElement(TestCase):
         result = self.cls._get_str_prefix(['prefix'], 1, 'name')
         self.assertEqual(result, 'prefix:1:tag:name')
 
+    def test_root(self):
+        parent_obj = type('Cls', (Element, ),
+                          {'tagname': 'tag',
+                           '_sub_elements': []})()
+        self.assertEqual(parent_obj.root, parent_obj)
+        obj = self.cls._add('tagname', parent_obj)
+        self.assertEqual(obj.root, parent_obj)
+
     def test__add(self):
         parent_obj = type('Cls', (Element, ),
                           {'tagname': 'tag',

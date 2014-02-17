@@ -83,16 +83,14 @@ class Element(object):
 
     def __init__(self, parent=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
-        self.root = None
         self.parent = parent
+        if self.parent is not None:
+            self.root = self.parent.root
+        else:
+            self.root = self
+
         # Store the XML element here
         self.xml_elements = {}
-
-        if self.parent is not None:
-            if self.parent.root is not None:
-                self.root = self.parent.root
-            else:
-                self.root = self.parent
 
     @classmethod
     def _get_allowed_tagnames(cls):
@@ -258,12 +256,11 @@ class Element(object):
         self.sourceline = xml.sourceline
 
     def set_lxml_elt(self, xml):
-        root = self.root or self
         self._lxml_elt = xml
-        d = getattr(root, '_cached_lxml_elts', None)
+        d = getattr(self.root, '_cached_lxml_elts', None)
         if not d:
             d = {}
-            root._cached_lxml_elts = d
+            self.root._cached_lxml_elts = d
         d[id(xml)] = self
 
     def load_from_xml(self, xml):
@@ -529,7 +526,6 @@ class Element(object):
         open(filename, 'w').write(xml_str)
 
     def xpath(self, xpath):
-        root = self.root or self
         lxml_elt = getattr(self, '_lxml_elt', None)
         if lxml_elt is None:
             raise Exception(
@@ -538,7 +534,7 @@ class Element(object):
         lis = self._lxml_elt.xpath(xpath)
         o = []
         for res in lis:
-            elt = root._cached_lxml_elts.get(id(res))
+            elt = self.root._cached_lxml_elts.get(id(res))
             if elt:
                 o += [elt]
             else:
