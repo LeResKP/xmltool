@@ -11,6 +11,7 @@ from xmltool.elements import (
     ChoiceElement,
     get_obj_from_str_id,
 )
+from xmltool import render
 import xmltool.elements as elements
 from test_dtd_parser import (
     BOOK_XML,
@@ -545,6 +546,40 @@ class TestElement(TestCase):
         html = obj.to_html()
         self.assertEqual(html, expected2)
 
+    def test_to_html_readonly(self):
+        obj = self.cls()
+        obj.root.html_render = render.ReadonlyRender()
+        html = obj.to_html()
+        expected1 = ('<div class="panel panel-default tag" id="tag"><div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag">tag'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
+                     '</div></div>')
+        self.assertEqual(html, expected1)
+
+        obj._parent = 'my fake parent'
+        html = obj.to_html()
+        self.assertEqual(html, '')
+
+        html = obj.to_html(partial=True)
+        expected2 = (
+            '<div class="panel panel-default tag" id="tag">'
+            '<div class="panel-heading">'
+            '<span data-toggle="collapse" href="#collapse-tag">'
+            'tag</span></div>'
+            '<div class="panel-body panel-collapse collapse in" '
+            'id="collapse-tag">'
+            '</div></div>'
+        )
+        self.assertEqual(html, expected2)
+
+        obj._required = True
+        html = obj.to_html()
+        self.assertEqual(html, expected1)
+
+        obj._required = False
+        obj.subtag = self.sub_cls(obj)
+        html = obj.to_html()
+        self.assertEqual(html, expected2)
+
     def test__to_jstree_dict(self):
         parent_obj = self.cls()
         result = self.sub_cls._to_jstree_dict(parent_obj)
@@ -852,16 +887,16 @@ class TestTextElement(TestCase):
 
     def test__get_html_attrs(self):
         obj = self.cls()
-        result = obj._get_html_attrs(None)
-        expected = ' name="tag:_value"'
+        result = obj._get_html_attrs(None, 1)
+        expected = ' name="tag:_value" rows="1"'
         self.assertEqual(result, expected)
 
-        result = obj._get_html_attrs(['prefix'])
-        expected = (' name="prefix:tag:_value"')
+        result = obj._get_html_attrs(['prefix'], 1)
+        expected = (' name="prefix:tag:_value" rows="1"')
         self.assertEqual(result, expected)
 
-        result = obj._get_html_attrs(['prefix'], 10)
-        expected = (' name="prefix:10:tag:_value"')
+        result = obj._get_html_attrs(['prefix'], 1, 10)
+        expected = (' name="prefix:10:tag:_value" rows="1"')
         self.assertEqual(result, expected)
 
     def test_to_html(self):
@@ -922,6 +957,48 @@ class TestTextElement(TestCase):
                     ' title="Add comment"></a>'
                     '<textarea class="form-control" name="tag:_value" rows="1">'
                     '</textarea>'
+                    '</div>')
+        self.assertEqual(html, expected)
+
+    def test_to_html_readonly(self):
+        obj = self.cls()
+        obj.root.html_render = render.ReadonlyRender()
+        html = obj.to_html()
+        self.assertEqual(html, '')
+
+        html = obj.to_html(partial=True)
+        expected = ('<div id="tag">'
+                    '<label>tag</label>'
+                    '<div></div>'
+                    '</div>')
+        self.assertEqual(html, expected)
+
+        obj._required = True
+        html = obj.to_html()
+        expected = ('<div id="tag">'
+                    '<label>tag</label>'
+                    '<div></div>'
+                    '</div>')
+        self.assertEqual(html, expected)
+
+        obj._value = 'line1\nline2'
+        html = obj.to_html()
+        expected = ('<div id="tag">'
+                    '<label>tag</label>'
+                    '<div>line1\nline2</div>'
+                    '</div>')
+        self.assertEqual(html, expected)
+
+        obj._value = None
+        obj._parent = type('MyListElement', (ListElement, ),
+                           {'tagname': 'mytag',
+                            '_attribute_names': [],
+                            '_elts': [],
+                            '_sub_elements': []})()
+        html = obj.to_html()
+        expected = ('<div id="tag">'
+                    '<label>tag</label>'
+                    '<div></div>'
                     '</div>')
         self.assertEqual(html, expected)
 
@@ -1140,6 +1217,40 @@ class TestListElement(TestCase):
                     '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="list_cls:11:tag">New tag</a>'
+                    '</div>')
+        self.assertEqual(html, expected)
+
+    def test_to_html_readonly(self):
+        obj = self.cls()
+        obj.root.html_render = render.ReadonlyRender()
+        html = obj.to_html()
+        expected = '<div class="list-container"></div>'
+        self.assertEqual(html, expected)
+
+        html = obj.to_html(partial=True)
+        expected = ('<div class="panel panel-default tag" id="list_cls:0:tag">'
+                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
+                    '</div></div>')
+        self.assertEqual(html, expected)
+
+        obj._required = True
+        html = obj.to_html()
+        expected = ('<div class="list-container">'
+                    '<div class="panel panel-default tag" '
+                    'id="list_cls:0:tag">'
+                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-list_cls\:0\:tag">tag'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:0:tag">'
+                    '</div></div>'
+                    '</div>')
+        self.assertEqual(html, expected)
+
+        html = obj.to_html(offset=10)
+        expected = ('<div class="list-container">'
+                    '<div class="panel panel-default tag" id="list_cls:10:tag">'
+                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-list_cls\:10\:tag">tag'
+                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-list_cls:10:tag">'
+                    '</div></div>'
                     '</div>')
         self.assertEqual(html, expected)
 

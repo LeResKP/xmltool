@@ -6,6 +6,7 @@ import dtd_parser
 import utils
 from distutils.version import StrictVersion
 import warnings
+from . import render
 
 warnings.simplefilter("always")
 
@@ -31,6 +32,10 @@ class Element(object):
     _xml_filename = None
     _xml_dtd_url = None
     _xml_encoding = None
+
+    # The render used to make HTML rendering.
+    # See render.py for more details
+    html_render = None
 
     # Old style support
     def _get_root(self):
@@ -332,10 +337,22 @@ class Element(object):
             v = cls(parent_obj)
         return v.to_html(prefixes, index)
 
+    def get_html_render(self):
+        """Render uses to make the textarea as HTML and a first decision about
+        adding buttons and comments.
+        """
+        if self.root.html_render is None:
+            # Set a default renderer
+            self.root.html_render = render.Render()
+        return self.root.html_render
+
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True,  partial=False):
 
+        renderer = self.get_html_render()
         if not self._has_value() and not self._required and self.parent and not partial:
+            if not renderer.add_add_button():
+                return ''
             # Add button!
             return self._get_html_add_button(prefixes, index)
 
@@ -347,20 +364,25 @@ class Element(object):
                 sub_html += [tmp]
 
         legend = self.tagname
-        if (not self._required and self.parent and add_btn) or self._is_choice:
-            legend += self._get_html_add_button(prefixes or [], index, 'hidden')
+        if renderer.add_add_button():
+            if ((not self._required and self.parent and add_btn)
+               or self._is_choice):
+                legend += self._get_html_add_button(prefixes or [],
+                                                    index, 'hidden')
 
         ident = ':'.join(tmp_prefixes)
-        # Don't allow to delete root element!
-        if (not self._required and self.parent) or delete_btn or partial or self._is_choice:
-            # NOTE: we assume the parent is a list if index is not None
-            if (index is not None):
-                legend += ('<a class="btn-delete btn-list" '
-                           'data-target="#%s" title="Delete"></a>') % ident
-            else:
-                legend += ('<a class="btn-delete" '
-                           'data-target="#%s" title="Delete"></a>') % ident
-        legend += self._comment_to_html(prefixes, index)
+        if renderer.add_delete_button():
+            # Don't allow to delete root element!
+            if (not self._required and self.parent) or delete_btn or partial or self._is_choice:
+                # NOTE: we assume the parent is a list if index is not None
+                if (index is not None):
+                    legend += ('<a class="btn-delete btn-list" '
+                               'data-target="#%s" title="Delete"></a>') % ident
+                else:
+                    legend += ('<a class="btn-delete" '
+                               'data-target="#%s" title="Delete"></a>') % ident
+        if renderer.add_comment():
+            legend += self._comment_to_html(prefixes, index)
         html = [(
             u'<div class="panel panel-default {css_class}" id="{ident}">'
             u'<div class="panel-heading">'
@@ -592,7 +614,7 @@ class TextElement(Element):
             xml.text = self.text or ''
         return xml
 
-    def _get_html_attrs(self, prefixes, index=None):
+    def _get_html_attrs(self, prefixes, rows, index=None):
         prefixes = list(prefixes or [])
         if index is not None:
             prefixes += [str(index)]
@@ -602,6 +624,7 @@ class TextElement(Element):
         name = ':'.join(prefixes)
         attrs = [
             ('name', name),
+            ('rows', rows),
         ]
         attr = ' '.join(['%s="%s"' % (attrname, value)
                          for attrname, value in attrs])
@@ -609,51 +632,62 @@ class TextElement(Element):
 
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False):
-
+        renderer = self.get_html_render()
         if (not self._exists and not self.text and
            not self._required and not partial):
+            if not renderer.add_add_button():
+                return ''
             return self._get_html_add_button(prefixes, index)
 
         parent_is_list = isinstance(self.parent, ListElement)
         add_button = ''
-        if (not parent_is_list and not self._required) or self._is_choice:
-            add_button = self._get_html_add_button(prefixes, index, 'hidden')
+        if renderer.add_add_button():
+            if (not parent_is_list and not self._required) or self._is_choice:
+                add_button = self._get_html_add_button(prefixes,
+                                                       index, 'hidden')
 
         delete_button = ''
         ident = self._get_str_prefix(prefixes, index)
-        if delete_btn or not self._required or self._is_choice or parent_is_list:
-            if parent_is_list:
-                delete_button = (
-                    '<a class="btn-delete btn-list" '
-                    'data-target="#%s" title="Delete"></a>') % ident
-            else:
-                delete_button = (
-                    '<a class="btn-delete" '
-                    'data-target="#%s" title="Delete"></a>') % ident
+        if renderer.add_delete_button():
+            if (delete_btn or not self._required
+               or self._is_choice or parent_is_list):
+                if parent_is_list:
+                    delete_button = (
+                        '<a class="btn-delete btn-list" '
+                        'data-target="#%s" title="Delete"></a>') % ident
+                else:
+                    delete_button = (
+                        '<a class="btn-delete" '
+                        'data-target="#%s" title="Delete"></a>') % ident
 
         value = self.text or ''
         cnt = value.count('\n')
         if cnt:
             cnt += 1
         rows = max(cnt, 1)
+        attrs = self._get_html_attrs(prefixes, rows, index)
+        render = self.get_html_render()
+        textarea = render.text_element_to_html(self, attrs, value)
+
+        comment = ''
+        if renderer.add_comment():
+            comment = self._comment_to_html(prefixes, index)
         return (
             u'<div id="{ident}"><label>{label}</label>'
             u'{add_button}'
             u'{delete_button}'
             u'{comment}'
             u'{xmlattrs}'
-            u'<textarea class="form-control"{attrs} rows="{rows}">{value}'
-            u'</textarea></div>').format(
-                ident=ident,
-                label=self.tagname,
-                add_button=add_button,
-                delete_button=delete_button,
-                comment=self._comment_to_html(prefixes, index),
-                attrs=self._get_html_attrs(prefixes, index),
-                rows=rows,
-                value=value,
-                xmlattrs=self._attributes_to_html(prefixes, index),
-            )
+            u'{textarea}'
+            u'</div>').format(
+            ident=ident,
+            label=self.tagname,
+            add_button=add_button,
+            delete_button=delete_button,
+            comment=comment,
+            textarea=textarea,
+            xmlattrs=self._attributes_to_html(prefixes, index),
+        )
 
 
 class MultipleMixin(object):
@@ -771,10 +805,11 @@ class ListElement(list, MultipleMixin, Element):
                 e = self.add(self._elts[0].tagname)
                 self.append(e)
 
+        renderer = self.get_html_render()
         i = -1
         lis = []
         for i, e in enumerate(self):
-            if not partial:
+            if not partial and renderer.add_add_button():
                 lis += [self._get_html_add_button(prefixes, (i+offset))]
             force = False
             if i == 0 and (partial or self._required):
@@ -785,7 +820,8 @@ class ListElement(list, MultipleMixin, Element):
                               partial=force,
                               add_btn=False)]
 
-        lis += [self._get_html_add_button(prefixes, i+offset+1)]
+        if renderer.add_add_button():
+            lis += [self._get_html_add_button(prefixes, i+offset+1)]
 
         if partial:
             return ''.join(lis)
