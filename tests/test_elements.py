@@ -888,15 +888,15 @@ class TestTextElement(TestCase):
     def test__get_html_attrs(self):
         obj = self.cls()
         result = obj._get_html_attrs(None, 1)
-        expected = ' name="tag:_value" rows="1"'
+        expected = [('name', "tag:_value"), ('rows', 1)]
         self.assertEqual(result, expected)
 
         result = obj._get_html_attrs(['prefix'], 1)
-        expected = (' name="prefix:tag:_value" rows="1"')
+        expected = [('name', "prefix:tag:_value"), ('rows', 1)]
         self.assertEqual(result, expected)
 
         result = obj._get_html_attrs(['prefix'], 1, 10)
-        expected = (' name="prefix:10:tag:_value" rows="1"')
+        expected = [('name', "prefix:10:tag:_value"), ('rows', 1)]
         self.assertEqual(result, expected)
 
     def test_to_html(self):
@@ -969,7 +969,8 @@ class TestTextElement(TestCase):
         html = obj.to_html(partial=True)
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<div></div>'
+                    '<textarea class="form-control" name="tag:_value" '
+                    'rows="1" readonly="readonly"></textarea>'
                     '</div>')
         self.assertEqual(html, expected)
 
@@ -977,7 +978,9 @@ class TestTextElement(TestCase):
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<div></div>'
+                    '<textarea class="form-control" name="tag:_value" '
+                    'rows="1" readonly="readonly">'
+                    '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
 
@@ -985,7 +988,10 @@ class TestTextElement(TestCase):
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<div>line1\nline2</div>'
+                    '<textarea class="form-control" name="tag:_value" '
+                    'rows="2" readonly="readonly">'
+                    'line1\nline2'
+                    '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
 
@@ -998,7 +1004,9 @@ class TestTextElement(TestCase):
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<div></div>'
+                    '<textarea class="form-control" name="tag:_value" '
+                    'rows="1" readonly="readonly">'
+                    '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
 

@@ -1,8 +1,17 @@
 #!/usr/bin/env python
 
 from unittest import TestCase
-from xmltool.render import Render, ReadonlyRender
+from xmltool.render import Render, ReadonlyRender, attrs_to_str
 from xmltool.elements import TextElement
+
+
+class TestFunctions(TestCase):
+
+    def test_attrs_to_str(self):
+        res = attrs_to_str([])
+        self.assertEqual(res, '')
+        res = attrs_to_str([('name', 'myname')])
+        self.assertEqual(res, ' name="myname"')
 
 
 class TestRender(TestCase):
@@ -24,7 +33,7 @@ class TestRender(TestCase):
         obj = type('SubSubCls', (TextElement, ),
                    {'tagname': 'subsub',
                     '_sub_elements': []})()
-        attrs = ' class="test"'
+        attrs = [('class', 'test')]
         value = 'Hello world'
         res = r.text_element_to_html(obj, attrs, value)
         expected = ('<textarea class="form-control" class="test">'
@@ -51,8 +60,9 @@ class TestReadonlyRender(TestCase):
         obj = type('SubSubCls', (TextElement, ),
                    {'tagname': 'subsub',
                     '_sub_elements': []})()
-        attrs = ' class="test"'
+        attrs = [('class', 'test')]
         value = 'Hello world'
         res = r.text_element_to_html(obj, attrs, value)
-        expected = '<div>Hello world</div>'
+        expected = ('<textarea class="form-control" class="test" '
+                    'readonly="readonly">Hello world</textarea>')
         self.assertEqual(res, expected)

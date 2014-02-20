@@ -615,6 +615,10 @@ class TextElement(Element):
         return xml
 
     def _get_html_attrs(self, prefixes, rows, index=None):
+        """Get the HTML attributes to put on the textarea.
+
+        :return: List of tuple like [('name', 'myname'), ...]
+        """
         prefixes = list(prefixes or [])
         if index is not None:
             prefixes += [str(index)]
@@ -626,9 +630,7 @@ class TextElement(Element):
             ('name', name),
             ('rows', rows),
         ]
-        attr = ' '.join(['%s="%s"' % (attrname, value)
-                         for attrname, value in attrs])
-        return ' ' + attr
+        return attrs
 
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False):

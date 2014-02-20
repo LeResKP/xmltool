@@ -1,3 +1,20 @@
+
+def attrs_to_str(attrs):
+    """Create string from the given attrs
+
+    :param attrs: The attributes to put on HTML element.
+    :type attrs: List of tuple
+    :return: The givens attrs as string like: 'name="myname"'
+    :rtype: str
+    """
+    attr = ' '.join(['%s="%s"' % (attrname, value)
+                     for attrname, value in attrs])
+    if not attr:
+        return attr
+
+    return ' ' + attr
+
+
 class Render(object):
     """Default render.
     """
@@ -14,7 +31,7 @@ class Render(object):
     def text_element_to_html(self, obj, attrs, value):
         return (
             u'<textarea class="form-control"{attrs}>{value}'
-            u'</textarea>').format(attrs=attrs, value=value)
+            u'</textarea>').format(attrs=attrs_to_str(attrs), value=value)
 
 
 class ReadonlyRender(Render):
@@ -31,4 +48,5 @@ class ReadonlyRender(Render):
         return False
 
     def text_element_to_html(self, obj, attrs, value):
-        return u'<div>%s</div>' % value
+        return super(ReadonlyRender, self).text_element_to_html(
+            obj, attrs + [('readonly', 'readonly')], value)
