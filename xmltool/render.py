@@ -7,12 +7,21 @@ def attrs_to_str(attrs):
     :return: The givens attrs as string like: 'name="myname"'
     :rtype: str
     """
-    attr = ' '.join(['%s="%s"' % (attrname, value)
-                     for attrname, value in attrs])
-    if not attr:
-        return attr
+    dic = {}
+    for k, v in attrs:
+        dic.setdefault(k, []).append(str(v))
 
-    return ' ' + attr
+    lis = []
+    for k, v in attrs:
+        l = dic.pop(k, None)
+        if not l:
+            continue
+        lis += ['%s="%s"' % (k, ' '.join(l))]
+
+    if not lis:
+        return ''
+
+    return ' ' + ' '.join(lis)
 
 
 class Render(object):
@@ -30,8 +39,10 @@ class Render(object):
 
     def text_element_to_html(self, obj, attrs, value):
         return (
-            u'<textarea class="form-control"{attrs}>{value}'
-            u'</textarea>').format(attrs=attrs_to_str(attrs), value=value)
+            u'<textarea{attrs}>{value}'
+            u'</textarea>').format(
+            attrs=attrs_to_str([('class', 'form-control')] + attrs),
+            value=value)
 
 
 class ReadonlyRender(Render):

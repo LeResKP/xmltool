@@ -13,6 +13,9 @@ class TestFunctions(TestCase):
         res = attrs_to_str([('name', 'myname')])
         self.assertEqual(res, ' name="myname"')
 
+        res = attrs_to_str([('name', 'myname'), ('name', 'myname2')])
+        self.assertEqual(res, ' name="myname myname2"')
+
 
 class TestRender(TestCase):
 
@@ -36,7 +39,7 @@ class TestRender(TestCase):
         attrs = [('class', 'test')]
         value = 'Hello world'
         res = r.text_element_to_html(obj, attrs, value)
-        expected = ('<textarea class="form-control" class="test">'
+        expected = ('<textarea class="form-control test">'
                     'Hello world</textarea>')
         self.assertEqual(res, expected)
 
@@ -63,6 +66,6 @@ class TestReadonlyRender(TestCase):
         attrs = [('class', 'test')]
         value = 'Hello world'
         res = r.text_element_to_html(obj, attrs, value)
-        expected = ('<textarea class="form-control" class="test" '
+        expected = ('<textarea class="form-control test" '
                     'readonly="readonly">Hello world</textarea>')
         self.assertEqual(res, expected)
