@@ -3,7 +3,7 @@
 from unittest import TestCase
 from lxml import etree
 import os.path
-from xmltool import factory
+from xmltool import factory, dtd_parser
 
 
 class TestFactory(TestCase):
@@ -70,18 +70,28 @@ class TestFactory(TestCase):
             '<input type="hidden" name="_xml_encoding" id="_xml_encoding" '
             'value="UTF-8" />' in html)
 
-        self.assertTrue('<fieldset class="Exercise" id="Exercise">' in html)
+        self.assertTrue('<div class="panel panel-default '
+                        'Exercise" id="Exercise">' in html)
 
     def test_generate_form_from_obj(self):
         obj = factory.load('tests/exercise.xml')
         html = factory.generate_form_from_obj(obj)
         self.assertTrue('<form method="POST" id="xmltool-form">' in html)
+        self.assertTrue('id="_xml_filename" value=""' in html)
 
         html = factory.generate_form_from_obj(
             obj,
             form_attrs={'data-action': 'action'})
         self.assertTrue('<form method="POST" data-action="action" '
                         'id="xmltool-form">' in html)
+
+        # Empty object
+        dtd_url = 'http://xmltool.lereskp.fr/static/exercise.dtd'
+        dic = dtd_parser.parse(dtd_url=dtd_url)
+        obj = dic['Exercise']()
+        html = factory.generate_form_from_obj(obj)
+        self.assertTrue('<form method="POST" id="xmltool-form">' in html)
+        self.assertTrue('id="_xml_filename" value=""' in html)
 
     def test_update(self):
         filename = 'tests/test.xml'
@@ -148,7 +158,7 @@ class TestFactory(TestCase):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    '<a class="btn-add" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -163,7 +173,7 @@ class TestFactory(TestCase):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    '<a class="btn-add" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -180,7 +190,7 @@ class TestFactory(TestCase):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn btn-add-ajax" data-id="choice">'
+                    '<a class="btn-add" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)

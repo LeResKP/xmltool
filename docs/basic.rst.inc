@@ -22,7 +22,7 @@ You will see in this example how it's easy to create an XML file according to th
     >>> dic = dtd_parser.parse(dtd_url=dtd_url)
     >>> movie = dic['movie']()
     >>> title = movie.add('title', 'Movie title')
-    >>> print title._value
+    >>> print title.text
     Movie title
     >>> realisator = movie.add('realisator', 'realisator name')
     >>> characters = movie.add('characters')
@@ -79,9 +79,7 @@ Now we will see how to handle case with some conditional elements. It's '(qcm|mq
 Accessing to the property
 -------------------------
 
-There is two ways to access to a property:
-    * object style: obj.my_prop
-    * dict style: obj['my_prop']. The dict style is very useful to access to the properties containing a dash.
+To access to the elements you just have use the python dict style: obj['my-prop'].
 
 See the example below:
 
@@ -96,11 +94,9 @@ See the example below:
     >>> question = exercise.add('question', 'the question')
     >>> comments = exercise.add('comments')
     >>> c1 = comments.add('good-comment', 'comment 1')
-    >>> print exercise.question._value
+    >>> print exercise['question'].text
     the question
-    >>> exercise.comments == exercise['comments']
-    True
-    >>> exercise['comments'][0]['good-comment']._value
+    >>> exercise['comments'][0]['good-comment'].text
     'comment 1'
 
 
@@ -124,11 +120,11 @@ For this example we will load the following XML file:
     {'idmovie': 'M1'}
     >>> print obj #doctest: +ELLIPSIS
     <xmltool.dtd_parser.movie object at 0x...>
-    >>> print obj.title._value
+    >>> print obj['title'].text
     Full Metal Jacket
-    >>> print obj.characters.character[0]._value
+    >>> print obj['characters']['character'][0].text
     Matthew Modine
-    >>> print obj.characters.character[0]._attributes
+    >>> print obj['characters']['character'][0]._attributes
     {'idcharacter': 'C1'}
 
 
@@ -139,7 +135,7 @@ Writing a XML file
 
     >>> xml_filename = 'examples/movie.xml'
     >>> obj = xmltool.load(xml_filename)
-    >>> obj.title._value = 'My new title'
+    >>> obj['title'].text = 'My new title'
     >>> obj.write('examples/movie-updated.xml')
 
 See the content of the new XML file:

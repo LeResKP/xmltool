@@ -1,0 +1,79 @@
+@import "bootstrap.less";
+
+#xmltool-form {
+  .btn-add {
+    .btn;
+    .btn-default;
+    .btn-xs;
+
+    margin-top: 3px;
+  }
+
+  .btn-comment {
+    float: right;
+    margin-top: 7px;
+    .glyphicon;
+    .glyphicon-comment;
+    color: #C0C0C0;
+
+    &:hover {
+      color: #909090;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    &.has-comment {
+      color: #FFCC33;
+
+      &:hover {
+        color: #FF9900;
+      }
+    }
+  }
+
+  .btn-delete {
+    float: right;
+    margin-top: 7px;
+    margin-left: 10px;
+    .glyphicon;
+    .glyphicon-remove;
+    color: red;
+
+    &:hover{
+      color: #A60000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  }
+
+  .panel {
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+
+  .panel-body {
+    padding: 10px;
+  }
+
+  .panel-heading {
+    padding-right: 10px;
+  }
+
+  .panel-body + .panel {
+    margin-top: 0;
+  }
+
+  label {
+    margin-top: 5px;
+    float: left;
+  }
+
+  ._comment, ._attrs {
+    display: none;
+  }
+}
+
+
+#tree {
+  font-size: 12px;
+}

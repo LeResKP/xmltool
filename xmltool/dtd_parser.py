@@ -123,7 +123,7 @@ def _parse_elts(elts):
 def _create_new_class(class_dict, name, required, islist, conditionals):
     base_cls = class_dict.get(name)
     if base_cls is None and not conditionals:
-        raise ValueError, ('You should provide a base_cls or conditionals for %s' % name)
+        raise ValueError('You should provide a base_cls or conditionals for %s' % name)
     cls = base_cls
     if conditionals:
         assert not base_cls
@@ -131,13 +131,13 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
         if not islist:
             parent_cls = type('%sChoice' % name, (ChoiceElement,), {
                 '_elts': [],
-                '_tagname': 'choice__%s' % name,
+                'tagname': 'choice__%s' % name,
                 '_required': required
             })
         else:
             parent_cls = type('%sList' % name, (ListElement, ), {
                 '_elts': [],
-                '_tagname': 'list__%s' % name,
+                'tagname': 'list__%s' % name,
                 '_required': required,
             })
 
@@ -146,7 +146,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
             assert not subislist
             sub_cls = _create_new_class(class_dict, subname, subrequired,
                                         subislist, subconditionals)
-            sub_cls._parent = parent_cls
+            sub_cls.parent = parent_cls
             sub_cls._is_choice = not islist
             parent_cls._elts += [sub_cls]
         return parent_cls
@@ -161,9 +161,9 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
     listcls = type('%sList' % cls.__name__, (ListElement, ), {
         '_elts': [newcls],
         '_required': required,
-        '_tagname': 'list__%s' % name
+        'tagname': 'list__%s' % name
     })
-    newcls._parent = listcls
+    newcls.parent = listcls
     return listcls
 
 
@@ -194,7 +194,7 @@ def _create_class_dict(dtd_dict):
         else:
             c = Element
         cls = type(tagname, (c,), {
-            '_tagname': tagname,
+            'tagname': tagname,
             '_attribute_names': [tple[0] for tple in dic['attrs']],
             '_sub_elements': [],
             '_is_empty': is_empty,
@@ -214,7 +214,7 @@ def _create_classes(dtd_dict):
                 continue
             sub_cls = _create_new_class(
                 class_dict, name, required, islist, conditionals)
-            sub_cls._parent = cls
+            sub_cls.parent = cls
             cls._sub_elements += [sub_cls]
 
     return class_dict

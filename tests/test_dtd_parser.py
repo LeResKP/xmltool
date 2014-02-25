@@ -432,7 +432,7 @@ class DtdParser(TestCase):
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
         self.assertTrue(issubclass(tag, TextElement))
-        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, ['idtag'])
         self.assertEqual(tag._sub_elements, [])
@@ -444,7 +444,7 @@ class DtdParser(TestCase):
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
         self.assertTrue(issubclass(tag, TextElement))
-        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
@@ -459,7 +459,7 @@ class DtdParser(TestCase):
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
         self.assertTrue(issubclass(tag, Element))
-        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
@@ -471,7 +471,7 @@ class DtdParser(TestCase):
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
         self.assertTrue(issubclass(tag, Element))
-        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
         self.assertEqual(tag._sub_elements, [])
@@ -483,7 +483,7 @@ class DtdParser(TestCase):
         self.assertEqual(len(dic), 1)
         tag = dic['tag']
         self.assertTrue(issubclass(tag, TextElement))
-        self.assertEqual(tag._tagname, 'tag')
+        self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, True)
         self.assertEqual(tag._sub_elements, [])
 
@@ -510,7 +510,7 @@ class DtdParser(TestCase):
         self.assertEqual(cls.__name__, 'tagList')
         self.assertEqual(cls._required, True)
         self.assertEqual(len(cls._elts), 1)
-        self.assertEqual(cls._elts[0]._parent, cls)
+        self.assertEqual(cls._elts[0].parent, cls)
         self.assertEqual(cls._elts[0]._required, True)
 
         dtd_dict = {
@@ -542,9 +542,9 @@ class DtdParser(TestCase):
         self.assertEqual(len(cls._elts), 2)
         elt1 = cls._elts[0]
         elt2 = cls._elts[1]
-        self.assertEqual(elt1._parent, cls)
+        self.assertEqual(elt1.parent, cls)
         self.assertEqual(elt1._required, True)
-        self.assertEqual(elt2._parent, cls)
+        self.assertEqual(elt2.parent, cls)
         self.assertEqual(elt2._required, True)
 
         cls = dtd_parser._create_new_class(
@@ -556,9 +556,9 @@ class DtdParser(TestCase):
         self.assertEqual(len(cls._elts), 2)
         elt1 = cls._elts[0]
         elt2 = cls._elts[1]
-        self.assertEqual(elt1._parent, cls)
+        self.assertEqual(elt1.parent, cls)
         self.assertEqual(elt1._required, True)
-        self.assertEqual(elt2._parent, cls)
+        self.assertEqual(elt2.parent, cls)
         self.assertEqual(elt2._required, True)
 
     def test__create_classes(self):
@@ -588,7 +588,7 @@ class DtdParser(TestCase):
         self.assertEqual(subtag.__name__, 'subtag')
         self.assertEqual(subtag._required, True)
         self.assertEqual(subtag._sub_elements, [])
-        self.assertEqual(subtag._parent, tag)
+        self.assertEqual(subtag.parent, tag)
 
     def test_parse(self):
         try:
