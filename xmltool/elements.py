@@ -629,6 +629,7 @@ class TextElement(Element):
         attrs = [
             ('name', name),
             ('rows', rows),
+            ('class', self.tagname),
         ]
         return attrs
 

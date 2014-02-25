@@ -888,15 +888,19 @@ class TestTextElement(TestCase):
     def test__get_html_attrs(self):
         obj = self.cls()
         result = obj._get_html_attrs(None, 1)
-        expected = [('name', "tag:_value"), ('rows', 1)]
+        expected = [('name', "tag:_value"), ('rows', 1), ('class', 'tag')]
         self.assertEqual(result, expected)
 
         result = obj._get_html_attrs(['prefix'], 1)
-        expected = [('name', "prefix:tag:_value"), ('rows', 1)]
+        expected = [('name', "prefix:tag:_value"),
+                    ('rows', 1),
+                    ('class', 'tag')]
         self.assertEqual(result, expected)
 
         result = obj._get_html_attrs(['prefix'], 1, 10)
-        expected = [('name', "prefix:10:tag:_value"), ('rows', 1)]
+        expected = [('name', "prefix:10:tag:_value"),
+                    ('rows', 1),
+                    ('class', 'tag')]
         self.assertEqual(result, expected)
 
     def test_to_html(self):
@@ -914,7 +918,7 @@ class TestTextElement(TestCase):
                     'title="Delete"></a>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                    '<textarea class="form-control" name="tag:_value" '
+                    '<textarea class="form-control tag" name="tag:_value" '
                     'rows="1"></textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -925,7 +929,7 @@ class TestTextElement(TestCase):
                     '<label>tag</label>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                    '<textarea class="form-control" name="tag:_value" rows="1">'
+                    '<textarea class="form-control tag" name="tag:_value" rows="1">'
                     '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -936,7 +940,7 @@ class TestTextElement(TestCase):
                     '<label>tag</label>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                    '<textarea class="form-control" name="tag:_value" rows="2">'
+                    '<textarea class="form-control tag" name="tag:_value" rows="2">'
                     'line1\nline2'
                     '</textarea>'
                     '</div>')
@@ -955,7 +959,7 @@ class TestTextElement(TestCase):
                     'data-target="#tag" title="Delete"></a>'
                     '<a data-comment-name="tag:_comment" class="btn-comment"'
                     ' title="Add comment"></a>'
-                    '<textarea class="form-control" name="tag:_value" rows="1">'
+                    '<textarea class="form-control tag" name="tag:_value" rows="1">'
                     '</textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -969,7 +973,7 @@ class TestTextElement(TestCase):
         html = obj.to_html(partial=True)
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<textarea class="form-control" name="tag:_value" '
+                    '<textarea class="form-control tag" name="tag:_value" '
                     'rows="1" readonly="readonly"></textarea>'
                     '</div>')
         self.assertEqual(html, expected)
@@ -978,7 +982,7 @@ class TestTextElement(TestCase):
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<textarea class="form-control" name="tag:_value" '
+                    '<textarea class="form-control tag" name="tag:_value" '
                     'rows="1" readonly="readonly">'
                     '</textarea>'
                     '</div>')
@@ -988,7 +992,7 @@ class TestTextElement(TestCase):
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<textarea class="form-control" name="tag:_value" '
+                    '<textarea class="form-control tag" name="tag:_value" '
                     'rows="2" readonly="readonly">'
                     'line1\nline2'
                     '</textarea>'
@@ -1004,7 +1008,7 @@ class TestTextElement(TestCase):
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
-                    '<textarea class="form-control" name="tag:_value" '
+                    '<textarea class="form-control tag" name="tag:_value" '
                     'rows="1" readonly="readonly">'
                     '</textarea>'
                     '</div>')
@@ -1489,7 +1493,7 @@ class TestFunctions(TestCase):
             '<label>text</label>'
             '<a data-comment-name="texts:text:_comment" '
             'class="btn-comment" title="Add comment"></a>'
-            '<textarea class="form-control" name="texts:text:_value" '
+            '<textarea class="form-control text" name="texts:text:_value" '
             'rows="1"></textarea>'
             '</div>')
         self.assertEqual(html, expected)
@@ -1507,7 +1511,7 @@ class TestFunctions(TestCase):
                     'data-target="#texts:list__text:0:text" title="Delete"></a>'
                     '<a data-comment-name="texts:list__text:0:text:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
-                    '<textarea class="form-control" name="texts:list__text:0:text:_value" '
+                    '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
                     'rows="1">'
                     '</textarea>'
                     '</div>'
@@ -1527,7 +1531,7 @@ class TestFunctions(TestCase):
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:0:list:text:_comment" '
             'class="btn-comment" title="Add comment"></a>'
-            '<textarea class="form-control" name="texts:list__list:0:list:text:_value" '
+            '<textarea class="form-control text" name="texts:list__list:0:list:text:_value" '
             'rows="1"></textarea>'
             '</div>')
         self.assertEqual(html, expected)
@@ -1598,7 +1602,7 @@ class TestFunctions(TestCase):
             '<label>tag2</label>'
             '<a data-comment-name="texts:tag2:_comment" class="btn-comment" '
             'title="Add comment"></a>'
-            '<textarea class="form-control" name="texts:tag2:_value" '
+            '<textarea class="form-control tag2" name="texts:tag2:_value" '
             'rows="1"></textarea>'
             '</div>')
         self.assertEqual(result, expected)
@@ -1620,7 +1624,7 @@ class TestFunctions(TestCase):
             '<label>text</label>'
             '<a data-comment-name="texts:list__list:1:list:text:_comment" '
             'class="btn-comment" title="Add comment"></a>'
-            '<textarea class="form-control" name="texts:list__list:1:list:text:_value" '
+            '<textarea class="form-control text" name="texts:list__list:1:list:text:_value" '
             'rows="1"></textarea>'
             '</div>'
             '</div></div>'
@@ -1647,7 +1651,7 @@ class TestFunctions(TestCase):
                      '<label>tag2</label>'
                      '<a data-comment-name="texts:tag2:_comment" '
                      'class="btn-comment" title="Add comment"></a>'
-                     '<textarea class="form-control" name="texts:tag2:_value" '
+                     '<textarea class="form-control tag2" name="texts:tag2:_value" '
                      'rows="1"></textarea></div>'),
             'jstree_data': {
                 'data': 'tag2',
