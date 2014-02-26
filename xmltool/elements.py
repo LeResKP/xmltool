@@ -156,6 +156,21 @@ class Element(object):
             tmpobj.text = value
         return tmpobj
 
+    def is_addable(self, tagname):
+        """Check if the given tagname can be added to the object
+        """
+        cls = self._get_sub_element(tagname)
+        if cls is None:
+            return False
+        if self.is_defined(tagname):
+            return False
+        return True
+
+    def is_defined(self, tagname):
+        if tagname in self:
+            return True
+        return False
+
     def add(self, tagname, value=None):
         cls = self._get_sub_element(tagname)
 
@@ -717,6 +732,31 @@ class ListElement(list, MultipleMixin, Element):
             lis += [e.tagname]
         return lis
 
+    def is_defined(self, tagname):
+        """Check we have at least one element with the given tagname in this
+        object.
+        """
+        for c in self:
+            if c.tagname == tagname:
+                return True
+        return False
+
+    def is_addable(self, tagname):
+        """Basically the same function than Element.is_addable, except we don't
+        have to check if an element is defined, since it's a list, we can add
+        many elements as we want!
+        """
+        cls = self._get_sub_element(tagname)
+        if cls is None:
+            return False
+        return True
+
+    def add(self, *args, **kw):
+        e = super(ListElement, self).add(*args, **kw)
+        assert(e)
+        self.append(e)
+        return e
+
     @classmethod
     def _add(cls, tagname, parent_obj, value=None):
         elt = cls._get_sub_element(tagname)
@@ -742,7 +782,6 @@ class ListElement(list, MultipleMixin, Element):
         if not len(self) and self._required:
             if len(self._elts) == 1:
                 e = self.add(self._elts[0].tagname)
-                self.append(e)
 
         for e in self:
             if e._comment:
@@ -806,7 +845,6 @@ class ListElement(list, MultipleMixin, Element):
         if not len(self) and (self._required or partial):
             if len(self._elts) == 1:
                 e = self.add(self._elts[0].tagname)
-                self.append(e)
 
         renderer = self.get_html_render()
         i = -1
@@ -834,7 +872,6 @@ class ListElement(list, MultipleMixin, Element):
         if not len(self) and (self._required):
             if len(self._elts) == 1:
                 e = self.add(self._elts[0].tagname)
-                self.append(e)
 
         lis = []
         for i, e in enumerate(self):
@@ -877,6 +914,18 @@ class ChoiceElement(MultipleMixin, Element):
             tmpobj.text = value
         parent_obj.xml_elements[tagname] = tmpobj
         return tmpobj
+
+    def add(self, *args, **kw):
+        raise Exception('Can\'t add element to ChoiceElement')
+
+    def is_addable(self, tagname):
+        # Nothing is addable to ChoiceElement
+        return False
+
+    def is_defined(self, tagname):
+        # Since ChoiceElement doesn't contain any element it makes no sense to
+        # call it
+        raise Exception('No sense to call ChoiceElement.is_defined')
 
     @classmethod
     def _get_html_add_button(cls, prefixes, index=None, css_class=None):

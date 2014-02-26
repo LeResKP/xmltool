@@ -136,6 +136,25 @@ class TestElement(TestCase):
         except Exception, e:
             self.assertEqual(str(e), 'tagname already defined')
 
+    def test_is_addable(self):
+        obj = self.cls()
+        res = obj.is_addable('test')
+        self.assertEqual(res, False)
+
+        res = obj.is_addable('subtag')
+        self.assertEqual(res, True)
+
+        obj['subtag'] = 'somthing'
+        res = obj.is_addable('subtag')
+        self.assertEqual(res, False)
+
+    def test_is_defined(self):
+        parent_obj = FakeClass()
+        obj = self.cls(parent_obj)
+        self.assertEqual(obj.is_defined('subtag'), False)
+        obj.add('subtag')
+        self.assertEqual(obj.is_defined('subtag'), True)
+
     def test_add(self):
         parent_obj = FakeClass()
         obj = self.cls(parent_obj)
@@ -808,9 +827,12 @@ class TestElement(TestCase):
 class TestTextElement(TestCase):
 
     def setUp(self):
+        self.sub_cls = type('SubCls', (Element,),
+                            {'tagname': 'subtag',
+                             '_sub_elements': []})
         self.cls = type('Cls', (TextElement, ),
                         {'tagname': 'tag',
-                         '_sub_elements': [],
+                         '_sub_elements': [self.sub_cls],
                          '_attribute_names': ['attr']})
 
     def test___repr__(self):
@@ -1055,6 +1077,21 @@ class TestListElement(TestCase):
         self.assertEqual(self.cls._get_value_from_parent(parent_obj), None)
         parent_obj.list_cls = obj
         self.assertEqual(self.cls._get_value_from_parent(parent_obj), obj)
+
+    def test_is_addable(self):
+        obj = self.cls()
+        self.assertEqual(obj.is_addable('tag'), True)
+        self.assertEqual(obj.is_addable('test'), False)
+        # Addable even we already have element defined
+        obj.add('tag')
+        self.assertEqual(obj.is_addable('tag'), True)
+
+    def test_is_defined(self):
+        parent_obj = FakeClass()
+        obj = self.cls(parent_obj)
+        self.assertEqual(obj.is_defined('tag'), False)
+        obj.add('tag')
+        self.assertEqual(obj.is_defined('tag'), True)
 
     def test__add(self):
         sub_cls = type('LisCls', (ListElement, ), {'tagname': 'tag',
@@ -1388,6 +1425,33 @@ class TestChoiceElement(TestCase):
         self.assertFalse(result)
         parent_obj.tag1 = obj
         self.assertEqual(self.cls._get_sub_value(parent_obj), obj)
+
+    def test_is_addable(self):
+        obj = self.cls()
+        self.assertEqual(obj.is_addable('test'), False)
+
+    def test_is_defined(self):
+        parent_obj = type('ParentCls', (Element, ),
+                          {'tagname': 'parent',
+                           '_sub_elements': [self.cls]})()
+        obj = self.cls(parent_obj)
+        try:
+            self.assertEqual(obj.is_defined('tag1'), False)
+        except Exception, e:
+            self.assertEqual(
+                str(e),
+                'No sense to call ChoiceElement.is_defined')
+
+    def test_add(self):
+        parent_obj = type('ParentCls', (Element, ),
+                          {'tagname': 'parent',
+                           '_sub_elements': [self.cls]})()
+        obj = self.cls(parent_obj)
+
+        try:
+            obj.add('test')
+        except Exception, e:
+            self.assertEqual(str(e), 'Can\'t add element to ChoiceElement')
 
     def test__add(self):
         parent_obj = type('ParentCls', (Element, ),
