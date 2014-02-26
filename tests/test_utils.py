@@ -18,7 +18,8 @@ class TestUtils(TestCase):
         self.assertTrue(utils.is_http_url(url))
 
     def test_get_dtd_content(self):
-        url = 'http://xmltool.lereskp.fr/static/exercise.dtd'
+        url = ('https://raw.github.com/LeResKP/'
+               'xmltool/master/tests/exercise.dtd')
         http_content = utils.get_dtd_content(url)
         url = 'tests/exercise.dtd'
         fs_content = utils.get_dtd_content(url)

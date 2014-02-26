@@ -615,7 +615,7 @@ class DtdParser(TestCase):
         old_get_dtd_content = utils.get_dtd_content
         try:
             # We pass the content instead of the url
-            utils.get_dtd_content = lambda content: content
+            utils.get_dtd_content = lambda content, path: content
             dic = dtd_parser.parse(dtd_url=dtd_str)
             self.assertEqual(len(dic), 2)
             self.assertTrue(issubclass(dic['Exercise'], Element))

@@ -220,7 +220,7 @@ def _create_classes(dtd_dict):
     return class_dict
 
 
-def parse(dtd_str=None, dtd_url=None):
+def parse(dtd_str=None, dtd_url=None, path=None):
     # TODO: try to put a cache on this function
     if not dtd_str and not dtd_url:
         raise ValueError, 'You didn\'t provide dtd_str nor dtd_url'
@@ -229,7 +229,7 @@ def parse(dtd_str=None, dtd_url=None):
         raise ValueError, 'You should provide either dtd_str or dtd_url'
 
     if dtd_url:
-        dtd_str = utils.get_dtd_content(dtd_url)
+        dtd_str = utils.get_dtd_content(dtd_url, path)
 
     dtd_dict = dtd_to_dict_v2(dtd_str)
     return _create_classes(dtd_dict)

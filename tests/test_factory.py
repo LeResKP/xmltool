@@ -26,10 +26,12 @@ class TestFactory(TestCase):
 
     def test_load_string(self):
         xml_str = open('tests/exercise.xml', 'r').read()
+        xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
         obj = factory.load_string(xml_str)
         self.assertEqual(obj._tagname, 'Exercise')
         try:
             xml_str = open('tests/exercise-notvalid.xml', 'r').read()
+            xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
             obj = factory.load_string(xml_str)
             assert 0
         except etree.DocumentInvalid, e:
@@ -40,6 +42,7 @@ class TestFactory(TestCase):
             )
 
         xml_str = open('tests/exercise-notvalid.xml', 'r').read()
+        xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
         obj = factory.load_string(xml_str,
                                  validate=False)
         self.assertEqual(obj._tagname, 'Exercise')
@@ -47,6 +50,7 @@ class TestFactory(TestCase):
     def test_load_string_unicode(self):
         xml_str = open('tests/exercise-notvalid.xml', 'r').read()
         xml_str = unicode(xml_str)
+        xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
         obj = factory.load_string(xml_str,
                                   validate=False)
         self.assertEqual(obj._tagname, 'Exercise')
@@ -64,7 +68,7 @@ class TestFactory(TestCase):
             'value="tests/exercise.xml" />' in html)
         self.assertTrue(
             '<input type="hidden" name="_xml_dtd_url" id="_xml_dtd_url" '
-            'value="http://xmltool.lereskp.fr/static/exercise.dtd" />' in
+            'value="exercise.dtd" />' in
             html)
         self.assertTrue(
             '<input type="hidden" name="_xml_encoding" id="_xml_encoding" '
@@ -86,7 +90,7 @@ class TestFactory(TestCase):
                         'id="xmltool-form">' in html)
 
         # Empty object
-        dtd_url = 'http://xmltool.lereskp.fr/static/exercise.dtd'
+        dtd_url = 'tests/exercise.dtd'
         dic = dtd_parser.parse(dtd_url=dtd_url)
         obj = dic['Exercise']()
         html = factory.generate_form_from_obj(obj)
@@ -99,14 +103,14 @@ class TestFactory(TestCase):
         try:
             data = {
                 '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'http://xmltool.lereskp.fr/static/exercise.dtd',
+                '_xml_dtd_url': 'exercise.dtd',
                 'Exercise': {},
             }
             obj = factory.update(filename, data)
             self.assertTrue(obj)
             result = open(filename, 'r').read()
             expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise SYSTEM "http://xmltool.lereskp.fr/static/exercise.dtd">
+<!DOCTYPE Exercise SYSTEM "exercise.dtd">
 <Exercise>
   <number></number>
 </Exercise>
@@ -114,7 +118,7 @@ class TestFactory(TestCase):
             self.assertEqual(result, expected)
             data = {
                 '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'http://xmltool.lereskp.fr/static/exercise.dtd',
+                '_xml_dtd_url': 'exercise.dtd',
                 'Exercise': {},
                 'fake': {},
             }
@@ -126,7 +130,7 @@ class TestFactory(TestCase):
 
             data = {
                 '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'http://xmltool.lereskp.fr/static/exercise.dtd',
+                '_xml_dtd_url': 'exercise.dtd',
                 'Exercise': {},
             }
             transform_func = lambda  txt: txt.replace('number',
@@ -135,7 +139,7 @@ class TestFactory(TestCase):
             self.assertTrue(obj)
             result = open(filename, 'r').read()
             expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise SYSTEM "http://xmltool.lereskp.fr/static/exercise.dtd">
+<!DOCTYPE Exercise SYSTEM "exercise.dtd">
 <Exercise>
   <number-updated></number-updated>
 </Exercise>
@@ -146,7 +150,7 @@ class TestFactory(TestCase):
                 os.remove(filename)
 
     def test_new(self):
-        dtd_url = 'http://xmltool.lereskp.fr/static/exercise.dtd'
+        dtd_url = 'tests/exercise.dtd'
         root_tag = 'choice'
         result = factory.new(dtd_url, root_tag)
         expected = ('<form method="POST" id="xmltool-form">'
@@ -154,7 +158,7 @@ class TestFactory(TestCase):
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
                     'id="_xml_dtd_url" '
-                    'value="http://xmltool.lereskp.fr/static/exercise.dtd" '
+                    'value="tests/exercise.dtd" '
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
@@ -169,7 +173,7 @@ class TestFactory(TestCase):
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
                     'id="_xml_dtd_url" '
-                    'value="http://xmltool.lereskp.fr/static/exercise.dtd" '
+                    'value="tests/exercise.dtd" '
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
@@ -186,7 +190,7 @@ class TestFactory(TestCase):
                     'id="_xml_filename" value="" />'
                     '<input type="hidden" name="_xml_dtd_url" '
                     'id="_xml_dtd_url" '
-                    'value="http://xmltool.lereskp.fr/static/exercise.dtd" '
+                    'value="tests/exercise.dtd" '
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
