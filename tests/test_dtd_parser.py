@@ -435,7 +435,7 @@ class DtdParser(TestCase):
         self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, ['idtag'])
-        self.assertEqual(tag._sub_elements, [])
+        self.assertEqual(tag.children_classes, [])
 
         dtd_dict = {
             'tag': {'elts': '(#PCDATA|tag1|tag2)*', 'attrs': []},
@@ -447,7 +447,7 @@ class DtdParser(TestCase):
         self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
-        self.assertEqual(tag._sub_elements, [])
+        self.assertEqual(tag.children_classes, [])
         # dtd_dict has changed because of the mixed content
         self.assertEqual(
             dtd_dict, {'tag': {'elts': 'tag1?,tag2?', 'attrs': []}})
@@ -462,7 +462,7 @@ class DtdParser(TestCase):
         self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
-        self.assertEqual(tag._sub_elements, [])
+        self.assertEqual(tag.children_classes, [])
 
         dtd_dict = {
             'tag': {'elts': '(tag1|tag2)', 'attrs': []},
@@ -474,7 +474,7 @@ class DtdParser(TestCase):
         self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, False)
         self.assertEqual(tag._attribute_names, [])
-        self.assertEqual(tag._sub_elements, [])
+        self.assertEqual(tag.children_classes, [])
 
         dtd_dict = {
             'tag': {'elts': 'EMPTY', 'attrs': []},
@@ -485,7 +485,7 @@ class DtdParser(TestCase):
         self.assertTrue(issubclass(tag, TextElement))
         self.assertEqual(tag.tagname, 'tag')
         self.assertEqual(tag._is_empty, True)
-        self.assertEqual(tag._sub_elements, [])
+        self.assertEqual(tag.children_classes, [])
 
     def test__create_new_class(self):
         dtd_dict = {
@@ -570,7 +570,7 @@ class DtdParser(TestCase):
         tag = class_dict['tag']
         self.assertEqual(tag.__name__, 'tag')
         self.assertEqual(tag._required, False)
-        self.assertEqual(tag._sub_elements, [])
+        self.assertEqual(tag.children_classes, [])
 
         dtd_dict = {
             'tag': {'elts': 'subtag', 'attrs': []},
@@ -580,14 +580,14 @@ class DtdParser(TestCase):
         self.assertEqual(len(class_dict), 2)
         tag = class_dict['tag']
         subtag = class_dict['subtag']
-        self.assertEqual(len(tag._sub_elements), 1)
-        self.assertTrue(issubclass(tag._sub_elements[0], subtag))
-        subtag = tag._sub_elements[0]
+        self.assertEqual(len(tag.children_classes), 1)
+        self.assertTrue(issubclass(tag.children_classes[0], subtag))
+        subtag = tag.children_classes[0]
         self.assertEqual(tag.__name__, 'tag')
         self.assertEqual(tag._required, False)
         self.assertEqual(subtag.__name__, 'subtag')
         self.assertEqual(subtag._required, True)
-        self.assertEqual(subtag._sub_elements, [])
+        self.assertEqual(subtag.children_classes, [])
         self.assertEqual(subtag.parent, tag)
 
     def test_parse(self):

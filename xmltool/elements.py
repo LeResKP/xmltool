@@ -20,7 +20,7 @@ class Element(object):
     tagname = None
     _attribute_names = None
     _attributes = None
-    _sub_elements = None
+    children_classes = None
     _required = False
     parent = None
     sourceline = None
@@ -102,8 +102,8 @@ class Element(object):
         return [cls.tagname]
 
     @classmethod
-    def _get_sub_element(cls, tagname):
-        for e in cls._sub_elements:
+    def get_child_class(cls, tagname):
+        for e in cls.children_classes:
             for tg in e._get_allowed_tagnames():
                 if tg == tagname:
                     return e
@@ -120,7 +120,7 @@ class Element(object):
         return v
 
     def _has_value(self):
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._get_value_from_parent(self)
             if v is not None:
                 return True
@@ -142,7 +142,7 @@ class Element(object):
         return ':'.join(tmp_prefixes)
 
     @classmethod
-    def _add(cls, tagname, parent_obj, value=None):
+    def _create(cls, tagname, parent_obj, value=None):
         v = parent_obj.xml_elements.get(tagname)
         if v:
             raise Exception('%s already defined' % tagname)
@@ -156,10 +156,17 @@ class Element(object):
             tmpobj.text = value
         return tmpobj
 
+    @classmethod
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        if tagname in obj:
+            raise Exception('%s is already defined' % tagname)
+
     def is_addable(self, tagname):
         """Check if the given tagname can be added to the object
         """
-        cls = self._get_sub_element(tagname)
+        cls = self.get_child_class(tagname)
         if cls is None:
             return False
         if self.is_defined(tagname):
@@ -172,13 +179,13 @@ class Element(object):
         return False
 
     def add(self, tagname, value=None):
-        cls = self._get_sub_element(tagname)
-
+        cls = self.get_child_class(tagname)
         if cls is None:
             raise Exception('Invalid child %s' % tagname)
 
-        obj = cls._add(tagname, self, value)
-        return obj
+        # May raise an exception
+        cls._check_addable(self, tagname)
+        return cls._create(tagname, self, value)
 
     def add_attribute(self, name, value):
         if name not in self._attribute_names:
@@ -316,7 +323,7 @@ class Element(object):
         xml = etree.Element(self.tagname)
         self._comment_to_xml(xml)
         self._attributes_to_xml(xml)
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._get_sub_value(self)
 
             if v is not None:
@@ -373,7 +380,7 @@ class Element(object):
 
         tmp_prefixes = self._get_prefixes(prefixes, index)
         sub_html = [self._attributes_to_html(prefixes, index)]
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             tmp = elt._to_html(self, tmp_prefixes)
             if tmp:
                 sub_html += [tmp]
@@ -446,7 +453,7 @@ class Element(object):
             },
         }
         children = []
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._to_jstree_dict(self, tmp_prefixes)
             if v:
                 if isinstance(v, list):
@@ -457,7 +464,7 @@ class Element(object):
         return dic
 
     def __setattr__(self, prop, value):
-        if self._get_sub_element(prop):
+        if self.get_child_class(prop):
             # If it's an element set the value to the dict of elements
             self.xml_elements[prop] = value
             msg = ("You should use the dict way to set a value: "
@@ -499,7 +506,7 @@ class Element(object):
         return self.add(tagname)
 
     def walk(self):
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._get_value_from_parent(self)
             if not v:
                 continue
@@ -712,7 +719,7 @@ class MultipleMixin(object):
     _elts = None
 
     @classmethod
-    def _get_sub_element(cls, tagname):
+    def get_child_class(cls, tagname):
         for e in cls._elts:
             if e.tagname == tagname:
                 return e
@@ -741,12 +748,19 @@ class ListElement(list, MultipleMixin, Element):
                 return True
         return False
 
+    @classmethod
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        # We can always add an element to a list.
+        pass
+
     def is_addable(self, tagname):
         """Basically the same function than Element.is_addable, except we don't
         have to check if an element is defined, since it's a list, we can add
         many elements as we want!
         """
-        cls = self._get_sub_element(tagname)
+        cls = self.get_child_class(tagname)
         if cls is None:
             return False
         return True
@@ -758,8 +772,8 @@ class ListElement(list, MultipleMixin, Element):
         return e
 
     @classmethod
-    def _add(cls, tagname, parent_obj, value=None):
-        elt = cls._get_sub_element(tagname)
+    def _create(cls, tagname, parent_obj, value=None):
+        elt = cls.get_child_class(tagname)
         if value and not issubclass(elt, TextElement):
             raise Exception("Can't set value to non TextElement")
 
@@ -900,12 +914,12 @@ class ChoiceElement(MultipleMixin, Element):
         return lis
 
     @classmethod
-    def _add(cls, tagname, parent_obj, value=None):
+    def _create(cls, tagname, parent_obj, value=None):
         for elt in cls._elts:
             if elt.tagname in parent_obj.xml_elements:
                 raise Exception('%s already defined' % elt.tagname)
 
-        elt = cls._get_sub_element(tagname)
+        elt = cls.get_child_class(tagname)
         if value and not issubclass(elt, TextElement):
             raise Exception("Can't set value to non TextElement")
 
@@ -921,6 +935,20 @@ class ChoiceElement(MultipleMixin, Element):
     def is_addable(self, tagname):
         # Nothing is addable to ChoiceElement
         return False
+
+    @classmethod
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        # If one of the different choice is already added, we can't add
+        # anything.
+        for elt in cls._elts:
+            if elt.tagname in obj:
+                err = '%s is already defined' % elt.tagname
+                if elt.tagname != tagname:
+                    err = '%s is defined so you can\'t add %s' % (elt.tagname,
+                                                                  tagname)
+                raise Exception(err)
 
     def is_defined(self, tagname):
         # Since ChoiceElement doesn't contain any element it makes no sense to
@@ -983,7 +1011,7 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     while splitted:
         s = splitted.pop(0)
         prefixes += [s]
-        tmp_cls = obj._get_sub_element(s)
+        tmp_cls = obj.get_child_class(s)
         if not tmp_cls:
             raise Exception('Unsupported tag %s' % s)
 
@@ -1020,9 +1048,9 @@ def _get_previous_js_selectors(obj, prefixes, index):
             return lis
         tmp_prefixes = tmp_prefixes[:-1]
 
-    sub = parent._get_sub_element(obj.tagname)
+    sub = parent.get_child_class(obj.tagname)
 
-    for elt in parent._sub_elements:
+    for elt in parent.children_classes:
         if elt == sub:
             break
         tmp_prefix = list(tmp_prefixes) + [elt.tagname]

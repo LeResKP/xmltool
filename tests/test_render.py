@@ -35,7 +35,7 @@ class TestRender(TestCase):
         r = Render()
         obj = type('SubSubCls', (TextElement, ),
                    {'tagname': 'subsub',
-                    '_sub_elements': []})()
+                    'children_classes': []})()
         attrs = [('class', 'test')]
         value = 'Hello world'
         res = r.text_element_to_html(obj, attrs, value)
@@ -62,7 +62,7 @@ class TestReadonlyRender(TestCase):
         r = ReadonlyRender()
         obj = type('SubSubCls', (TextElement, ),
                    {'tagname': 'subsub',
-                    '_sub_elements': []})()
+                    'children_classes': []})()
         attrs = [('class', 'test')]
         value = 'Hello world'
         res = r.text_element_to_html(obj, attrs, value)
