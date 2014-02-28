@@ -3,7 +3,7 @@
 from unittest import TestCase
 from lxml import etree
 import os.path
-from xmltool import utils
+from xmltool import utils, dtd_parser
 from xmltool.elements import (
     Element,
     ListElement,
@@ -125,16 +125,10 @@ class TestElement(TestCase):
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
         obj = self.cls._create('tagname', parent_obj)
-        self.assertEqual(obj._parent, parent_obj)
-        self.assertEqual(obj._root, parent_obj)
+        self.assertEqual(obj.parent, parent_obj)
+        self.assertEqual(obj.root, parent_obj)
         self.assertTrue(isinstance(obj, Element))
         self.assertEqual(parent_obj['tagname'], obj)
-
-        try:
-            obj = Element._create('tagname', parent_obj)
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e), 'tagname already defined')
 
     def test_is_addable(self):
         obj = self.cls()
@@ -842,9 +836,12 @@ class TestTextElement(TestCase):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['tag'])
 
     def test__add(self):
-        parent_obj = FakeClass()
-        obj = self.cls._create('tagname', parent_obj, 'my value')
+        parent = type('Cls', (Element, ),
+                      {'tagname': 'tag',
+                       'children_classes': []})()
+        obj = self.cls._create('tagname', parent, 'my value')
         self.assertEqual(obj._value, 'my value')
+        self.assertEqual(obj.parent, parent)
 
     def test_load_from_xml(self):
         root = etree.Element('root')
@@ -1154,6 +1151,18 @@ class TestListElement(TestCase):
         self.assertEqual(obj2._root, parent_obj)
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj.list_cls, [obj1, obj2])
+
+    def test_add_list_of_list(self):
+        dtd_str = '''
+        <!ELEMENT texts (text+)>
+        <!ELEMENT text (subtext+)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic['texts']()
+        text = obj.add('text')
+        subtext = text.add('subtext', 'value')
+        self.assertEqual(subtext.text, 'value')
 
     def test_to_xml(self):
         obj = self.cls()
@@ -1469,24 +1478,15 @@ class TestChoiceElement(TestCase):
         self.assertTrue(isinstance(obj1, Element))
         self.assertEqual(parent_obj.tag1, obj1)
 
-        try:
-            self.cls._create('tag2', parent_obj)
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e), 'tag1 already defined')
-
-        try:
-            self.cls._create('tag1', parent_obj)
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e), 'tag1 already defined')
-
-        parent_obj = FakeClass()
+        parent = type('Cls', (TextElement, ),
+                      {'tagname': 'tag',
+                       'children_classes': []})()
         self.cls._elts = [type('Cls', (TextElement, ),
                           {'tagname': 'tag',
                            'children_classes': []})]
-        obj2 = self.cls._create('tag', parent_obj, 'my value')
+        obj2 = self.cls._create('tag', parent, 'my value')
         self.assertEqual(obj2._value, 'my value')
+        self.assertEqual(obj2.parent, parent)
 
     def test__get_html_add_button(self):
         html = self.cls._get_html_add_button(None)

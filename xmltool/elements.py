@@ -142,19 +142,17 @@ class Element(object):
         return ':'.join(tmp_prefixes)
 
     @classmethod
-    def _create(cls, tagname, parent_obj, value=None):
-        v = parent_obj.xml_elements.get(tagname)
-        if v:
-            raise Exception('%s already defined' % tagname)
-
-        if value and not issubclass(cls, TextElement):
-            raise Exception("Can't set value to non TextElement")
-
-        tmpobj = cls(parent_obj)
-        parent_obj.xml_elements[tagname] = tmpobj
+    def _create(cls, tagname, parent, value=None):
+        obj = cls(parent)
+        if not isinstance(parent, list):
+            # We don't need to set the element to the parent since it will be
+            # append to it!
+            parent[tagname] = obj
         if value:
-            tmpobj.text = value
-        return tmpobj
+            if not issubclass(cls, TextElement):
+                raise Exception("Can't set value to non TextElement")
+            obj.text = value
+        return obj
 
     @classmethod
     def _check_addable(cls, obj, tagname):
@@ -185,7 +183,8 @@ class Element(object):
 
         # May raise an exception
         cls._check_addable(self, tagname)
-        return cls._create(tagname, self, value)
+        obj = cls._create(tagname, self, value)
+        return obj
 
     def add_attribute(self, name, value):
         if name not in self._attribute_names:
@@ -496,6 +495,9 @@ class Element(object):
             raise KeyError(tagname)
         return v
 
+    def get(self, tagname):
+        return self.xml_elements.get(tagname)
+
     def __contains__(self, tagname):
         return tagname in self.xml_elements
 
@@ -734,10 +736,7 @@ class ListElement(list, MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        lis = [cls.tagname]
-        for e in cls._elts:
-            lis += [e.tagname]
-        return lis
+        return [cls.tagname] + [e.tagname for e in cls._elts]
 
     def is_defined(self, tagname):
         """Check we have at least one element with the given tagname in this
@@ -772,24 +771,20 @@ class ListElement(list, MultipleMixin, Element):
         return e
 
     @classmethod
-    def _create(cls, tagname, parent_obj, value=None):
-        elt = cls.get_child_class(tagname)
-        if value and not issubclass(elt, TextElement):
-            raise Exception("Can't set value to non TextElement")
-
-        tg = cls.tagname
-        if len(cls._elts) == 1:
-            tg = tagname
-
-        lis = parent_obj.xml_elements.get(tg)
+    def _create(cls, tagname, parent, value=None):
+        # Get the list element or create it
+        lis = parent.get(cls.tagname)
         if lis is None:
-            lis = cls(parent_obj)
-            parent_obj.xml_elements[tg] = lis
-        tmpobj = elt(lis)
-        if value:
-            tmpobj.text = value
-        lis.append(tmpobj)
-        return tmpobj
+            lis = cls(parent)
+            parent[cls.tagname] = lis
+            if len(cls._elts) == 1:
+                # Create a shortcut since we already have one element
+                parent[tagname] = lis
+
+        elt = cls.get_child_class(tagname)
+        obj = elt._create(tagname, lis, value)
+        lis.append(obj)
+        return obj
 
     def to_xml(self):
         lis = []
@@ -908,26 +903,12 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        lis = []
-        for e in cls._elts:
-            lis += [e.tagname]
-        return lis
+        return [e.tagname for e in cls._elts]
 
     @classmethod
-    def _create(cls, tagname, parent_obj, value=None):
-        for elt in cls._elts:
-            if elt.tagname in parent_obj.xml_elements:
-                raise Exception('%s already defined' % elt.tagname)
-
+    def _create(cls, tagname, parent, value=None):
         elt = cls.get_child_class(tagname)
-        if value and not issubclass(elt, TextElement):
-            raise Exception("Can't set value to non TextElement")
-
-        tmpobj = elt(parent_obj)
-        if value:
-            tmpobj.text = value
-        parent_obj.xml_elements[tagname] = tmpobj
-        return tmpobj
+        return elt._create(tagname, parent, value)
 
     def add(self, *args, **kw):
         raise Exception('Can\'t add element to ChoiceElement')
