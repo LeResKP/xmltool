@@ -597,7 +597,7 @@ class TestElement(TestCase):
             'data': 'subtag',
             'attr': {
                 'id': 'tree_subtag',
-                'class': 'tree_:subtag'},
+                'class': 'tree_subtag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -607,7 +607,7 @@ class TestElement(TestCase):
             'data': 'subtag',
             'attr': {
                 'id': 'tree_subtag',
-                'class': 'tree_:subtag'},
+                'class': 'tree_subtag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -618,7 +618,7 @@ class TestElement(TestCase):
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_:tag'},
+                'class': 'tree_tag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -664,7 +664,7 @@ class TestElement(TestCase):
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_:tag'},
+                'class': 'tree_tag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -674,7 +674,7 @@ class TestElement(TestCase):
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_:tag'
+                'class': 'tree_tag'
             },
             'children': [
                 {

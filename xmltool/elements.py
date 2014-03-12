@@ -440,7 +440,11 @@ class Element(object):
         if index is not None:
             css_class += ' ' + TREE_PREFIX + ':'.join((prefixes+[str(index)]))
         else:
-            css_class += ':' + self.tagname
+            if not prefixes:
+                css_class += self.tagname
+            else:
+                # We don't want to have tree_:tagname
+                css_class += ':' + self.tagname
 
         dic = {
             'data': data,
