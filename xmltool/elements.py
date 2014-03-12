@@ -167,13 +167,11 @@ class Element(object):
         cls = self.get_child_class(tagname)
         if cls is None:
             return False
-        if self.is_defined(tagname):
-            return False
-        return True
-
-    def is_defined(self, tagname):
-        if tagname in self:
+        try:
+            cls._check_addable(self, tagname)
             return True
+        except:
+            pass
         return False
 
     def add(self, tagname, value=None):
@@ -738,31 +736,12 @@ class ListElement(list, MultipleMixin, Element):
     def _get_allowed_tagnames(cls):
         return [cls.tagname] + [e.tagname for e in cls._elts]
 
-    def is_defined(self, tagname):
-        """Check we have at least one element with the given tagname in this
-        object.
-        """
-        for c in self:
-            if c.tagname == tagname:
-                return True
-        return False
-
     @classmethod
     def _check_addable(cls, obj, tagname):
         """Check if the given tagname is addable to the given obj
         """
         # We can always add an element to a list.
         pass
-
-    def is_addable(self, tagname):
-        """Basically the same function than Element.is_addable, except we don't
-        have to check if an element is defined, since it's a list, we can add
-        many elements as we want!
-        """
-        cls = self.get_child_class(tagname)
-        if cls is None:
-            return False
-        return True
 
     def add(self, *args, **kw):
         e = super(ListElement, self).add(*args, **kw)
@@ -930,11 +909,6 @@ class ChoiceElement(MultipleMixin, Element):
                     err = '%s is defined so you can\'t add %s' % (elt.tagname,
                                                                   tagname)
                 raise Exception(err)
-
-    def is_defined(self, tagname):
-        # Since ChoiceElement doesn't contain any element it makes no sense to
-        # call it
-        raise Exception('No sense to call ChoiceElement.is_defined')
 
     @classmethod
     def _get_html_add_button(cls, prefixes, index=None, css_class=None):
