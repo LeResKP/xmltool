@@ -748,9 +748,13 @@ class ListElement(list, MultipleMixin, Element):
         pass
 
     def add(self, *args, **kw):
+        index = kw.pop('index', None)
         e = super(ListElement, self).add(*args, **kw)
         assert(e)
-        self.append(e)
+        if index is not None:
+            self.insert(index, e)
+        else:
+            self.append(e)
         return e
 
     @classmethod

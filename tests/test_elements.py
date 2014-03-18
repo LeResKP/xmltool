@@ -1111,6 +1111,10 @@ class TestListElement(TestCase):
         obj3 = self.cls._create('tag', parent_obj, 'my value')
         self.assertEqual(obj3._value, 'my value')
 
+        obj4 = parent_obj['list_cls'].add('tag', index=0)
+        self.assertEqual(parent_obj['list_cls'].index(obj4), 0)
+        self.assertEqual(len(parent_obj['list_cls']), 4)
+
     def test__add_multiple(self):
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1',
                                                'children_classes': []})
