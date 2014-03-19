@@ -63,6 +63,30 @@ class TestUtils(TestCase):
                      {'test1': {'value': 'v2'}}]}
         self.assertEqual(dic, expected)
 
+        dic = {
+            'test': {'1': {'test1': {'value': 'v1'}},
+                     '3': {'test1': {'value': 'v2'}}
+                    }
+        }
+        utils.numdict_to_list(dic)
+        expected = {
+            'test': [
+                None,
+                {'test1': {'value': 'v1'}},
+                None,
+                {'test1': {'value': 'v2'}}
+            ]}
+        self.assertEqual(dic, expected)
+
+        dic = {
+            'test': {}
+        }
+        utils.numdict_to_list(dic)
+        expected = {
+            'test': []
+        }
+        self.assertEqual(dic, expected)
+
     def test_unflatten_params(self):
         dic = {
             'test:0:test1:value': 'v1',

@@ -393,8 +393,8 @@ class TestElement(TestCase):
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
-        obj = cls()
         dic = {}
+        obj = cls()
         obj.load_from_dict(dic)
         self.assertEqual(obj._comment, None)
         self.assertEqual(obj._attributes, None)
@@ -408,8 +408,8 @@ class TestElement(TestCase):
                     }}]
             }
         }
+        obj = cls()
         obj.load_from_dict(dic)
-        self.assertTrue(obj)
         self.assertEqual(obj._comment, 'comment')
         self.assertFalse(obj._attributes)
         self.assertFalse(hasattr(obj, 'prev'))
@@ -417,6 +417,29 @@ class TestElement(TestCase):
         self.assertEqual(len(obj.sub), 1)
         self.assertEqual(obj.sub[0]._comment, 'element comment')
         self.assertEqual(obj.sub[0]._attributes, {'attr': 'value'})
+
+        # Test with empty element to keep the index position
+        dic = {
+            'tag': {
+                '_comment': 'comment',
+                'element': [
+                    None,
+                    {'sub': {
+                        '_attrs': {'attr': 'value'},
+                        '_comment': 'element comment'
+                    }}]
+            }
+        }
+        obj = cls()
+        obj.load_from_dict(dic)
+        self.assertEqual(obj._comment, 'comment')
+        self.assertFalse(obj._attributes)
+        self.assertFalse(hasattr(obj, 'prev'))
+        self.assertTrue(obj.sub)
+        self.assertEqual(len(obj.sub), 2)
+        self.assertTrue(isinstance(obj.sub[0], elements.EmptyElement))
+        self.assertEqual(obj.sub[1]._comment, 'element comment')
+        self.assertEqual(obj.sub[1]._attributes, {'attr': 'value'})
 
     def test_to_xml(self):
         sub_cls = type('SubClsElement', (Element,),
@@ -1153,6 +1176,15 @@ class TestListElement(TestCase):
         text = obj.add('text')
         subtext = text.add('subtext', 'value')
         self.assertEqual(subtext.text, 'value')
+
+    def test_remove_empty_element(self):
+        obj = self.cls()
+        obj.append(None)
+        obj.append(elements.EmptyElement(parent=obj))
+        self.assertEqual(len(obj), 2)
+        obj.remove_empty_element()
+        self.assertEqual(len(obj), 1)
+        self.assertEqual(obj, [None])
 
     def test_to_xml(self):
         obj = self.cls()

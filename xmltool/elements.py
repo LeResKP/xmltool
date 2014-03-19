@@ -14,6 +14,13 @@ DEFAULT_ENCODING = 'UTF-8'
 TREE_PREFIX = 'tree_'
 
 
+class EmptyElement(object):
+    """This object is used in the ListElement to keep the good index.
+    """
+    def __init__(self, parent):
+        self.parent = parent
+
+
 class Element(object):
     """After reading a dtd file we construct some Element
     """
@@ -309,9 +316,15 @@ class Element(object):
         for key, value in data.items():
             if isinstance(value, list):
                 for d in value:
-                    assert(len(d) == 1)
-                    obj = self.add(d.keys()[0])
-                    obj.load_from_dict(d)
+                    if d is None:
+                        # Add empty element to keep index in the list.
+                        lis = self.add(key)
+                        elt = EmptyElement(parent=lis)
+                        lis.append(elt)
+                    else:
+                        assert(len(d) == 1)
+                        obj = self.add(d.keys()[0])
+                        obj.load_from_dict(d)
             else:
                 obj = self.add(key)
                 obj.load_from_dict(data)
@@ -766,14 +779,30 @@ class ListElement(list, MultipleMixin, Element):
             parent[cls.tagname] = lis
             if len(cls._elts) == 1:
                 # Create a shortcut since we already have one element
-                parent[tagname] = lis
+                parent[cls._elts[0].tagname] = lis
 
+        if tagname == cls.tagname:
+            # Special case, when we pass tagname of the class we just want to
+            # get the list object.
+            return lis
         elt = cls.get_child_class(tagname)
         obj = elt._create(tagname, lis, value)
         lis.append(obj)
         return obj
 
+    def remove_empty_element(self):
+        """Remove the empty elements from this list since it should not be
+        in the XML nor HTML.
+        """
+        to_remove = []
+        for e in self:
+            if isinstance(e, EmptyElement):
+                to_remove += [e]
+        for e in to_remove:
+            self.remove(e)
+
     def to_xml(self):
+        self.remove_empty_element()
         lis = []
         if not len(self) and self._required:
             if len(self._elts) == 1:
@@ -834,6 +863,7 @@ class ListElement(list, MultipleMixin, Element):
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False, offset=0):
 
+        self.remove_empty_element()
         # We should not have the following parameter for this object
         assert self._attributes is None
         assert index is None
