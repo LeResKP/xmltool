@@ -1021,6 +1021,44 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     return obj, prefixes, index
 
 
+def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
+    """Create a root object with the given data.
+    We return the sub object found according to the given str_id.
+    """
+    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    splitted = str_id.split(':')
+    s = splitted.pop(0)
+
+    # Get the root object
+    obj = dic[s]()
+    obj.load_from_dict(data)
+
+    # Find the good object according to the given id
+    subobj = obj
+    while splitted:
+        s = splitted.pop(0)
+        try:
+            s = int(s)
+            # The sub id just after an integer is for the type object, we don't
+            # need it here.
+            subelt = splitted.pop(0)
+            while len(subobj) < s:
+                # We don't have enough element, add some empty one
+                elt = EmptyElement(parent=subobj)
+                subobj.append(elt)
+            # If the last element is missing we should add the right element
+            # type
+            while len(subobj) < (s+1):
+                subobj.add(subelt)
+            subobj = subobj[s]
+        except ValueError:
+            if s not in subobj:
+                subobj.add(s)
+            subobj = subobj[s]
+
+    return subobj
+
+
 def _get_previous_js_selectors(obj, prefixes, index):
     lis = []
 

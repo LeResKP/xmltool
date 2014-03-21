@@ -1734,3 +1734,151 @@ class TestFunctions(TestCase):
                     'class': 'tree_texts:tag2'},
                 'children': []}}
         self.assertEqual(result, expected)
+
+    def test_load_obj_from_id(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts'
+        data = {}
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'texts')
+
+        str_id = 'texts:tag2'
+        data = {
+            'texts': {
+                'tag2': {
+                    '_value': 'Hello world',
+                }
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag2')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'texts')
+
+        str_id = 'texts:list__list:0:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'list')
+        self.assertEqual(len(obj.parent.parent), 1)
+
+        # Test with list but missing elements: we have the element of index 2
+        # and not the ones for index 0, 1
+        str_id = 'texts:list__list:2:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    None,
+                    None,
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'list')
+        list_obj = obj.parent.parent
+        self.assertEqual(len(list_obj), 3)
+        self.assertTrue(isinstance(list_obj[0], elements.EmptyElement))
+        self.assertTrue(isinstance(list_obj[1], elements.EmptyElement))
+
+        # Test with list but missing elements: we don't have enough element
+        str_id = 'texts:list__list:2:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.parent.tagname, 'list')
+        list_obj = obj.parent.parent
+        self.assertEqual(len(list_obj), 3)
+        self.assertFalse(isinstance(list_obj[0], elements.EmptyElement))
+        self.assertTrue(isinstance(list_obj[1], elements.EmptyElement))
+        self.assertFalse(isinstance(list_obj[2], elements.EmptyElement))
+        self.assertEqual(list_obj[2], obj.parent)
+
+    def test_load_obj_from_id_choices(self):
+        dtd_str = '''
+        <!ELEMENT texts ((tag1|tag2)*)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts'
+        data = {}
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'texts')
+
+        str_id = 'texts:list__tag1_tag2:0:tag1'
+        data = {
+            'texts': {
+                'list__tag1_tag2': [
+                    {
+                        'tag1': {'_value': 'Hello world'}
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag1')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'list__tag1_tag2')
+
+        dtd_str = '''
+        <!ELEMENT texts (tag1|tag2)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts'
+        data = {}
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'texts')
+
+        str_id = 'texts:tag1'
+        data = {
+            'texts': {
+                'tag1': {'_value': 'Hello world'}
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag1')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'texts')
+
+        data = {
+            'texts': {}
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag1')
+        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.parent.tagname, 'texts')
