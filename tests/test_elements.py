@@ -1882,3 +1882,63 @@ class TestFunctions(TestCase):
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, None)
         self.assertEqual(obj.parent.tagname, 'texts')
+
+    def test_get_parent_to_add_obj(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__list:0:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        source_id = 'texts:list__list:0:list:text'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        # The 'text' element can be pasted here.
+        self.assertEqual(parentobj, None)
+
+        str_id = 'texts:list__list:0:list'
+        source_id = 'texts:list__list:0:list'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list__list')
+
+        # Remove the 'text' element from 'list'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {}
+                    }
+                ]
+            }
+        }
+        str_id = 'texts:list__list:0:list'
+        source_id = 'texts:list__list:0:list:text'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list')
+
+        # Try with empty element
+        data = {
+            'texts': {
+                'list__list': []
+            }
+        }
+        str_id = 'texts:list__list:10:list'
+        source_id = 'texts:list__list:5:list'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list__list')

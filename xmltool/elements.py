@@ -506,7 +506,7 @@ class Element(object):
 
     def __getitem__(self, tagname):
         v = self.xml_elements.get(tagname)
-        if not v:
+        if v is None:
             raise KeyError(tagname)
         return v
 
@@ -1057,6 +1057,25 @@ def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
             subobj = subobj[s]
 
     return subobj
+
+
+def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
+    """Create element from data and elt_id and determine if source_id can be
+    added to it or its parent.
+    """
+    target_obj = load_obj_from_id(elt_id, data, dtd_url=dtd_url,
+                                  dtd_str=dtd_str)
+
+    tagname = source_id.split(':')[-1]
+    parent = None
+    if target_obj.is_addable(tagname):
+        return target_obj
+
+    parent = target_obj.parent
+    if parent and parent.is_addable(tagname):
+        return parent
+
+    return None
 
 
 def _get_previous_js_selectors(obj, prefixes, index):
