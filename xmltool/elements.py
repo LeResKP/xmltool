@@ -1078,6 +1078,30 @@ def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
     return None
 
 
+def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=None,
+                            dtd_str=None):
+    """Create an element from data and elt_id. We get the parent to add
+    source_id with the clipboard_data. This function should be used to make
+    some copy/paste.
+    """
+    parentobj = get_parent_to_add_obj(elt_id, source_id, data, dtd_url=dtd_url,
+                                      dtd_str=dtd_str)
+    if not parentobj:
+        return None
+
+    tagname = source_id.split(':')[-1]
+    obj = parentobj.add(tagname)
+
+    for s in source_id.split(':')[:-1]:
+        try:
+            s = int(s)
+        except:
+            pass
+        clipboard_data = clipboard_data[s]
+    obj.load_from_dict(clipboard_data)
+    return obj
+
+
 def _get_previous_js_selectors(obj, prefixes, index):
     lis = []
 

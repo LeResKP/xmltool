@@ -1942,3 +1942,50 @@ class TestFunctions(TestCase):
         parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
+
+    def test_add_new_element_from_id(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__list:0:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        source_id = 'texts:list__list:0:list:text'
+        clipboard_data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Text to copy'},
+                        }
+                    }
+                ]
+            }
+        }
+        # 'text' element can't be added
+        obj = elements.add_new_element_from_id(str_id, source_id, data,
+                                               clipboard_data,
+                                               dtd_str=dtd_str)
+        self.assertEqual(obj, None)
+
+        str_id = 'texts:list__list:0:list'
+        source_id = 'texts:list__list:0:list'
+        obj = elements.add_new_element_from_id(str_id, source_id, data,
+                                               clipboard_data,
+                                               dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'list')
+        self.assertEqual(obj['text'].text, 'Text to copy')
+        self.assertEqual(len(obj.parent), 2)
