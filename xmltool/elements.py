@@ -103,6 +103,35 @@ class Element(object):
 
         # Store the XML element here
         self.xml_elements = {}
+        # Cache
+        self._cache_prefixes = None
+
+    @property
+    def prefixes_no_cache(self):
+        """Same function as prefixes, but we don't want to set cache here. This
+        function is used when we construct the objects, so we can't add cache
+        during the construction is not finished
+        """
+        prefixes = []
+        if self.parent:
+            prefixes = self.parent.prefixes_no_cache
+            if isinstance(self.parent, ListElement):
+                prefixes += [str(self.parent.index(self))]
+        prefixes += [self.tagname]
+        return prefixes
+
+    @property
+    def prefixes(self):
+        """Get the list of prefixes for this object
+        """
+        if self._cache_prefixes is None:
+            prefixes = []
+            if self.parent:
+                prefixes = self.parent.prefixes
+                if isinstance(self.parent, ListElement):
+                    prefixes += [str(self.parent.index(self))]
+            self._cache_prefixes = prefixes + [self.tagname]
+        return self._cache_prefixes
 
     @classmethod
     def _get_allowed_tagnames(cls):
@@ -1065,6 +1094,21 @@ def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
     """
     target_obj = load_obj_from_id(elt_id, data, dtd_url=dtd_url,
                                   dtd_str=dtd_str)
+    if isinstance(target_obj, EmptyElement):
+        # The target is an empty object, we remove it and replace it by the
+        # right object.
+        parent = target_obj.parent
+        assert(isinstance(parent, ListElement))
+        index = parent.index(target_obj)
+        parent.pop(index)
+        # Should always been the -2:
+        # -1 is the object we want to copy
+        # -2 is the container, should also be a list
+        # normally a ListElement is at least 3 elements
+        tagname = source_id.split(':')[-2]
+        if not parent.is_addable(tagname):
+            return None
+        target_obj = parent.add(tagname, index=index)
 
     tagname = source_id.split(':')[-1]
     parent = None

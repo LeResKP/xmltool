@@ -43,6 +43,37 @@ class TestElement(TestCase):
         self.cls = type('Cls', (Element, ), {'tagname': 'tag',
                                              'children_classes': [self.sub_cls]})
 
+    def test_prefixes_no_cache(self):
+        obj = type('Cls', (Element, ),
+                   {'tagname': 'tag',
+                    'children_classes': []})()
+        parent_obj = type('Cls', (Element, ),
+                          {'tagname': 'ptag',
+                           'children_classes': [obj.__class__]})()
+        self.assertEqual(obj.prefixes_no_cache, ['tag'])
+        self.assertEqual(parent_obj.prefixes_no_cache, ['ptag'])
+
+        obj.parent = parent_obj
+        self.assertEqual(obj.prefixes_no_cache, ['ptag', 'tag'])
+
+    def test_prefixes(self):
+        obj = type('Cls', (Element, ),
+                   {'tagname': 'tag',
+                    'children_classes': []})()
+        parent_obj = type('Cls', (Element, ),
+                          {'tagname': 'ptag',
+                           'children_classes': [obj.__class__]})()
+        self.assertEqual(obj.prefixes, ['tag'])
+        self.assertEqual(parent_obj.prefixes, ['ptag'])
+
+        # The prefixes are in the cache
+        obj.parent = parent_obj
+        self.assertEqual(obj.prefixes, ['tag'])
+        self.assertEqual(obj._cache_prefixes, ['tag'])
+
+        obj._cache_prefixes = None
+        self.assertEqual(obj.prefixes, ['ptag', 'tag'])
+
     def test__get_allowed_tagnames(self):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['tag'])
 
@@ -1931,7 +1962,7 @@ class TestFunctions(TestCase):
                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
 
-        # Try with empty element
+        # Try with missing element
         data = {
             'texts': {
                 'list__list': []
@@ -1942,6 +1973,36 @@ class TestFunctions(TestCase):
         parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
+
+        # Try with empty element
+        # The str_id has no value so didn't exist, we want to make sure we
+        # create it correctly
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (tag2)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        data = {
+            'texts': {
+                'list__list': [
+                    None,
+                    None,
+                    {
+                        'list': {'text': {'tag2': {'_value': 'Hello'}}}
+                    }
+                ]
+            }
+        }
+        str_id = 'texts:list__list:1:list'
+        source_id = 'texts:list__list:2:list:text'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list')
+        lis = parentobj.parent
+        self.assertTrue(isinstance(lis[0], elements.EmptyElement))
+        self.assertEqual(lis[1], parentobj)
 
     def test_add_new_element_from_id(self):
         dtd_str = '''
