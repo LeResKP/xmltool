@@ -1080,6 +1080,11 @@ def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
             while len(subobj) < (s+1):
                 subobj.add(subelt)
             subobj = subobj[s]
+
+            if isinstance(subobj, EmptyElement):
+                # The element is empty, we remove it and create the good one!
+                subobj.parent.remove(subobj)
+                subobj = subobj.parent.add(subelt, index=s)
         except ValueError:
             if s not in subobj:
                 subobj.add(s)

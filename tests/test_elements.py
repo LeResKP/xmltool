@@ -1859,6 +1859,37 @@ class TestFunctions(TestCase):
         self.assertFalse(isinstance(list_obj[2], elements.EmptyElement))
         self.assertEqual(list_obj[2], obj.parent)
 
+        # Test with enough element, but the one we want is an empty one
+        str_id = 'texts:list__list:1:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        },
+                    },
+                    None,
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        },
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.parent.tagname, 'list')
+        list_obj = obj.parent.parent
+        self.assertEqual(len(list_obj), 3)
+        self.assertFalse(isinstance(list_obj[0], elements.EmptyElement))
+        # The good element has been generated
+        self.assertFalse(isinstance(list_obj[1], elements.EmptyElement))
+        self.assertFalse(isinstance(list_obj[2], elements.EmptyElement))
+        self.assertEqual(list_obj[1], obj.parent)
+
     def test_load_obj_from_id_choices(self):
         dtd_str = '''
         <!ELEMENT texts ((tag1|tag2)*)>
