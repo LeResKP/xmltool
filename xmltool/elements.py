@@ -1212,7 +1212,42 @@ def _get_html_from_obj(obj, prefixes, index):
 def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     return {
+        # Since we are calling to_jstree_dict from the object we need to remove
+        # its prefix because it will be added in this method.
         'jstree_data': obj.to_jstree_dict(prefixes[:-1], index),
         'previous': _get_previous_js_selectors(obj, prefixes, index),
         'html': _get_html_from_obj(obj, prefixes, index),
+    }
+
+
+def get_display_data_from_obj(obj):
+    # TODO: refactor this function with get_jstree_json_from_str_id
+    # We should not have to pass the prefixes and index, each Element should be
+    # able to calculate it! Currently it sucks!
+    index = None
+    prefixes = obj.prefixes
+    if obj.parent and isinstance(obj.parent, ListElement):
+        index = int(obj.prefixes[-2])
+        prefixes = prefixes[:-1]
+
+    html = _get_html_from_obj(obj, prefixes, index)
+
+    prefixes = obj.prefixes[:-1]
+    if isinstance(obj.parent, ListElement):
+        index = prefixes[-1]
+        prefixes = prefixes[:-1]
+        jstree_data = obj.to_jstree_dict(prefixes, index=index)
+    else:
+        jstree_data = obj.to_jstree_dict(prefixes)
+
+    prefixes = obj.prefixes
+    if obj.parent and isinstance(obj.parent, ListElement):
+        prefixes = prefixes[:-1]
+
+    return {
+        'jstree_data': jstree_data,
+        'previous': _get_previous_js_selectors(obj, prefixes, index),
+        'html': html,
+        'elt_id': ':'.join(obj.prefixes),
+        'is_choice': obj._is_choice,
     }

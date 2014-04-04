@@ -1766,6 +1766,117 @@ class TestFunctions(TestCase):
                 'children': []}}
         self.assertEqual(result, expected)
 
+    def test_get_display_data_from_obj(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text1)>
+        <!ELEMENT text1 (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__list:0:list:text1'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text1': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        res = elements.get_display_data_from_obj(obj)
+        expected = {
+            'elt_id': 'texts:list__list:0:list:text1',
+            'html': (
+                '<div id="texts:list__list:0:list:text1">'
+                '<label>text1</label>'
+                '<a data-comment-name="texts:list__list:0:list:text1:_comment" '
+                'class="btn-comment" title="Add comment"></a>'
+                '<textarea class="form-control text1" '
+                'name="texts:list__list:0:list:text1:_value" rows="1">'
+                'Hello world</textarea>'
+                '</div>'),
+            'is_choice': False,
+            'jstree_data': {
+                'attr': {
+                    'class': 'tree_texts:list__list:0:list:text1',
+                    'id': 'tree_texts:list__list:0:list:text1'},
+                'children': [],
+                'data': u'text1 <span class="_tree_text">(Hello world)</span>'
+            },
+            'previous': [('inside', '#tree_texts:list__list:0:list')]
+        }
+        self.assertEqual(res, expected)
+
+        # Test with is_choice
+        obj.is_choice = True
+        res = elements.get_display_data_from_obj(obj)
+        res['is_choice'] = True
+
+        # Test with list object
+        str_id = 'texts:list__list:0:list'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text1': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        res = elements.get_display_data_from_obj(obj)
+        expected = {
+            'elt_id': 'texts:list__list:0:list',
+            'html': (
+                '<div class="panel panel-default list" '
+                'id="texts:list__list:0:list">'
+                '<div class="panel-heading">'
+                '<span data-toggle="collapse" '
+                'href="#collapse-texts\\:list__list\\:0\\:list">list'
+                '<a class="btn-delete btn-list" '
+                'data-target="#texts:list__list:0:list" title="Delete"></a>'
+                '<a data-comment-name="texts:list__list:0:list:_comment" '
+                'class="btn-comment" title="Add comment"></a>'
+                '</span>'
+                '</div>'
+                '<div class="panel-body panel-collapse collapse in" '
+                'id="collapse-texts:list__list:0:list">'
+                '<div id="texts:list__list:0:list:text1">'
+                '<label>text1</label>'
+                '<a data-comment-name="texts:list__list:0:list:text1:_comment"'
+                ' class="btn-comment" title="Add comment"></a>'
+                '<textarea class="form-control text1" '
+                'name="texts:list__list:0:list:text1:_value" rows="1">'
+                'Hello world</textarea>'
+                '</div>'
+                '</div>'
+                '</div>'
+                '<a class="btn-add btn-list" '
+                'data-elt-id="texts:list__list:1:list">New list</a>'),
+            'is_choice': False,
+            'jstree_data': {
+                'attr': {
+                    'class': 'tree_texts:list__list tree_texts:list__list:0',
+                    'id': 'tree_texts:list__list:0:list'},
+                'children': [{
+                    'attr': {
+                        'class': 'tree_texts:list__list:0:list:text1',
+                        'id': 'tree_texts:list__list:0:list:text1'},
+                    'children': [],
+                    'data': ('text1 <span class="_tree_text">'
+                             '(Hello world)</span>')}],
+                'data': 'list'},
+            'previous': [('after', '.tree_texts:tag1'),
+                         ('inside', '#tree_texts')]
+        }
+        self.assertEqual(res, expected)
+
     def test_load_obj_from_id(self):
         dtd_str = '''
         <!ELEMENT texts (tag1, list*, tag2)>
