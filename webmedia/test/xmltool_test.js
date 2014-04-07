@@ -27,17 +27,6 @@
         equal(elt.attr('type'), 'email');
     });
 
-    test("_data", function() {
-        expect(3);
-        var elt = $('<input type="text" data-id="test" />');
-        var res = xmltool.utils._data(elt, 'id');
-        equal(res, 'test');
-
-        res = xmltool.utils._data(elt, 'id', 'my-id');
-        equal(typeof(res), 'undefined');
-        equal(elt.data('id'), 'my-id');
-    });
-
     test("increment_id", function() {
         var elt = $('<div id="name:0:_value" data-id="name:0:_value" />');
         elt.append('<div class="class1 name:0:class1 otherprefix:0:class1" />');
@@ -179,21 +168,22 @@
     });
 
     test("_replace_id", function() {
-        var elt = $('<div id="name:0:_value" data-name="data-name:0:_value"/>');
+        var elt = $('<div id="name:0:_value" data-name="name:0:_value"/>');
         equal(elt.attr('id'), 'name:0:_value');
-        equal(elt.data('name'), 'data-name:0:_value');
+        equal(elt.data('name'), 'name:0:_value');
         var prefix = 'name';
         var func = xmltool.utils._attr;
-        var names = ['id', 'name'];
+        var names = ['id', 'name', 'data-name'];
         xmltool.utils._replace_id(prefix, elt, func, names, 10);
         equal(elt.attr('id'), 'name:10:_value');
-        equal(elt.data('name'), 'data-name:0:_value');
+        // Weird, the data('name') is not updated, only the attr is updated
+        equal(elt.data('name'), 'name:0:_value');
+        equal(elt.attr('data-name'), 'name:10:_value');
 
-        func = xmltool.utils._data;
-        prefix = 'data-name';
         xmltool.utils._replace_id(prefix, elt, func, names, 5);
-        equal(elt.attr('id'), 'name:10:_value');
-        equal(elt.data('name'), 'data-name:5:_value');
+        equal(elt.attr('id'), 'name:5:_value');
+        equal(elt.data('name'), 'name:0:_value');
+        equal(elt.attr('data-name'), 'name:5:_value');
     });
 
     test("_replace_id_collapse", function() {

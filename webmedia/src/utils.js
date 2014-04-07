@@ -7,8 +7,10 @@ if (typeof xmltool === 'undefined') {
 (function($, ns){
     var re_split = new RegExp('^(.*):([^:]+)$');
 
-    var ATTRNAMES = ['name', 'id', 'class', 'value', 'href'];
-    var DATANAMES = ['id', 'comment-name', 'target', 'elt-id'];
+    // To make the selector by attributes works on 'data' we need to use the attr
+    // property insteaf of data.
+    var ATTRNAMES = ['name', 'id', 'class', 'value', 'href',
+                     'data-id', 'data-comment-name', 'data-target', 'data-elt-id'];
 
     ns.utils = {
         escape_id: function(id){
@@ -28,14 +30,6 @@ if (typeof xmltool === 'undefined') {
                 elt.attr(name, value);
             }
         },
-        _data: function(elt, name, value){
-            if(typeof value === 'undefined'){
-                return elt.data(name);
-            }
-            else{
-                elt.data(name, value);
-            }
-        },
         increment_id: function(prefix, elts, index, step, offset, force_index){
             step = step || 1;
             offset = offset || 0;
@@ -50,7 +44,6 @@ if (typeof xmltool === 'undefined') {
                 }
 
                 ns.utils._replace_id(prefix, elt, ns.utils._attr, ATTRNAMES, tmp_index);
-                ns.utils._replace_id(prefix, elt, ns.utils._data, DATANAMES, tmp_index);
                 ns.utils.increment_id(prefix, elt.children(), 0, 1, offset, tmp_index);
 
                 if (step === 1){
@@ -121,7 +114,6 @@ if (typeof xmltool === 'undefined') {
                     tmp_index = index;
                 }
                 ns.utils._replace_id(prefix, elt, ns.utils._attr, ATTRNAMES, tmp_index);
-                ns.utils._replace_id(prefix, elt, ns.utils._data, DATANAMES, tmp_index);
                 ns.utils.replace_id(prefix, elt.children(), 1, tmp_index);
 
                 if (step === 1){
