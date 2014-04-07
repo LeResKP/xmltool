@@ -173,7 +173,9 @@ if (typeof xmltool === 'undefined') {
         if($btn.hasClass('btn-list')) {
             var nexts = $parent.nextAll();
             // Remove the add button
-            $parent.prev().remove();
+            // NOTE: we delete the button after the parent to keep indexing
+            // consistent.
+            $parent.next().remove();
             $parent.remove();
             var longprefix = xmltool.utils.get_prefix($parent.attr('id'));
             var prefix = xmltool.utils.get_prefix(longprefix);
