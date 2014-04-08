@@ -1,6 +1,10 @@
 Changelog
 =========
 
+O.3.6:
+    * Add functions to update existing object with data from other one
+    * Some cleanup and fixes
+
 O.3.5:
     * Use grunt to manage the webmedia
     * Use bootstrap to make the HTML rendering
