@@ -196,7 +196,7 @@ def _create_class_dict(dtd_dict):
         cls = type(tagname, (c,), {
             'tagname': tagname,
             '_attribute_names': [tple[0] for tple in dic['attrs']],
-            '_sub_elements': [],
+            'children_classes': [],
             '_is_empty': is_empty,
         })
         class_dict[tagname] = cls
@@ -207,7 +207,7 @@ def _create_classes(dtd_dict):
     class_dict = _create_class_dict(dtd_dict)
     for tagname, dic in dtd_dict.items():
         cls = class_dict[tagname]
-        lis  = _parse_elts(dic['elts'])
+        lis = _parse_elts(dic['elts'])
         for (name, required, islist, conditionals) in lis:
             if name in ['#PCDATA', 'EMPTY']:
                 # Text with no sub elements
@@ -215,12 +215,12 @@ def _create_classes(dtd_dict):
             sub_cls = _create_new_class(
                 class_dict, name, required, islist, conditionals)
             sub_cls.parent = cls
-            cls._sub_elements += [sub_cls]
+            cls.children_classes += [sub_cls]
 
     return class_dict
 
 
-def parse(dtd_str=None, dtd_url=None):
+def parse(dtd_str=None, dtd_url=None, path=None):
     # TODO: try to put a cache on this function
     if not dtd_str and not dtd_url:
         raise ValueError, 'You didn\'t provide dtd_str nor dtd_url'
@@ -229,7 +229,7 @@ def parse(dtd_str=None, dtd_url=None):
         raise ValueError, 'You should provide either dtd_str or dtd_url'
 
     if dtd_url:
-        dtd_str = utils.get_dtd_content(dtd_url)
+        dtd_str = utils.get_dtd_content(dtd_url, path)
 
     dtd_dict = dtd_to_dict_v2(dtd_str)
     return _create_classes(dtd_dict)

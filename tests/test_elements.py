@@ -3,7 +3,7 @@
 from unittest import TestCase
 from lxml import etree
 import os.path
-from xmltool import utils
+from xmltool import utils, dtd_parser
 from xmltool.elements import (
     Element,
     ListElement,
@@ -39,24 +39,55 @@ class TestElement(TestCase):
     def setUp(self):
         self.sub_cls = type('SubCls', (Element,),
                             {'tagname': 'subtag',
-                             '_sub_elements': []})
+                             'children_classes': []})
         self.cls = type('Cls', (Element, ), {'tagname': 'tag',
-                                             '_sub_elements': [self.sub_cls]})
+                                             'children_classes': [self.sub_cls]})
+
+    def test_prefixes_no_cache(self):
+        obj = type('Cls', (Element, ),
+                   {'tagname': 'tag',
+                    'children_classes': []})()
+        parent_obj = type('Cls', (Element, ),
+                          {'tagname': 'ptag',
+                           'children_classes': [obj.__class__]})()
+        self.assertEqual(obj.prefixes_no_cache, ['tag'])
+        self.assertEqual(parent_obj.prefixes_no_cache, ['ptag'])
+
+        obj.parent = parent_obj
+        self.assertEqual(obj.prefixes_no_cache, ['ptag', 'tag'])
+
+    def test_prefixes(self):
+        obj = type('Cls', (Element, ),
+                   {'tagname': 'tag',
+                    'children_classes': []})()
+        parent_obj = type('Cls', (Element, ),
+                          {'tagname': 'ptag',
+                           'children_classes': [obj.__class__]})()
+        self.assertEqual(obj.prefixes, ['tag'])
+        self.assertEqual(parent_obj.prefixes, ['ptag'])
+
+        # The prefixes are in the cache
+        obj.parent = parent_obj
+        self.assertEqual(obj.prefixes, ['tag'])
+        self.assertEqual(obj._cache_prefixes, ['tag'])
+
+        obj._cache_prefixes = None
+        self.assertEqual(obj.prefixes, ['ptag', 'tag'])
 
     def test__get_allowed_tagnames(self):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['tag'])
 
-    def test__get_sub_element(self):
-        self.assertEqual(self.cls._get_sub_element('subtag'), self.sub_cls)
-        self.assertEqual(self.cls._get_sub_element('unexisting'), None)
+    def test_get_child_class(self):
+        self.assertEqual(self.cls.get_child_class('subtag'), self.sub_cls)
+        self.assertEqual(self.cls.get_child_class('unexisting'), None)
 
     def test__get_value_from_parent(self):
         obj = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                    '_sub_elements': []})()
+                    'children_classes': []})()
         parent_obj = type('Cls', (Element, ),
                           {'tagname': 'tag',
-                           '_sub_elements': [obj.__class__]})()
+                           'children_classes': [obj.__class__]})()
         self.assertEqual(self.cls._get_value_from_parent(parent_obj), None)
         parent_obj.tag = obj
         self.assertEqual(self.cls._get_value_from_parent(parent_obj), obj)
@@ -64,10 +95,10 @@ class TestElement(TestCase):
     def test__get_sub_value(self):
         obj = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                    '_sub_elements': []})()
+                    'children_classes': []})()
         parent_obj = type('Cls', (Element, ),
                           {'tagname': 'tag',
-                           '_sub_elements': [obj.__class__]})()
+                           'children_classes': [obj.__class__]})()
         result = self.cls._get_sub_value(parent_obj)
         self.assertFalse(result)
         self.cls._required = True
@@ -82,7 +113,7 @@ class TestElement(TestCase):
         self.assertFalse(obj._has_value())
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                    '_sub_elements': []})
+                    'children_classes': []})
         obj.subtag = cls()
         self.assertTrue(obj._has_value())
 
@@ -109,32 +140,38 @@ class TestElement(TestCase):
     def test_root(self):
         parent_obj = type('Cls', (Element, ),
                           {'tagname': 'tag',
-                           '_sub_elements': []})()
+                           'children_classes': []})()
         self.assertEqual(parent_obj.root, parent_obj)
-        obj = self.cls._add('tagname', parent_obj)
+        obj = self.cls._create('tagname', parent_obj)
         self.assertEqual(obj.root, parent_obj)
 
     def test__add(self):
         parent_obj = type('Cls', (Element, ),
                           {'tagname': 'tag',
-                           '_sub_elements': []})()
+                           'children_classes': []})()
         try:
-            obj = self.cls._add('tagname', parent_obj, 'my value')
+            obj = self.cls._create('tagname', parent_obj, 'my value')
             assert 0
         except Exception, e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
-        obj = self.cls._add('tagname', parent_obj)
-        self.assertEqual(obj._parent, parent_obj)
-        self.assertEqual(obj._root, parent_obj)
+        obj = self.cls._create('tagname', parent_obj)
+        self.assertEqual(obj.parent, parent_obj)
+        self.assertEqual(obj.root, parent_obj)
         self.assertTrue(isinstance(obj, Element))
         self.assertEqual(parent_obj['tagname'], obj)
 
-        try:
-            obj = Element._add('tagname', parent_obj)
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e), 'tagname already defined')
+    def test_is_addable(self):
+        obj = self.cls()
+        res = obj.is_addable('test')
+        self.assertEqual(res, False)
+
+        res = obj.is_addable('subtag')
+        self.assertEqual(res, True)
+
+        obj['subtag'] = 'somthing'
+        res = obj.is_addable('subtag')
+        self.assertEqual(res, False)
 
     def test_add(self):
         parent_obj = FakeClass()
@@ -315,14 +352,14 @@ class TestElement(TestCase):
         xml.append(etree.Comment('comment'))
 
         sub_cls1 = type('SubClsPrev', (Element,), {'tagname': 'prev',
-                                                   '_sub_elements': []})
+                                                   'children_classes': []})
         sub_cls2 = type('SubClsElement', (Element,),
                         {'tagname': 'element',
-                         '_sub_elements': [],
+                         'children_classes': [],
                          '_attribute_names': ['attr']})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                    '_sub_elements': [sub_cls1, sub_cls2]})
+                    'children_classes': [sub_cls1, sub_cls2]})
         obj = cls()
         obj.load_from_xml(xml)
         self.assertTrue(obj)
@@ -345,14 +382,14 @@ class TestElement(TestCase):
 
     def test_load_from_dict(self):
         sub_cls1 = type('SubClsPrev', (Element,), {'tagname': 'prev',
-                                                   '_sub_elements': []})
+                                                   'children_classes': []})
         sub_cls2 = type('SubClsElement', (Element,),
                         {'tagname': 'element',
-                         '_sub_elements': [],
+                         'children_classes': [],
                          '_attribute_names': ['attr']})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                    '_sub_elements': [sub_cls1, sub_cls2]})
+                    'children_classes': [sub_cls1, sub_cls2]})
         obj = cls()
         dic = {}
         obj.load_from_dict(dic)
@@ -378,17 +415,17 @@ class TestElement(TestCase):
     def test_load_from_dict_sub_list(self):
         sub_cls = type('Element', (Element,),
                        {'tagname': 'sub',
-                        '_sub_elements': [],
+                        'children_classes': [],
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
-                         '_sub_elements': [],
+                         'children_classes': [],
                          '_elts': [sub_cls]})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                    '_sub_elements': [list_cls]})
-        obj = cls()
+                    'children_classes': [list_cls]})
         dic = {}
+        obj = cls()
         obj.load_from_dict(dic)
         self.assertEqual(obj._comment, None)
         self.assertEqual(obj._attributes, None)
@@ -402,8 +439,8 @@ class TestElement(TestCase):
                     }}]
             }
         }
+        obj = cls()
         obj.load_from_dict(dic)
-        self.assertTrue(obj)
         self.assertEqual(obj._comment, 'comment')
         self.assertFalse(obj._attributes)
         self.assertFalse(hasattr(obj, 'prev'))
@@ -412,14 +449,37 @@ class TestElement(TestCase):
         self.assertEqual(obj.sub[0]._comment, 'element comment')
         self.assertEqual(obj.sub[0]._attributes, {'attr': 'value'})
 
+        # Test with empty element to keep the index position
+        dic = {
+            'tag': {
+                '_comment': 'comment',
+                'element': [
+                    None,
+                    {'sub': {
+                        '_attrs': {'attr': 'value'},
+                        '_comment': 'element comment'
+                    }}]
+            }
+        }
+        obj = cls()
+        obj.load_from_dict(dic)
+        self.assertEqual(obj._comment, 'comment')
+        self.assertFalse(obj._attributes)
+        self.assertFalse(hasattr(obj, 'prev'))
+        self.assertTrue(obj.sub)
+        self.assertEqual(len(obj.sub), 2)
+        self.assertTrue(isinstance(obj.sub[0], elements.EmptyElement))
+        self.assertEqual(obj.sub[1]._comment, 'element comment')
+        self.assertEqual(obj.sub[1]._attributes, {'attr': 'value'})
+
     def test_to_xml(self):
         sub_cls = type('SubClsElement', (Element,),
                             {'tagname': 'element',
-                             '_sub_elements': [],
+                             'children_classes': [],
                              '_attribute_names': ['attr']})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                   '_sub_elements': [sub_cls]})
+                   'children_classes': [sub_cls]})
         obj = cls()
         obj.element = sub_cls()
         obj.element._comment = 'comment'
@@ -437,7 +497,7 @@ class TestElement(TestCase):
     def test_to_xml_sub_list(self):
         sub_cls = type('Element', (Element,),
                        {'tagname': 'sub',
-                        '_sub_elements': [],
+                        'children_classes': [],
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                             {'tagname': 'element',
@@ -445,7 +505,7 @@ class TestElement(TestCase):
                             })
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                   '_sub_elements': [list_cls]})
+                   'children_classes': [list_cls]})
         obj = cls()
         obj1 = sub_cls()
         obj1._comment = 'comment1'
@@ -591,7 +651,7 @@ class TestElement(TestCase):
             'data': 'subtag',
             'attr': {
                 'id': 'tree_subtag',
-                'class': 'tree_:subtag'},
+                'class': 'tree_subtag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -601,7 +661,7 @@ class TestElement(TestCase):
             'data': 'subtag',
             'attr': {
                 'id': 'tree_subtag',
-                'class': 'tree_:subtag'},
+                'class': 'tree_subtag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -612,7 +672,7 @@ class TestElement(TestCase):
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_:tag'},
+                'class': 'tree_tag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -644,21 +704,21 @@ class TestElement(TestCase):
     def test_to_jstree_dict_with_ListElement(self):
         sub_cls = type('Element', (Element,),
                        {'tagname': 'sub',
-                        '_sub_elements': [],
+                        'children_classes': [],
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
                          '_elts': [sub_cls]})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                   '_sub_elements': [list_cls]})
+                   'children_classes': [list_cls]})
         obj = cls()
         result = obj.to_jstree_dict([])
         expected = {
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_:tag'},
+                'class': 'tree_tag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -668,7 +728,7 @@ class TestElement(TestCase):
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_:tag'
+                'class': 'tree_tag'
             },
             'children': [
                 {
@@ -727,8 +787,8 @@ class TestElement(TestCase):
 
         sub_sub_cls = type('SubSubCls', (TextElement, ),
                        {'tagname': 'subsub',
-                        '_sub_elements': []})
-        self.sub_cls._sub_elements = [sub_sub_cls]
+                        'children_classes': []})
+        self.sub_cls.children_classes = [sub_sub_cls]
         subsub1 = sub_sub_cls()
         obj.subsub = subsub1
         lis = [e for e in parent_obj.walk()]
@@ -808,9 +868,12 @@ class TestElement(TestCase):
 class TestTextElement(TestCase):
 
     def setUp(self):
+        self.sub_cls = type('SubCls', (Element,),
+                            {'tagname': 'subtag',
+                             'children_classes': []})
         self.cls = type('Cls', (TextElement, ),
                         {'tagname': 'tag',
-                         '_sub_elements': [],
+                         'children_classes': [self.sub_cls],
                          '_attribute_names': ['attr']})
 
     def test___repr__(self):
@@ -820,9 +883,12 @@ class TestTextElement(TestCase):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['tag'])
 
     def test__add(self):
-        parent_obj = FakeClass()
-        obj = self.cls._add('tagname', parent_obj, 'my value')
+        parent = type('Cls', (Element, ),
+                      {'tagname': 'tag',
+                       'children_classes': []})()
+        obj = self.cls._create('tagname', parent, 'my value')
         self.assertEqual(obj._value, 'my value')
+        self.assertEqual(obj.parent, parent)
 
     def test_load_from_xml(self):
         root = etree.Element('root')
@@ -951,7 +1017,7 @@ class TestTextElement(TestCase):
                            {'tagname': 'mytag',
                             '_attribute_names': [],
                             '_elts': [],
-                            '_sub_elements': []})()
+                            'children_classes': []})()
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
@@ -1004,7 +1070,7 @@ class TestTextElement(TestCase):
                            {'tagname': 'mytag',
                             '_attribute_names': [],
                             '_elts': [],
-                            '_sub_elements': []})()
+                            'children_classes': []})()
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
@@ -1021,22 +1087,22 @@ class TestListElement(TestCase):
         self.sub_cls = type('SubCls', (Element, ),
                             {'tagname': 'tag',
                              '_attribute_names': ['attr'],
-                             '_sub_elements': []})
+                             'children_classes': []})
         self.cls = type('Cls', (ListElement,), {'tagname': 'list_cls',
                                                 '_elts': [self.sub_cls]})
 
     def test__get_allowed_tagnames(self):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['list_cls', 'tag'])
 
-    def test__get_sub_element(self):
-        self.assertEqual(self.cls._get_sub_element('tag'), self.sub_cls)
-        self.assertEqual(self.cls._get_sub_element('list_cls'), None)
+    def test_get_child_class(self):
+        self.assertEqual(self.cls.get_child_class('tag'), self.sub_cls)
+        self.assertEqual(self.cls.get_child_class('list_cls'), None)
 
     def test__get_value_from_parent(self):
         obj_cls = type('Cls', (Element,), {'tagname': 'tag',
-                                           '_sub_elements': []})
+                                           'children_classes': []})
         parent_obj_cls = type('Cls', (Element,), {'tagname': 'tg',
-                                                  '_sub_elements': [obj_cls]})
+                                                  'children_classes': [obj_cls]})
         obj = obj_cls()
         parent_obj = parent_obj_cls()
         self.assertEqual(self.cls._get_value_from_parent(parent_obj), None)
@@ -1047,38 +1113,46 @@ class TestListElement(TestCase):
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
         self.cls._elts += [sub_cls]
         obj_cls = type('Cls', (Element,), {'tagname': 'list_cls',
-                                           '_sub_elements': []})
+                                           'children_classes': []})
         parent_obj_cls = type('Cls', (Element,), {'tagname': 'tg',
-                                                  '_sub_elements': [obj_cls]})
+                                                  'children_classes': [obj_cls]})
         parent_obj = parent_obj_cls()
         obj = obj_cls()
         self.assertEqual(self.cls._get_value_from_parent(parent_obj), None)
         parent_obj.list_cls = obj
         self.assertEqual(self.cls._get_value_from_parent(parent_obj), obj)
 
+    def test_is_addable(self):
+        obj = self.cls()
+        self.assertEqual(obj.is_addable('tag'), True)
+        self.assertEqual(obj.is_addable('test'), False)
+        # Addable even we already have element defined
+        obj.add('tag')
+        self.assertEqual(obj.is_addable('tag'), True)
+
     def test__add(self):
         sub_cls = type('LisCls', (ListElement, ), {'tagname': 'tag',
                                                    '_elts': [],
-                                                   '_sub_elements': []})
+                                                   'children_classes': []})
         parent_obj = type('PCls', (Element, ), {'tagname': 'tag1',
-                                                '_sub_elements': [sub_cls]})()
+                                                'children_classes': [sub_cls]})()
         parent_obj.tag = sub_cls(parent_obj)
 
         self.assertEqual(parent_obj.tag._root, parent_obj)
         try:
-            obj1 = self.cls._add('tag', parent_obj, 'my value')
+            obj1 = self.cls._create('tag', parent_obj, 'my value')
             assert 0
         except Exception, e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
-        obj1 = self.cls._add('tag', parent_obj)
+        obj1 = self.cls._create('tag', parent_obj)
         self.assertTrue(obj1._tagname, 'tag')
         self.assertEqual(obj1._parent, parent_obj.tag)
         self.assertEqual(obj1._root, parent_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertEqual(parent_obj.tag, [obj1])
 
-        obj2 = self.cls._add('tag', parent_obj)
+        obj2 = self.cls._create('tag', parent_obj)
         self.assertTrue(obj2._tagname, 'tag')
         self.assertEqual(obj2._parent, parent_obj.tag)
         self.assertEqual(obj2._root, parent_obj)
@@ -1087,23 +1161,27 @@ class TestListElement(TestCase):
 
         self.cls._elts = [type('Cls', (TextElement, ),
                           {'tagname': 'tag',
-                           '_sub_elements': []})]
-        obj3 = self.cls._add('tag', parent_obj, 'my value')
+                           'children_classes': []})]
+        obj3 = self.cls._create('tag', parent_obj, 'my value')
         self.assertEqual(obj3._value, 'my value')
+
+        obj4 = parent_obj['list_cls'].add('tag', index=0)
+        self.assertEqual(parent_obj['list_cls'].index(obj4), 0)
+        self.assertEqual(len(parent_obj['list_cls']), 4)
 
     def test__add_multiple(self):
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1',
-                                               '_sub_elements': []})
+                                               'children_classes': []})
         self.cls._elts += [sub_cls]
 
         lelement = type('LisCls', (ListElement, ), {'tagname': 'list_cls',
                                                     '_elts': [],
-                                                    '_sub_elements': []})
+                                                    'children_classes': []})
 
         parent_obj = type('PCls', (Element, ), {'tagname': 'tag1',
-                                                '_sub_elements': [lelement]})()
+                                                'children_classes': [lelement]})()
         parent_obj.list_cls = lelement(parent_obj)
-        obj1 = self.cls._add('tag', parent_obj)
+        obj1 = self.cls._create('tag', parent_obj)
         self.assertTrue(obj1.tagname, 'tag')
         self.assertEqual(obj1._parent, parent_obj.list_cls)
         self.assertEqual(obj1._root, parent_obj)
@@ -1111,12 +1189,33 @@ class TestListElement(TestCase):
         self.assertFalse(hasattr(parent_obj, 'tag'))
         self.assertEqual(parent_obj.list_cls, [obj1])
 
-        obj2 = self.cls._add('tag1', parent_obj)
+        obj2 = self.cls._create('tag1', parent_obj)
         self.assertTrue(obj2.tagname, 'tag1')
         self.assertEqual(obj2._parent, parent_obj.list_cls)
         self.assertEqual(obj2._root, parent_obj)
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj.list_cls, [obj1, obj2])
+
+    def test_add_list_of_list(self):
+        dtd_str = '''
+        <!ELEMENT texts (text+)>
+        <!ELEMENT text (subtext+)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic['texts']()
+        text = obj.add('text')
+        subtext = text.add('subtext', 'value')
+        self.assertEqual(subtext.text, 'value')
+
+    def test_remove_empty_element(self):
+        obj = self.cls()
+        obj.append(None)
+        obj.append(elements.EmptyElement(parent=obj))
+        self.assertEqual(len(obj), 2)
+        obj.remove_empty_element()
+        self.assertEqual(len(obj), 1)
+        self.assertEqual(obj, [None])
 
     def test_to_xml(self):
         obj = self.cls()
@@ -1283,7 +1382,7 @@ class TestListElement(TestCase):
     def test_walk(self):
         sub_cls = type('SubCls', (Element, ),
                        {'tagname': 'tag1',
-                        '_sub_elements': []})
+                        'children_classes': []})
         self.cls._elts += [sub_cls]
 
         parent_obj = self.cls()
@@ -1296,8 +1395,8 @@ class TestListElement(TestCase):
 
         sub_sub_cls = type('SubSubCls', (TextElement, ),
                        {'tagname': 'subsub',
-                        '_sub_elements': []})
-        self.sub_cls._sub_elements = [sub_sub_cls]
+                        'children_classes': []})
+        self.sub_cls.children_classes = [sub_sub_cls]
         subsub1 = sub_sub_cls()
         obj1.subsub = subsub1
         lis = [e for e in parent_obj.walk()]
@@ -1306,11 +1405,11 @@ class TestListElement(TestCase):
     def test_walk_list(self):
         parent_obj = type('ParentCls', (Element, ),
                        {'tagname': 'parent',
-                        '_sub_elements': [self.cls]})()
+                        'children_classes': [self.cls]})()
         sub_sub_cls = type('SubSubCls', (TextElement, ),
                        {'tagname': 'subsub',
-                        '_sub_elements': []})
-        self.sub_cls._sub_elements = [sub_sub_cls]
+                        'children_classes': []})
+        self.sub_cls.children_classes = [sub_sub_cls]
         obj = self.cls(parent_obj)
         parent_obj.tag = obj
         sub1 = self.sub_cls()
@@ -1337,33 +1436,33 @@ class TestChoiceElement(TestCase):
     def setUp(self):
         self.sub_cls1 = type('SubCls', (Element, ),
                              {'tagname': 'tag1',
-                              '_sub_elements': []})
+                              'children_classes': []})
         self.sub_cls2 = type('SubCls', (Element, ),
                              {'tagname': 'tag2',
-                              '_sub_elements': []})
+                              'children_classes': []})
         self.cls = type('Cls', (ChoiceElement,),
                         {'tagname': 'choice_cls',
-                         '_sub_elements': [],
+                         'children_classes': [],
                          '_elts': [self.sub_cls1,
                                    self.sub_cls2]})
 
     def test__get_allowed_tagnames(self):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['tag1', 'tag2'])
 
-    def test__get_sub_element(self):
-        self.assertEqual(self.cls._get_sub_element('tag1'), self.sub_cls1)
-        self.assertEqual(self.cls._get_sub_element('tag2'), self.sub_cls2)
+    def test_get_child_class(self):
+        self.assertEqual(self.cls.get_child_class('tag1'), self.sub_cls1)
+        self.assertEqual(self.cls.get_child_class('tag2'), self.sub_cls2)
 
     def test__get_value_from_parent(self):
         sub_cls1 = type('SubSubCls', (TextElement, ),
                         {'tagname': 'tag1',
-                         '_sub_elements': []})
+                         'children_classes': []})
         sub_cls2 = type('SubSubCls', (TextElement, ),
                         {'tagname': 'tag2',
-                         '_sub_elements': []})
+                         'children_classes': []})
         parent_obj = type('ParentCls', (Element, ),
                           {'tagname': 'parent',
-                           '_sub_elements': [sub_cls1, sub_cls2]})()
+                           'children_classes': [sub_cls1, sub_cls2]})()
         obj1 = sub_cls1()
         obj2 = sub_cls2()
         self.assertTrue(obj1 != obj2)
@@ -1376,10 +1475,10 @@ class TestChoiceElement(TestCase):
     def test__get_sub_value(self):
         sub_cls = type('SubSubCls', (TextElement, ),
                        {'tagname': 'tag1',
-                        '_sub_elements': []})
+                        'children_classes': []})
         parent_obj = type('ParentCls', (Element, ),
                           {'tagname': 'parent',
-                           '_sub_elements': [sub_cls]})()
+                           'children_classes': [sub_cls]})()
         obj = sub_cls()
         result = self.cls._get_sub_value(parent_obj)
         self.assertFalse(result)
@@ -1389,40 +1488,46 @@ class TestChoiceElement(TestCase):
         parent_obj.tag1 = obj
         self.assertEqual(self.cls._get_sub_value(parent_obj), obj)
 
+    def test_is_addable(self):
+        obj = self.cls()
+        self.assertEqual(obj.is_addable('test'), False)
+
+    def test_add(self):
+        parent_obj = type('ParentCls', (Element, ),
+                          {'tagname': 'parent',
+                           'children_classes': [self.cls]})()
+        obj = self.cls(parent_obj)
+
+        try:
+            obj.add('test')
+        except Exception, e:
+            self.assertEqual(str(e), 'Can\'t add element to ChoiceElement')
+
     def test__add(self):
         parent_obj = type('ParentCls', (Element, ),
                           {'tagname': 'parent',
-                           '_sub_elements': [self.cls]})()
+                           'children_classes': [self.cls]})()
         try:
-            obj1 = self.cls._add('tag1', parent_obj, 'my value')
+            obj1 = self.cls._create('tag1', parent_obj, 'my value')
             assert 0
         except Exception, e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
-        obj1 = self.cls._add('tag1', parent_obj)
+        obj1 = self.cls._create('tag1', parent_obj)
         self.assertTrue(obj1.tagname, 'tag')
         self.assertEqual(obj1._parent, parent_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertEqual(parent_obj.tag1, obj1)
 
-        try:
-            self.cls._add('tag2', parent_obj)
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e), 'tag1 already defined')
-
-        try:
-            self.cls._add('tag1', parent_obj)
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e), 'tag1 already defined')
-
-        parent_obj = FakeClass()
+        parent = type('Cls', (TextElement, ),
+                      {'tagname': 'tag',
+                       'children_classes': []})()
         self.cls._elts = [type('Cls', (TextElement, ),
                           {'tagname': 'tag',
-                           '_sub_elements': []})]
-        obj2 = self.cls._add('tag', parent_obj, 'my value')
+                           'children_classes': []})]
+        obj2 = self.cls._create('tag', parent, 'my value')
         self.assertEqual(obj2._value, 'my value')
+        self.assertEqual(obj2.parent, parent)
 
     def test__get_html_add_button(self):
         html = self.cls._get_html_add_button(None)
@@ -1444,7 +1549,7 @@ class TestChoiceElement(TestCase):
     def test__to_html(self):
         parent_obj = type('ParentCls', (Element, ),
                           {'tagname': 'parent',
-                           '_sub_elements': [self.cls]})()
+                           'children_classes': [self.cls]})()
         html = self.cls._to_html(parent_obj)
         expected = (
             '<select class="btn-add">'
@@ -1660,3 +1765,430 @@ class TestFunctions(TestCase):
                     'class': 'tree_texts:tag2'},
                 'children': []}}
         self.assertEqual(result, expected)
+
+    def test_get_display_data_from_obj(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text1)>
+        <!ELEMENT text1 (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__list:0:list:text1'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text1': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        res = elements.get_display_data_from_obj(obj)
+        expected = {
+            'elt_id': 'texts:list__list:0:list:text1',
+            'html': (
+                '<div id="texts:list__list:0:list:text1">'
+                '<label>text1</label>'
+                '<a data-comment-name="texts:list__list:0:list:text1:_comment" '
+                'class="btn-comment" title="Add comment"></a>'
+                '<textarea class="form-control text1" '
+                'name="texts:list__list:0:list:text1:_value" rows="1">'
+                'Hello world</textarea>'
+                '</div>'),
+            'is_choice': False,
+            'jstree_data': {
+                'attr': {
+                    'class': 'tree_texts:list__list:0:list:text1',
+                    'id': 'tree_texts:list__list:0:list:text1'},
+                'children': [],
+                'data': u'text1 <span class="_tree_text">(Hello world)</span>'
+            },
+            'previous': [('inside', '#tree_texts:list__list:0:list')]
+        }
+        self.assertEqual(res, expected)
+
+        # Test with is_choice
+        obj.is_choice = True
+        res = elements.get_display_data_from_obj(obj)
+        res['is_choice'] = True
+
+        # Test with list object
+        str_id = 'texts:list__list:0:list'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text1': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        res = elements.get_display_data_from_obj(obj)
+        expected = {
+            'elt_id': 'texts:list__list:0:list',
+            'html': (
+                '<div class="panel panel-default list" '
+                'id="texts:list__list:0:list">'
+                '<div class="panel-heading">'
+                '<span data-toggle="collapse" '
+                'href="#collapse-texts\\:list__list\\:0\\:list">list'
+                '<a class="btn-delete btn-list" '
+                'data-target="#texts:list__list:0:list" title="Delete"></a>'
+                '<a data-comment-name="texts:list__list:0:list:_comment" '
+                'class="btn-comment" title="Add comment"></a>'
+                '</span>'
+                '</div>'
+                '<div class="panel-body panel-collapse collapse in" '
+                'id="collapse-texts:list__list:0:list">'
+                '<div id="texts:list__list:0:list:text1">'
+                '<label>text1</label>'
+                '<a data-comment-name="texts:list__list:0:list:text1:_comment"'
+                ' class="btn-comment" title="Add comment"></a>'
+                '<textarea class="form-control text1" '
+                'name="texts:list__list:0:list:text1:_value" rows="1">'
+                'Hello world</textarea>'
+                '</div>'
+                '</div>'
+                '</div>'
+                '<a class="btn-add btn-list" '
+                'data-elt-id="texts:list__list:1:list">New list</a>'),
+            'is_choice': False,
+            'jstree_data': {
+                'attr': {
+                    'class': 'tree_texts:list__list tree_texts:list__list:0',
+                    'id': 'tree_texts:list__list:0:list'},
+                'children': [{
+                    'attr': {
+                        'class': 'tree_texts:list__list:0:list:text1',
+                        'id': 'tree_texts:list__list:0:list:text1'},
+                    'children': [],
+                    'data': ('text1 <span class="_tree_text">'
+                             '(Hello world)</span>')}],
+                'data': 'list'},
+            'previous': [('after', '.tree_texts:tag1'),
+                         ('inside', '#tree_texts')]
+        }
+        self.assertEqual(res, expected)
+
+    def test_load_obj_from_id(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts'
+        data = {}
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'texts')
+
+        str_id = 'texts:tag2'
+        data = {
+            'texts': {
+                'tag2': {
+                    '_value': 'Hello world',
+                }
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag2')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'texts')
+
+        str_id = 'texts:list__list:0:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'list')
+        self.assertEqual(len(obj.parent.parent), 1)
+
+        # Test with list but missing elements: we have the element of index 2
+        # and not the ones for index 0, 1
+        str_id = 'texts:list__list:2:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    None,
+                    None,
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'list')
+        list_obj = obj.parent.parent
+        self.assertEqual(len(list_obj), 3)
+        self.assertTrue(isinstance(list_obj[0], elements.EmptyElement))
+        self.assertTrue(isinstance(list_obj[1], elements.EmptyElement))
+
+        # Test with list but missing elements: we don't have enough element
+        str_id = 'texts:list__list:2:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.parent.tagname, 'list')
+        list_obj = obj.parent.parent
+        self.assertEqual(len(list_obj), 3)
+        self.assertFalse(isinstance(list_obj[0], elements.EmptyElement))
+        self.assertTrue(isinstance(list_obj[1], elements.EmptyElement))
+        self.assertFalse(isinstance(list_obj[2], elements.EmptyElement))
+        self.assertEqual(list_obj[2], obj.parent)
+
+        # Test with enough element, but the one we want is an empty one
+        str_id = 'texts:list__list:1:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        },
+                    },
+                    None,
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        },
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'text')
+        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.parent.tagname, 'list')
+        list_obj = obj.parent.parent
+        self.assertEqual(len(list_obj), 3)
+        self.assertFalse(isinstance(list_obj[0], elements.EmptyElement))
+        # The good element has been generated
+        self.assertFalse(isinstance(list_obj[1], elements.EmptyElement))
+        self.assertFalse(isinstance(list_obj[2], elements.EmptyElement))
+        self.assertEqual(list_obj[1], obj.parent)
+
+    def test_load_obj_from_id_choices(self):
+        dtd_str = '''
+        <!ELEMENT texts ((tag1|tag2)*)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts'
+        data = {}
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'texts')
+
+        str_id = 'texts:list__tag1_tag2:0:tag1'
+        data = {
+            'texts': {
+                'list__tag1_tag2': [
+                    {
+                        'tag1': {'_value': 'Hello world'}
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag1')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'list__tag1_tag2')
+
+        dtd_str = '''
+        <!ELEMENT texts (tag1|tag2)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts'
+        data = {}
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'texts')
+
+        str_id = 'texts:tag1'
+        data = {
+            'texts': {
+                'tag1': {'_value': 'Hello world'}
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag1')
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj.parent.tagname, 'texts')
+
+        data = {
+            'texts': {}
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'tag1')
+        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.parent.tagname, 'texts')
+
+    def test_get_parent_to_add_obj(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__list:0:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        source_id = 'texts:list__list:0:list:text'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        # The 'text' element can be pasted here.
+        self.assertEqual(parentobj, None)
+
+        str_id = 'texts:list__list:0:list'
+        source_id = 'texts:list__list:0:list'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list__list')
+
+        # Remove the 'text' element from 'list'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {}
+                    }
+                ]
+            }
+        }
+        str_id = 'texts:list__list:0:list'
+        source_id = 'texts:list__list:0:list:text'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list')
+
+        # Try with missing element
+        data = {
+            'texts': {
+                'list__list': []
+            }
+        }
+        str_id = 'texts:list__list:10:list'
+        source_id = 'texts:list__list:5:list'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list__list')
+
+        # Try with empty element
+        # The str_id has no value so didn't exist, we want to make sure we
+        # create it correctly
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (tag2)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        data = {
+            'texts': {
+                'list__list': [
+                    None,
+                    None,
+                    {
+                        'list': {'text': {'tag2': {'_value': 'Hello'}}}
+                    }
+                ]
+            }
+        }
+        str_id = 'texts:list__list:1:list'
+        source_id = 'texts:list__list:2:list:text'
+        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+                                                   dtd_str=dtd_str)
+        self.assertEqual(parentobj.tagname, 'list')
+        lis = parentobj.parent
+        self.assertTrue(isinstance(lis[0], elements.EmptyElement))
+        self.assertEqual(lis[1], parentobj)
+
+    def test_add_new_element_from_id(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text)>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__list:0:list:text'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        source_id = 'texts:list__list:0:list:text'
+        clipboard_data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text': {'_value': 'Text to copy'},
+                        }
+                    }
+                ]
+            }
+        }
+        # 'text' element can't be added
+        obj = elements.add_new_element_from_id(str_id, source_id, data,
+                                               clipboard_data,
+                                               dtd_str=dtd_str)
+        self.assertEqual(obj, None)
+
+        str_id = 'texts:list__list:0:list'
+        source_id = 'texts:list__list:0:list'
+        obj = elements.add_new_element_from_id(str_id, source_id, data,
+                                               clipboard_data,
+                                               dtd_str=dtd_str)
+        self.assertEqual(obj.tagname, 'list')
+        self.assertEqual(obj['text'].text, 'Text to copy')
+        self.assertEqual(len(obj.parent), 2)

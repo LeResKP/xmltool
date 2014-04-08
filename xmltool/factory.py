@@ -121,7 +121,7 @@ def update(filename, data, validate=True, transform=None):
         raise Exception('Bad data')
 
     root_tag = data.keys()[0]
-    dic = dtd_parser.parse(dtd_url=dtd_url)
+    dic = dtd_parser.parse(dtd_url=dtd_url, path=os.path.dirname(filename))
     obj = dic[root_tag]()
 
     obj.load_from_dict(data)

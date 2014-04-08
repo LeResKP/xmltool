@@ -18,7 +18,8 @@ class TestUtils(TestCase):
         self.assertTrue(utils.is_http_url(url))
 
     def test_get_dtd_content(self):
-        url = 'http://xmltool.lereskp.fr/static/exercise.dtd'
+        url = ('https://raw.github.com/LeResKP/'
+               'xmltool/master/tests/exercise.dtd')
         http_content = utils.get_dtd_content(url)
         url = 'tests/exercise.dtd'
         fs_content = utils.get_dtd_content(url)
@@ -60,6 +61,30 @@ class TestUtils(TestCase):
         expected = {
             'test': [{'test1': {'value': 'v1'}},
                      {'test1': {'value': 'v2'}}]}
+        self.assertEqual(dic, expected)
+
+        dic = {
+            'test': {'1': {'test1': {'value': 'v1'}},
+                     '3': {'test1': {'value': 'v2'}}
+                    }
+        }
+        utils.numdict_to_list(dic)
+        expected = {
+            'test': [
+                None,
+                {'test1': {'value': 'v1'}},
+                None,
+                {'test1': {'value': 'v2'}}
+            ]}
+        self.assertEqual(dic, expected)
+
+        dic = {
+            'test': {}
+        }
+        utils.numdict_to_list(dic)
+        expected = {
+            'test': []
+        }
         self.assertEqual(dic, expected)
 
     def test_unflatten_params(self):

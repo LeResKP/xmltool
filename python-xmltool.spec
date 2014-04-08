@@ -1,7 +1,6 @@
 %define modname xmltool
-%define version 0.3.5
-%define unmangled_version 0.3.5
-%define unmangled_version 0.3.5
+%define version 0.3.6
+%define unmangled_version 0.3.6
 %define release 1
 
 Summary: Tool to manipulate XML files
@@ -30,6 +29,10 @@ The main goal of this package was to create a HTML form to edit and create a XML
 
 Changelog
 =========
+
+O.3.6:
+    * Add functions to update existing object with data from other one
+    * Some cleanup and fixes
 
 O.3.5:
     * Use grunt to manage the webmedia

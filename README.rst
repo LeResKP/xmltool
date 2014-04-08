@@ -9,6 +9,10 @@ The main goal of this package was to create a HTML form to edit and create a XML
 Changelog
 =========
 
+O.3.6:
+    * Add functions to update existing object with data from other one
+    * Some cleanup and fixes
+
 O.3.5:
     * Use grunt to manage the webmedia
     * Use bootstrap to make the HTML rendering

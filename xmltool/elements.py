@@ -14,13 +14,20 @@ DEFAULT_ENCODING = 'UTF-8'
 TREE_PREFIX = 'tree_'
 
 
+class EmptyElement(object):
+    """This object is used in the ListElement to keep the good index.
+    """
+    def __init__(self, parent):
+        self.parent = parent
+
+
 class Element(object):
     """After reading a dtd file we construct some Element
     """
     tagname = None
     _attribute_names = None
     _attributes = None
-    _sub_elements = None
+    children_classes = None
     _required = False
     parent = None
     sourceline = None
@@ -96,14 +103,43 @@ class Element(object):
 
         # Store the XML element here
         self.xml_elements = {}
+        # Cache
+        self._cache_prefixes = None
+
+    @property
+    def prefixes_no_cache(self):
+        """Same function as prefixes, but we don't want to set cache here. This
+        function is used when we construct the objects, so we can't add cache
+        during the construction is not finished
+        """
+        prefixes = []
+        if self.parent:
+            prefixes = self.parent.prefixes_no_cache
+            if isinstance(self.parent, ListElement):
+                prefixes += [str(self.parent.index(self))]
+        prefixes += [self.tagname]
+        return prefixes
+
+    @property
+    def prefixes(self):
+        """Get the list of prefixes for this object
+        """
+        if self._cache_prefixes is None:
+            prefixes = []
+            if self.parent:
+                prefixes = self.parent.prefixes
+                if isinstance(self.parent, ListElement):
+                    prefixes += [str(self.parent.index(self))]
+            self._cache_prefixes = prefixes + [self.tagname]
+        return self._cache_prefixes
 
     @classmethod
     def _get_allowed_tagnames(cls):
         return [cls.tagname]
 
     @classmethod
-    def _get_sub_element(cls, tagname):
-        for e in cls._sub_elements:
+    def get_child_class(cls, tagname):
+        for e in cls.children_classes:
             for tg in e._get_allowed_tagnames():
                 if tg == tagname:
                     return e
@@ -120,7 +156,7 @@ class Element(object):
         return v
 
     def _has_value(self):
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._get_value_from_parent(self)
             if v is not None:
                 return True
@@ -142,27 +178,46 @@ class Element(object):
         return ':'.join(tmp_prefixes)
 
     @classmethod
-    def _add(cls, tagname, parent_obj, value=None):
-        v = parent_obj.xml_elements.get(tagname)
-        if v:
-            raise Exception('%s already defined' % tagname)
-
-        if value and not issubclass(cls, TextElement):
-            raise Exception("Can't set value to non TextElement")
-
-        tmpobj = cls(parent_obj)
-        parent_obj.xml_elements[tagname] = tmpobj
+    def _create(cls, tagname, parent, value=None):
+        obj = cls(parent)
+        if not isinstance(parent, list):
+            # We don't need to set the element to the parent since it will be
+            # append to it!
+            parent[tagname] = obj
         if value:
-            tmpobj.text = value
-        return tmpobj
+            if not issubclass(cls, TextElement):
+                raise Exception("Can't set value to non TextElement")
+            obj.text = value
+        return obj
+
+    @classmethod
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        if tagname in obj:
+            raise Exception('%s is already defined' % tagname)
+
+    def is_addable(self, tagname):
+        """Check if the given tagname can be added to the object
+        """
+        cls = self.get_child_class(tagname)
+        if cls is None:
+            return False
+        try:
+            cls._check_addable(self, tagname)
+            return True
+        except:
+            pass
+        return False
 
     def add(self, tagname, value=None):
-        cls = self._get_sub_element(tagname)
-
+        cls = self.get_child_class(tagname)
         if cls is None:
             raise Exception('Invalid child %s' % tagname)
 
-        obj = cls._add(tagname, self, value)
+        # May raise an exception
+        cls._check_addable(self, tagname)
+        obj = cls._create(tagname, self, value)
         return obj
 
     def add_attribute(self, name, value):
@@ -290,9 +345,15 @@ class Element(object):
         for key, value in data.items():
             if isinstance(value, list):
                 for d in value:
-                    assert(len(d) == 1)
-                    obj = self.add(d.keys()[0])
-                    obj.load_from_dict(d)
+                    if d is None:
+                        # Add empty element to keep index in the list.
+                        lis = self.add(key)
+                        elt = EmptyElement(parent=lis)
+                        lis.append(elt)
+                    else:
+                        assert(len(d) == 1)
+                        obj = self.add(d.keys()[0])
+                        obj.load_from_dict(d)
             else:
                 obj = self.add(key)
                 obj.load_from_dict(data)
@@ -301,7 +362,7 @@ class Element(object):
         xml = etree.Element(self.tagname)
         self._comment_to_xml(xml)
         self._attributes_to_xml(xml)
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._get_sub_value(self)
 
             if v is not None:
@@ -358,7 +419,7 @@ class Element(object):
 
         tmp_prefixes = self._get_prefixes(prefixes, index)
         sub_html = [self._attributes_to_html(prefixes, index)]
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             tmp = elt._to_html(self, tmp_prefixes)
             if tmp:
                 sub_html += [tmp]
@@ -421,7 +482,11 @@ class Element(object):
         if index is not None:
             css_class += ' ' + TREE_PREFIX + ':'.join((prefixes+[str(index)]))
         else:
-            css_class += ':' + self.tagname
+            if not prefixes:
+                css_class += self.tagname
+            else:
+                # We don't want to have tree_:tagname
+                css_class += ':' + self.tagname
 
         dic = {
             'data': data,
@@ -431,7 +496,7 @@ class Element(object):
             },
         }
         children = []
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._to_jstree_dict(self, tmp_prefixes)
             if v:
                 if isinstance(v, list):
@@ -442,7 +507,7 @@ class Element(object):
         return dic
 
     def __setattr__(self, prop, value):
-        if self._get_sub_element(prop):
+        if self.get_child_class(prop):
             # If it's an element set the value to the dict of elements
             self.xml_elements[prop] = value
             msg = ("You should use the dict way to set a value: "
@@ -470,9 +535,12 @@ class Element(object):
 
     def __getitem__(self, tagname):
         v = self.xml_elements.get(tagname)
-        if not v:
+        if v is None:
             raise KeyError(tagname)
         return v
+
+    def get(self, tagname):
+        return self.xml_elements.get(tagname)
 
     def __contains__(self, tagname):
         return tagname in self.xml_elements
@@ -484,7 +552,7 @@ class Element(object):
         return self.add(tagname)
 
     def walk(self):
-        for elt in self._sub_elements:
+        for elt in self.children_classes:
             v = elt._get_value_from_parent(self)
             if not v:
                 continue
@@ -697,7 +765,7 @@ class MultipleMixin(object):
     _elts = None
 
     @classmethod
-    def _get_sub_element(cls, tagname):
+    def get_child_class(cls, tagname):
         for e in cls._elts:
             if e.tagname == tagname:
                 return e
@@ -712,37 +780,62 @@ class ListElement(list, MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        lis = [cls.tagname]
-        for e in cls._elts:
-            lis += [e.tagname]
-        return lis
+        return [cls.tagname] + [e.tagname for e in cls._elts]
 
     @classmethod
-    def _add(cls, tagname, parent_obj, value=None):
-        elt = cls._get_sub_element(tagname)
-        if value and not issubclass(elt, TextElement):
-            raise Exception("Can't set value to non TextElement")
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        # We can always add an element to a list.
+        pass
 
-        tg = cls.tagname
-        if len(cls._elts) == 1:
-            tg = tagname
+    def add(self, *args, **kw):
+        index = kw.pop('index', None)
+        e = super(ListElement, self).add(*args, **kw)
+        assert(e)
+        if index is not None:
+            self.insert(index, e)
+        else:
+            self.append(e)
+        return e
 
-        lis = parent_obj.xml_elements.get(tg)
+    @classmethod
+    def _create(cls, tagname, parent, value=None):
+        # Get the list element or create it
+        lis = parent.get(cls.tagname)
         if lis is None:
-            lis = cls(parent_obj)
-            parent_obj.xml_elements[tg] = lis
-        tmpobj = elt(lis)
-        if value:
-            tmpobj.text = value
-        lis.append(tmpobj)
-        return tmpobj
+            lis = cls(parent)
+            parent[cls.tagname] = lis
+            if len(cls._elts) == 1:
+                # Create a shortcut since we already have one element
+                parent[cls._elts[0].tagname] = lis
+
+        if tagname == cls.tagname:
+            # Special case, when we pass tagname of the class we just want to
+            # get the list object.
+            return lis
+        elt = cls.get_child_class(tagname)
+        obj = elt._create(tagname, lis, value)
+        lis.append(obj)
+        return obj
+
+    def remove_empty_element(self):
+        """Remove the empty elements from this list since it should not be
+        in the XML nor HTML.
+        """
+        to_remove = []
+        for e in self:
+            if isinstance(e, EmptyElement):
+                to_remove += [e]
+        for e in to_remove:
+            self.remove(e)
 
     def to_xml(self):
+        self.remove_empty_element()
         lis = []
         if not len(self) and self._required:
             if len(self._elts) == 1:
                 e = self.add(self._elts[0].tagname)
-                self.append(e)
 
         for e in self:
             if e._comment:
@@ -799,6 +892,7 @@ class ListElement(list, MultipleMixin, Element):
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False, offset=0):
 
+        self.remove_empty_element()
         # We should not have the following parameter for this object
         assert self._attributes is None
         assert index is None
@@ -806,7 +900,6 @@ class ListElement(list, MultipleMixin, Element):
         if not len(self) and (self._required or partial):
             if len(self._elts) == 1:
                 e = self.add(self._elts[0].tagname)
-                self.append(e)
 
         renderer = self.get_html_render()
         i = -1
@@ -834,7 +927,6 @@ class ListElement(list, MultipleMixin, Element):
         if not len(self) and (self._required):
             if len(self._elts) == 1:
                 e = self.add(self._elts[0].tagname)
-                self.append(e)
 
         lis = []
         for i, e in enumerate(self):
@@ -857,26 +949,33 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        lis = []
-        for e in cls._elts:
-            lis += [e.tagname]
-        return lis
+        return [e.tagname for e in cls._elts]
 
     @classmethod
-    def _add(cls, tagname, parent_obj, value=None):
+    def _create(cls, tagname, parent, value=None):
+        elt = cls.get_child_class(tagname)
+        return elt._create(tagname, parent, value)
+
+    def add(self, *args, **kw):
+        raise Exception('Can\'t add element to ChoiceElement')
+
+    def is_addable(self, tagname):
+        # Nothing is addable to ChoiceElement
+        return False
+
+    @classmethod
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        # If one of the different choice is already added, we can't add
+        # anything.
         for elt in cls._elts:
-            if elt.tagname in parent_obj.xml_elements:
-                raise Exception('%s already defined' % elt.tagname)
-
-        elt = cls._get_sub_element(tagname)
-        if value and not issubclass(elt, TextElement):
-            raise Exception("Can't set value to non TextElement")
-
-        tmpobj = elt(parent_obj)
-        if value:
-            tmpobj.text = value
-        parent_obj.xml_elements[tagname] = tmpobj
-        return tmpobj
+            if elt.tagname in obj:
+                err = '%s is already defined' % elt.tagname
+                if elt.tagname != tagname:
+                    err = '%s is defined so you can\'t add %s' % (elt.tagname,
+                                                                  tagname)
+                raise Exception(err)
 
     @classmethod
     def _get_html_add_button(cls, prefixes, index=None, css_class=None):
@@ -934,7 +1033,7 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     while splitted:
         s = splitted.pop(0)
         prefixes += [s]
-        tmp_cls = obj._get_sub_element(s)
+        tmp_cls = obj.get_child_class(s)
         if not tmp_cls:
             raise Exception('Unsupported tag %s' % s)
 
@@ -949,6 +1048,107 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
 
         obj = obj.add(s)
     return obj, prefixes, index
+
+
+def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
+    """Create a root object with the given data.
+    We return the sub object found according to the given str_id.
+    """
+    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    splitted = str_id.split(':')
+    s = splitted.pop(0)
+
+    # Get the root object
+    obj = dic[s]()
+    obj.load_from_dict(data)
+
+    # Find the good object according to the given id
+    subobj = obj
+    while splitted:
+        s = splitted.pop(0)
+        try:
+            s = int(s)
+            # The sub id just after an integer is for the type object, we don't
+            # need it here.
+            subelt = splitted.pop(0)
+            while len(subobj) < s:
+                # We don't have enough element, add some empty one
+                elt = EmptyElement(parent=subobj)
+                subobj.append(elt)
+            # If the last element is missing we should add the right element
+            # type
+            while len(subobj) < (s+1):
+                subobj.add(subelt)
+            subobj = subobj[s]
+
+            if isinstance(subobj, EmptyElement):
+                # The element is empty, we remove it and create the good one!
+                subobj.parent.remove(subobj)
+                subobj = subobj.parent.add(subelt, index=s)
+        except ValueError:
+            if s not in subobj:
+                subobj.add(s)
+            subobj = subobj[s]
+
+    return subobj
+
+
+def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
+    """Create element from data and elt_id and determine if source_id can be
+    added to it or its parent.
+    """
+    target_obj = load_obj_from_id(elt_id, data, dtd_url=dtd_url,
+                                  dtd_str=dtd_str)
+    if isinstance(target_obj, EmptyElement):
+        # The target is an empty object, we remove it and replace it by the
+        # right object.
+        parent = target_obj.parent
+        assert(isinstance(parent, ListElement))
+        index = parent.index(target_obj)
+        parent.pop(index)
+        # Should always been the -2:
+        # -1 is the object we want to copy
+        # -2 is the container, should also be a list
+        # normally a ListElement is at least 3 elements
+        tagname = source_id.split(':')[-2]
+        if not parent.is_addable(tagname):
+            return None
+        target_obj = parent.add(tagname, index=index)
+
+    tagname = source_id.split(':')[-1]
+    parent = None
+    if target_obj.is_addable(tagname):
+        return target_obj
+
+    parent = target_obj.parent
+    if parent and parent.is_addable(tagname):
+        return parent
+
+    return None
+
+
+def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=None,
+                            dtd_str=None):
+    """Create an element from data and elt_id. We get the parent to add
+    source_id with the clipboard_data. This function should be used to make
+    some copy/paste.
+    """
+    parentobj = get_parent_to_add_obj(elt_id, source_id, data, dtd_url=dtd_url,
+                                      dtd_str=dtd_str)
+    if not parentobj:
+        return None
+
+    tagname = source_id.split(':')[-1]
+    obj = parentobj.add(tagname)
+
+    for s in source_id.split(':')[:-1]:
+        try:
+            s = int(s)
+        except:
+            pass
+        clipboard_data = clipboard_data[s]
+    obj.load_from_dict(clipboard_data)
+    return obj
 
 
 def _get_previous_js_selectors(obj, prefixes, index):
@@ -971,9 +1171,9 @@ def _get_previous_js_selectors(obj, prefixes, index):
             return lis
         tmp_prefixes = tmp_prefixes[:-1]
 
-    sub = parent._get_sub_element(obj.tagname)
+    sub = parent.get_child_class(obj.tagname)
 
-    for elt in parent._sub_elements:
+    for elt in parent.children_classes:
         if elt == sub:
             break
         tmp_prefix = list(tmp_prefixes) + [elt.tagname]
@@ -1012,7 +1212,42 @@ def _get_html_from_obj(obj, prefixes, index):
 def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     return {
+        # Since we are calling to_jstree_dict from the object we need to remove
+        # its prefix because it will be added in this method.
         'jstree_data': obj.to_jstree_dict(prefixes[:-1], index),
         'previous': _get_previous_js_selectors(obj, prefixes, index),
         'html': _get_html_from_obj(obj, prefixes, index),
+    }
+
+
+def get_display_data_from_obj(obj):
+    # TODO: refactor this function with get_jstree_json_from_str_id
+    # We should not have to pass the prefixes and index, each Element should be
+    # able to calculate it! Currently it sucks!
+    index = None
+    prefixes = obj.prefixes
+    if obj.parent and isinstance(obj.parent, ListElement):
+        index = int(obj.prefixes[-2])
+        prefixes = prefixes[:-1]
+
+    html = _get_html_from_obj(obj, prefixes, index)
+
+    prefixes = obj.prefixes[:-1]
+    if isinstance(obj.parent, ListElement):
+        index = prefixes[-1]
+        prefixes = prefixes[:-1]
+        jstree_data = obj.to_jstree_dict(prefixes, index=index)
+    else:
+        jstree_data = obj.to_jstree_dict(prefixes)
+
+    prefixes = obj.prefixes
+    if obj.parent and isinstance(obj.parent, ListElement):
+        prefixes = prefixes[:-1]
+
+    return {
+        'jstree_data': jstree_data,
+        'previous': _get_previous_js_selectors(obj, prefixes, index),
+        'html': html,
+        'elt_id': ':'.join(obj.prefixes),
+        'is_choice': obj._is_choice,
     }
