@@ -33,7 +33,7 @@ if (typeof xmltool === 'undefined') {
         var that = this;
         this.$tree.jstree({
             "json_data" : {'data': [data]},
-            "plugins" : ["themes", "json_data", "ui", "crrm", "dnd"],
+            "plugins" : ["themes", "json_data", "ui", "crrm", "dnd", "contextmenu"],
             "core": {
                 html_titles: true
             },
@@ -47,6 +47,26 @@ if (typeof xmltool === 'undefined') {
                 "drop_target" : false,
                 "drag_target" : false
             },
+            contextmenu: {
+                items: function(node){
+                    // TODO: support to not display this menu when we don't
+                    // have the url to copy/paste.
+                    return {
+                        copyItem: {
+                            label: 'Copy',
+                            action: function(n) {
+                                xmltool.jstree.copy(n);
+                            },
+                        },
+                        pasteItem: {
+                            label: 'Paste',
+                            action: function(n) {
+                                xmltool.jstree.paste(n);
+                            }
+                        }
+                    };
+                }
+            }
         }).bind("select_node.jstree", function (e, data) {
             var id = data.rslt.obj.attr("id");
             id = id.replace(/^tree_/, '');

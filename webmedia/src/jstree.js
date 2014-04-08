@@ -97,6 +97,102 @@ if (typeof xmltool === 'undefined') {
                         xmltool.jstree.create_sub_nodes(tree, n, child);
                     }
                 }
+            },
+            copy: function(node) {
+                var id = node.attr('id').replace(/^tree_/, '');
+                var selector = xmltool.utils.escape_id(id);
+                var elt = $('#' + selector);
+                var form = elt.parents('form');
+                var params = form.serialize();
+
+                // xmltool.jstree.copy_id = id;
+                var url = form.data('copy-href');
+                var xmltoolObj = form.data('xmltool');
+                var dtdUrl = xmltoolObj.dtdUrl;
+                params += '&elt_id=' + id + '&dtd_url=' + dtdUrl;
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: params,
+                    dataType: 'json',
+                    async: false,
+                    success: function(data, textStatus, jqXHR){
+                        if (data.error_msg){
+                            xmltoolObj.message('error', data.error_msg);
+                        }
+                        else if (data.info_msg){
+                            xmltoolObj.message('info', data.info_msg);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                        var msg = jqXHR.status + ' ' + jqXHR.statusText;
+                        xmltoolObj.message('error', msg);
+                    }
+                });
+            },
+            paste: function(node) {
+                var id = node.attr('id').replace(/^tree_/, '');
+                var selector = xmltool.utils.escape_id(id);
+
+                var elt = $('#' + selector);
+                var form = elt.parents('form');
+                var params = form.serialize();
+                var url = form.data('paste-href');
+                var xmltoolObj = form.data('xmltool');
+                var dtdUrl = xmltoolObj.dtdUrl;
+
+                params += '&elt_id=' + id + '&dtd_url=' + dtdUrl;
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: params,
+                    dataType: 'json',
+                    async: false,
+                    success: function(data, textStatus, jqXHR){
+                        if (data.error_msg){
+                            xmltoolObj.message('error', data.error_msg);
+                            return false;
+                        }
+
+                        var elt_id = data.elt_id;
+                        var $btn;
+                        if(data.is_choice) {
+                            $btn = $('.btn-add').find('[value="'+ data.elt_id+'"]');
+                            $btn = $btn.parent('select');
+                        }
+                        else {
+                            $btn = $('[data-elt-id="'+ data.elt_id +'"]');
+                        }
+                        var objs = $(data.html);
+                        // TODO: the following logic should be refactorized
+                        // with the function which add element
+                        if($btn.hasClass('btn-list')){
+                            $btn.after(objs);
+                            // Last is the button to add more
+                            var last = $(objs[objs.length-1]);
+                            var nexts = last.nextAll();
+                            var longprefix = xmltool.utils.get_prefix(elt_id);
+                            var prefix = xmltool.utils.get_prefix(longprefix);
+                            var index = xmltool.utils.get_index(longprefix);
+                            xmltool.utils.increment_id(prefix, nexts, index, 2);
+                        }
+                        else {
+                            $btn.replaceWith(objs);
+                        }
+
+                        if ($btn.is('select')) {
+                            $btn.val($btn.find('option:first').val());
+                        }
+
+                        //jstree
+                        form.data('xmltool').add_node(data);
+                        xmltoolObj.message('info', 'Pasted');
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                        var msg = jqXHR.status + ' ' + jqXHR.statusText;
+                        xmltoolObj.message('error', msg);
+                    }
+                });
             }
         });
         return self;
