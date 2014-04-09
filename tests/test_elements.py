@@ -412,6 +412,28 @@ class TestElement(TestCase):
         self.assertEqual(obj.element._comment, 'element comment')
         self.assertEqual(obj.element._attributes, {'attr': 'value'})
 
+        # skip_extra = True
+        obj = cls()
+        # We need a new dict since we remove _attrs and _comment when we
+        # load_from_dict
+        dic = {
+            'tag': {
+                '_comment': 'comment',
+                'element': {
+                    '_attrs': {'attr': 'value'},
+                    '_comment': 'element comment'
+                }
+            }
+        }
+        obj.load_from_dict(dic, skip_extra=True)
+        self.assertTrue(obj)
+        self.assertEqual(obj._comment, None)
+        self.assertFalse(obj._attributes)
+        self.assertFalse(hasattr(obj, 'prev'))
+        self.assertTrue(obj.element)
+        self.assertEqual(obj.element._comment, None)
+        self.assertEqual(obj.element._attributes, None)
+
     def test_load_from_dict_sub_list(self):
         sub_cls = type('Element', (Element,),
                        {'tagname': 'sub',
@@ -926,6 +948,12 @@ class TestTextElement(TestCase):
         self.assertEqual(obj._value, 'text')
         self.assertEqual(obj._comment, 'comment')
         self.assertEqual(obj._attributes, {'attr': 'value'})
+
+        obj = self.cls()
+        obj.load_from_dict(dic, skip_extra=True)
+        self.assertEqual(obj._value, 'text')
+        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj._attributes, None)
 
     def test_to_xml(self):
         obj = self.cls()

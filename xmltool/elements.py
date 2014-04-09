@@ -333,15 +333,24 @@ class Element(object):
             obj = self.add(child.tag)
             obj.load_from_xml(child)
 
-    def _load_extra_from_dict(self, data):
+    def _load_extra_from_dict(self, data, skip_extra=False):
+        if skip_extra:
+            if not data:
+                return
+            # We need to remove the attributes and comment from data since we
+            # don't want to load them as Element.
+            data.pop('_attrs', None)
+            data.pop('_comment', None)
+            return
+
         self._load_attributes_from_dict(data)
         self._load_comment_from_dict(data)
 
-    def load_from_dict(self, dic):
+    def load_from_dict(self, dic, skip_extra=False):
         data = dic.get(self.tagname)
         if not data:
             return
-        self._load_extra_from_dict(data)
+        self._load_extra_from_dict(data, skip_extra=skip_extra)
         for key, value in data.items():
             if isinstance(value, list):
                 for d in value:
@@ -353,10 +362,10 @@ class Element(object):
                     else:
                         assert(len(d) == 1)
                         obj = self.add(d.keys()[0])
-                        obj.load_from_dict(d)
+                        obj.load_from_dict(d, skip_extra=skip_extra)
             else:
                 obj = self.add(key)
-                obj.load_from_dict(data)
+                obj.load_from_dict(data, skip_extra=skip_extra)
 
     def to_xml(self):
         xml = etree.Element(self.tagname)
@@ -661,9 +670,9 @@ class TextElement(Element):
         # We use _exists to know if the tag is defined in the XML.
         self._exists = True
 
-    def load_from_dict(self, dic):
+    def load_from_dict(self, dic, skip_extra=False):
         data = dic[self.tagname]
-        self._load_extra_from_dict(data)
+        self._load_extra_from_dict(data, skip_extra=skip_extra)
         self.text = data.get('_value')
 
     def to_xml(self):
@@ -1128,10 +1137,13 @@ def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
 
 
 def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=None,
-                            dtd_str=None):
+                            dtd_str=None, skip_extra=False):
     """Create an element from data and elt_id. We get the parent to add
     source_id with the clipboard_data. This function should be used to make
     some copy/paste.
+
+    :param skip_extra: If True we don't load the attributes nor the comments
+    :type skip_extra: bool
     """
     parentobj = get_parent_to_add_obj(elt_id, source_id, data, dtd_url=dtd_url,
                                       dtd_str=dtd_str)
@@ -1147,7 +1159,7 @@ def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=Non
         except:
             pass
         clipboard_data = clipboard_data[s]
-    obj.load_from_dict(clipboard_data)
+    obj.load_from_dict(clipboard_data, skip_extra=skip_extra)
     return obj
 
 
