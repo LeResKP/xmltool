@@ -37,6 +37,7 @@ setup(name='xmltool',
           'lxml',
           'WebOb',
           'requests',
+          'dogpile.cache',
       ],
       test_suite='nose.collector',
       tests_require=[
@@ -47,6 +48,7 @@ setup(name='xmltool',
           'tw2.core',
           'WebTest',
           'sieve>=0.1.9',
+          'mock',
       ],
       entry_points="""
       # -*- Entry points: -*-
