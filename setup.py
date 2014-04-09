@@ -36,7 +36,6 @@ setup(name='xmltool',
       install_requires=[
           'lxml',
           'WebOb',
-          'simplejson',
       ],
       test_suite='nose.collector',
       tests_require=[

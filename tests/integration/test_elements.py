@@ -23,7 +23,6 @@ from ..test_dtd_parser import (
     MOVIE_XML_TITANIC,
     MOVIE_XML_TITANIC_COMMENTS,
 )
-import simplejson as json
 
 _marker = object()
 
