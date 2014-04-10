@@ -1,6 +1,9 @@
 Changelog
 =========
 
+O.3.6.1:
+    * Be able to skip attributes and comments when we load object
+
 O.3.6:
     * Add functions to update existing object with data from other one
     * Some cleanup and fixes
