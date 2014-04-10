@@ -268,13 +268,22 @@ if (typeof xmltool === 'undefined') {
                 elt.text('');
             }
             $(this).unbind('keyup.xmltool');
-        }).on('click', '.btn-delete', function(){
+        }).on('click', '.btn-delete', function(e){
+            e.preventDefault();
             that.removeElement($(this));
-        }).on('click', 'a.btn-add', function(){
+            // We need to return false because of bootstrap collapsable. It
+            // doesn't handle 'preventDefault'.
+            return false;
+        }).on('click', 'a.btn-add', function(e){
+            e.preventDefault();
             that.addElement($(this));
-        }).on('change', 'select.btn-add', function(){
+            return false;
+        }).on('change', 'select.btn-add', function(e){
+            e.preventDefault();
             that.addElement($(this));
-        }).on('click', '.btn-comment',function(){
+            return false;
+        }).on('click', '.btn-comment',function(e){
+            e.preventDefault();
             var self = $(this);
 
             var comment_textarea = self.next('._comment');
