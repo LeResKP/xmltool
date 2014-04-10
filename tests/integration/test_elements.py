@@ -179,10 +179,10 @@ class TestElementPCDATA(ElementTester):
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj._tagname, 'texts')
-        self.assertEqual(obj._sourceline, 2)
-        self.assertEqual(obj.text._value, 'Hello world')
-        self.assertEqual(obj.text._sourceline, 3)
+        self.assertEqual(obj.tagname, 'texts')
+        self.assertEqual(obj.sourceline, 2)
+        self.assertEqual(obj['text'].text, 'Hello world')
+        self.assertEqual(obj['text'].sourceline, 3)
 
     def test_add(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
@@ -191,8 +191,8 @@ class TestElementPCDATA(ElementTester):
         cls = classes['texts']
         obj = cls()
         text = obj.add('text')
-        self.assertEqual(text._tagname, 'text')
-        self.assertEqual(obj.text, text)
+        self.assertEqual(text.tagname, 'text')
+        self.assertEqual(obj['text'], text)
 
 
     def test_add_bad_child(self):
@@ -541,26 +541,26 @@ class TestListElement(ElementTester):
         cls = classes['texts']
         obj = cls()
         text1 = obj.add('text')
-        self.assertEqual(text1._tagname, 'text')
-        self.assertEqual(len(obj.text), 1)
-        self.assertEqual(obj.text[0], text1)
+        self.assertEqual(text1.tagname, 'text')
+        self.assertEqual(len(obj['text']), 1)
+        self.assertEqual(obj['text'][0], text1)
 
         text2 = obj.add('text')
-        self.assertEqual(text2._tagname, 'text')
-        self.assertEqual(len(obj.text), 2)
-        self.assertEqual(obj.text[1], text2)
+        self.assertEqual(text2.tagname, 'text')
+        self.assertEqual(len(obj['text']), 2)
+        self.assertEqual(obj['text'][1], text2)
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj._tagname, 'texts')
-        self.assertEqual(obj._sourceline, 2)
-        self.assertEqual(obj.text[0]._value, 'Tag 1')
-        self.assertEqual(obj.text[0]._sourceline, 3)
-        self.assertEqual(obj.text[1]._value, 'Tag 2')
-        self.assertEqual(obj.text[1]._sourceline, 4)
+        self.assertEqual(obj.tagname, 'texts')
+        self.assertEqual(obj.sourceline, 2)
+        self.assertEqual(obj['text'][0].text, 'Tag 1')
+        self.assertEqual(obj['text'][0].sourceline, 3)
+        self.assertEqual(obj['text'][1].text, 'Tag 2')
+        self.assertEqual(obj['text'][1].sourceline, 4)
 
 
 class TestListElementEmpty(ElementTester):
@@ -1024,18 +1024,18 @@ class TestElementChoice(ElementTester):
         cls = classes['texts']
         obj = cls()
         text1 = obj.add('text1')
-        self.assertEqual(text1._tagname, 'text1')
-        self.assertEqual(obj.text1, text1)
+        self.assertEqual(text1.tagname, 'text1')
+        self.assertEqual(obj['text1'], text1)
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj._tagname, 'texts')
-        self.assertEqual(obj._sourceline, 2)
-        self.assertEqual(obj.text1._value, 'Tag 1')
-        self.assertEqual(obj.text1._sourceline, 3)
+        self.assertEqual(obj.tagname, 'texts')
+        self.assertEqual(obj.sourceline, 2)
+        self.assertEqual(obj['text1'].text, 'Tag 1')
+        self.assertEqual(obj['text1'].sourceline, 3)
         self.assertFalse(hasattr(obj, 'text2'))
 
         xml = '''<?xml version='1.0' encoding='UTF-8'?>
@@ -1046,10 +1046,10 @@ class TestElementChoice(ElementTester):
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj._tagname, 'texts')
-        self.assertEqual(obj._sourceline, 2)
-        self.assertEqual(obj.text2._value, 'Tag 2')
-        self.assertEqual(obj.text2._sourceline, 3)
+        self.assertEqual(obj.tagname, 'texts')
+        self.assertEqual(obj.sourceline, 2)
+        self.assertEqual(obj['text2'].text, 'Tag 2')
+        self.assertEqual(obj['text2'].sourceline, 3)
         self.assertFalse(hasattr(obj, 'text1'))
 
 
@@ -1292,23 +1292,23 @@ class TestElementChoiceList(ElementTester):
         cls = classes['texts']
         obj = cls()
         text1 = obj.add('text1')
-        self.assertEqual(obj.list__text1_text2, [text1])
+        self.assertEqual(obj['list__text1_text2'], [text1])
         text2 = obj.add('text2')
-        self.assertEqual(obj.list__text1_text2, [text1, text2])
+        self.assertEqual(obj['list__text1_text2'], [text1, text2])
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj._tagname, 'texts')
-        self.assertEqual(obj._sourceline, 2)
-        self.assertEqual(obj.list__text1_text2[0]._value, 'Tag 1')
-        self.assertEqual(obj.list__text1_text2[0]._sourceline, 3)
-        self.assertEqual(obj.list__text1_text2[1]._value, 'Tag 2')
-        self.assertEqual(obj.list__text1_text2[1]._sourceline, 4)
-        self.assertEqual(obj.list__text1_text2[2]._value, 'Tag 3')
-        self.assertEqual(obj.list__text1_text2[2]._sourceline, 5)
+        self.assertEqual(obj.tagname, 'texts')
+        self.assertEqual(obj.sourceline, 2)
+        self.assertEqual(obj['list__text1_text2'][0].text, 'Tag 1')
+        self.assertEqual(obj['list__text1_text2'][0].sourceline, 3)
+        self.assertEqual(obj['list__text1_text2'][1].text, 'Tag 2')
+        self.assertEqual(obj['list__text1_text2'][1].sourceline, 4)
+        self.assertEqual(obj['list__text1_text2'][2].text, 'Tag 3')
+        self.assertEqual(obj['list__text1_text2'][2].sourceline, 5)
 
 
 class TestElementChoiceListEmpty(ElementTester):
@@ -1729,16 +1729,16 @@ class TestElementWithAttributes(ElementTester):
             'idtexts': 'id_texts',
             'name': 'my texts',
         })
-        self.assertEqual(obj.text._attribute_names, ['idtext'])
-        self.assertEqual(obj.text._attributes, {
+        self.assertEqual(obj['text']._attribute_names, ['idtext'])
+        self.assertEqual(obj['text']._attributes, {
             'idtext': 'id_text',
         })
-        self.assertEqual(obj.text1[0]._attribute_names, ['idtext1'])
-        self.assertEqual(obj.text1[0]._attributes, {
+        self.assertEqual(obj['text1'][0]._attribute_names, ['idtext1'])
+        self.assertEqual(obj['text1'][0]._attributes, {
             'idtext1': 'id_text1_1',
         })
-        self.assertEqual(obj.text1[1]._attribute_names, ['idtext1'])
-        self.assertEqual(obj.text1[1]._attributes, None)
+        self.assertEqual(obj['text1'][1]._attribute_names, ['idtext1'])
+        self.assertEqual(obj['text1'][1]._attributes, None)
 
     def test_walk(self):
         root = etree.fromstring(self.xml)
@@ -1746,7 +1746,7 @@ class TestElementWithAttributes(ElementTester):
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         lis = [e for e in obj.walk()]
-        expected = [obj.text] + obj.text1
+        expected = [obj['text']] + obj['text1']
         self.assertEqual(lis, expected)
 
 
@@ -1798,52 +1798,52 @@ class TestElementComments(ElementTester):
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj._sourceline, 3)
-        self.assertEqual(obj.name._value, 'Titanic')
-        self.assertEqual(obj.name._comment, ' name comment ')
-        self.assertEqual(obj.name._sourceline, 5)
-        self.assertEqual(obj.resume._value, '\n     Resume of the movie\n  ')
-        self.assertEqual(obj.resume._comment, ' resume comment ')
-        self.assertEqual(obj.resume._sourceline, 43)
-        self.assertEqual(obj.year._value, '1997')
-        self.assertEqual(obj.year._comment, ' year comment ')
-        self.assertEqual(obj.year._sourceline, 7)
-        self.assertEqual([c._value for c in obj.critique], ['critique1', 'critique2'])
-        self.assertEqual(obj.critique[0]._comment, ' critique 1 comment ')
-        self.assertEqual(obj.critique[1]._comment, ' critique 2 comment ')
-        self.assertEqual(len(obj.actors.actor), 3)
-        self.assertEqual(len(obj.directors.director), 1)
-        self.assertEqual(obj.actors._comment, ' actors comment ')
-        self.assertEqual(obj.actors.actor[0]._sourceline, 21)
-        self.assertEqual(obj.actors.actor[0]._comment, ' actor 1 comment ')
-        self.assertEqual(obj.actors.actor[0].name._value, 'DiCaprio')
-        self.assertEqual(obj.actors.actor[0].name._comment,
+        self.assertEqual(obj.sourceline, 3)
+        self.assertEqual(obj['name'].text, 'Titanic')
+        self.assertEqual(obj['name']._comment, ' name comment ')
+        self.assertEqual(obj['name'].sourceline, 5)
+        self.assertEqual(obj['resume'].text, '\n     Resume of the movie\n  ')
+        self.assertEqual(obj['resume']._comment, ' resume comment ')
+        self.assertEqual(obj['resume'].sourceline, 43)
+        self.assertEqual(obj['year'].text, '1997')
+        self.assertEqual(obj['year']._comment, ' year comment ')
+        self.assertEqual(obj['year'].sourceline, 7)
+        self.assertEqual([c.text for c in obj['critique']], ['critique1', 'critique2'])
+        self.assertEqual(obj['critique'][0]._comment, ' critique 1 comment ')
+        self.assertEqual(obj['critique'][1]._comment, ' critique 2 comment ')
+        self.assertEqual(len(obj['actors']['actor']), 3)
+        self.assertEqual(len(obj['directors']['director']), 1)
+        self.assertEqual(obj['actors']._comment, ' actors comment ')
+        self.assertEqual(obj['actors']['actor'][0].sourceline, 21)
+        self.assertEqual(obj['actors']['actor'][0]._comment, ' actor 1 comment ')
+        self.assertEqual(obj['actors']['actor'][0]['name'].text, 'DiCaprio')
+        self.assertEqual(obj['actors']['actor'][0]['name']._comment,
                          ' actor 1 name comment ')
-        self.assertEqual(obj.actors.actor[0].name._sourceline, 23)
-        self.assertEqual(obj.actors.actor[0].firstname._value, 'Leonardo')
-        self.assertEqual(obj.actors.actor[0].firstname._comment,
+        self.assertEqual(obj['actors']['actor'][0]['name'].sourceline, 23)
+        self.assertEqual(obj['actors']['actor'][0]['firstname'].text, 'Leonardo')
+        self.assertEqual(obj['actors']['actor'][0]['firstname']._comment,
                          ' actor 1 firstname comment ')
-        self.assertEqual(obj.actors.actor[1]._comment, ' actor 2 comment ')
-        self.assertEqual(obj.actors.actor[1].name._value, 'Winslet')
-        self.assertEqual(obj.actors.actor[1].name._comment,
+        self.assertEqual(obj['actors']['actor'][1]._comment, ' actor 2 comment ')
+        self.assertEqual(obj['actors']['actor'][1]['name'].text, 'Winslet')
+        self.assertEqual(obj['actors']['actor'][1]['name']._comment,
                          ' actor 2 name comment ')
-        self.assertEqual(obj.actors.actor[1].firstname._value, 'Kate')
-        self.assertEqual(obj.actors.actor[1].firstname._comment,
+        self.assertEqual(obj['actors']['actor'][1]['firstname'].text, 'Kate')
+        self.assertEqual(obj['actors']['actor'][1]['firstname']._comment,
                          ' actor 2 firstname comment ')
-        self.assertEqual(obj.actors.actor[2]._comment,
+        self.assertEqual(obj['actors']['actor'][2]._comment,
                          ' actor 3 comment ')
-        self.assertEqual(obj.actors.actor[2].name._value, 'Zane')
-        self.assertEqual(obj.actors.actor[2].name._comment,
+        self.assertEqual(obj['actors']['actor'][2]['name'].text, 'Zane')
+        self.assertEqual(obj['actors']['actor'][2]['name']._comment,
                          ' actor 3 name comment ')
-        self.assertEqual(obj.actors.actor[2].firstname._value, 'Billy')
-        self.assertEqual(obj.actors.actor[2].firstname._comment,
+        self.assertEqual(obj['actors']['actor'][2]['firstname'].text, 'Billy')
+        self.assertEqual(obj['actors']['actor'][2]['firstname']._comment,
                          ' actor 3 firstname comment ')
-        self.assertEqual(obj.directors._comment, ' directors comment ')
-        self.assertEqual(obj.directors.director[0].name._value, 'Cameron')
-        self.assertEqual(obj.directors.director[0].name._comment,
+        self.assertEqual(obj['directors']._comment, ' directors comment ')
+        self.assertEqual(obj['directors']['director'][0]['name'].text, 'Cameron')
+        self.assertEqual(obj['directors']['director'][0]['name']._comment,
                          ' director name comment ')
-        self.assertEqual(obj.directors.director[0].firstname._value, 'James')
-        self.assertEqual(obj.directors.director[0].firstname._comment,
+        self.assertEqual(obj['directors']['director'][0]['firstname'].text, 'James')
+        self.assertEqual(obj['directors']['director'][0]['firstname']._comment,
                          ' director firstname comment ')
 
 
@@ -1884,16 +1884,16 @@ class TestWalk(TestCase):
         obj.load_from_xml(root)
         lis = [e for e in obj.walk()]
         expected = [
-            obj.text,
-            obj.text.t1,
-            obj.text1[0],
-            obj.text1[0].text11,
-            obj.text1[0].text,
-            obj.text1[0].text.t1,
-            obj.text1[1],
-            obj.text1[1].text11,
-            obj.text1[1].text,
-            obj.text1[1].text.t2,
+            obj['text'],
+            obj['text']['t1'],
+            obj['text1'][0],
+            obj['text1'][0]['text11'],
+            obj['text1'][0]['text'],
+            obj['text1'][0]['text']['t1'],
+            obj['text1'][1],
+            obj['text1'][1]['text11'],
+            obj['text1'][1]['text'],
+            obj['text1'][1]['text']['t2'],
         ]
         self.assertEqual(lis, expected)
 
@@ -1904,22 +1904,22 @@ class TestWalk(TestCase):
         obj.load_from_xml(root)
         lis = obj.findall('text11')
         expected = [
-            obj.text1[0].text11,
-            obj.text1[1].text11,
+            obj['text1'][0]['text11'],
+            obj['text1'][1]['text11'],
         ]
         self.assertEqual(lis, expected)
 
         lis = obj.findall('t1')
         expected = [
-            obj.text.t1,
-            obj.text1[0].text.t1,
+            obj['text']['t1'],
+            obj['text1'][0]['text']['t1'],
         ]
         self.assertEqual(lis, expected)
 
-        lis = obj.text1.findall('text11')
+        lis = obj['text1'].findall('text11')
         expected = [
-            obj.text1[0].text11,
-            obj.text1[1].text11,
+            obj['text1'][0]['text11'],
+            obj['text1'][1]['text11'],
         ]
         self.assertEqual(lis, expected)
 
@@ -1965,4 +1965,4 @@ class TestXPath(TestCase):
 
         res = actor_obj.xpath('..')
         self.assertEqual(len(res), 1)
-        self.assertEqual(res[0], actor_obj._parent._parent)
+        self.assertEqual(res[0], actor_obj.parent.parent)
