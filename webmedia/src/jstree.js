@@ -87,7 +87,7 @@ if (typeof xmltool === 'undefined') {
                 xmltool.utils.increment_id(prefix, nexts, index);
 
                 xmltool.jstree.create_sub_nodes(tree, node, data);
-                tree.jstree('open_all', node);
+                tree.jstree('open_all', parentobj);
             },
             create_sub_nodes: function(tree, node, data) {
                 if (typeof(data.children) !== 'undefined'){
