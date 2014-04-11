@@ -245,6 +245,11 @@ if (typeof xmltool === 'undefined') {
             that.$tree.jstree("close_node", o);
             e.preventDefault();
         });
+        $(this.$form).on('mouseenter', 'textarea', function(){
+            // TODO: try to find a way to load all the textarea in background
+            // or load according to the scroll
+            $(this).autosize();
+        });
         $(this.$form).on('focus', 'textarea', function(){
             $(this).autosize();
             var id = xmltool.utils.escape_id($(this).parent().attr('id'));
