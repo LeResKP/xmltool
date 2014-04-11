@@ -673,7 +673,7 @@ class TestElement(TestCase):
             'data': 'subtag',
             'attr': {
                 'id': 'tree_subtag',
-                'class': 'tree_subtag'},
+                'class': 'tree_subtag subtag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -683,7 +683,7 @@ class TestElement(TestCase):
             'data': 'subtag',
             'attr': {
                 'id': 'tree_subtag',
-                'class': 'tree_subtag'},
+                'class': 'tree_subtag subtag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -694,7 +694,7 @@ class TestElement(TestCase):
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_tag'},
+                'class': 'tree_tag tag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -704,7 +704,7 @@ class TestElement(TestCase):
             'data': u'tag <span class="_tree_text">(my value)</span>',
             'attr': {
                 'id': 'tree_10:tag',
-                'class': 'tree_ tree_10'},
+                'class': 'tree_ tree_10 tag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -714,13 +714,13 @@ class TestElement(TestCase):
             'data': u'tag <span class="_tree_text">(my value)</span>',
             'attr': {
                 'id': 'tree_10:tag',
-                'class': 'tree_ tree_10'},
+                'class': 'tree_ tree_10 tag'},
             'children': [
                 {'attr': {
-                    'class': 'tree_10:tag:subtag','id':
-                    'tree_10:tag:subtag'},
-                'children': [],
-                'data': 'subtag'}]}
+                    'class': 'tree_10:tag:subtag subtag',
+                    'id': 'tree_10:tag:subtag'},
+                 'children': [],
+                 'data': 'subtag'}]}
         self.assertEqual(result, expected)
 
     def test_to_jstree_dict_with_ListElement(self):
@@ -733,14 +733,14 @@ class TestElement(TestCase):
                          '_elts': [sub_cls]})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                   'children_classes': [list_cls]})
+                    'children_classes': [list_cls]})
         obj = cls()
         result = obj.to_jstree_dict([])
         expected = {
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_tag'},
+                'class': 'tree_tag tag'},
             'children': []}
         self.assertEqual(result, expected)
 
@@ -750,14 +750,14 @@ class TestElement(TestCase):
             'data': 'tag',
             'attr': {
                 'id': 'tree_tag',
-                'class': 'tree_tag'
+                'class': 'tree_tag tag'
             },
             'children': [
                 {
                     'data': 'sub',
                     'attr': {
                         'id': 'tree_tag:element:0:sub',
-                        'class': 'tree_tag:element tree_tag:element:0'
+                        'class': 'tree_tag:element tree_tag:element:0 sub'
                     },
                     'children': []
                 }
@@ -1401,7 +1401,7 @@ class TestListElement(TestCase):
         obj._required = True
         result = obj.to_jstree_dict([])
         expected = [{
-            'attr': {'class': 'tree_list_cls tree_list_cls:0',
+            'attr': {'class': 'tree_list_cls tree_list_cls:0 tag',
                      'id': 'tree_list_cls:0:tag'},
             'children': [],
             'data': 'tag'}]
@@ -1790,7 +1790,7 @@ class TestFunctions(TestCase):
                 'data': 'tag2',
                 'attr': {
                     'id': 'tree_texts:tag2',
-                    'class': 'tree_texts:tag2'},
+                    'class': 'tree_texts:tag2 tag2'},
                 'children': []}}
         self.assertEqual(result, expected)
 
@@ -1830,7 +1830,7 @@ class TestFunctions(TestCase):
             'is_choice': False,
             'jstree_data': {
                 'attr': {
-                    'class': 'tree_texts:list__list:0:list:text1',
+                    'class': 'tree_texts:list__list:0:list:text1 text1',
                     'id': 'tree_texts:list__list:0:list:text1'},
                 'children': [],
                 'data': u'text1 <span class="_tree_text">(Hello world)</span>'
@@ -1890,11 +1890,11 @@ class TestFunctions(TestCase):
             'is_choice': False,
             'jstree_data': {
                 'attr': {
-                    'class': 'tree_texts:list__list tree_texts:list__list:0',
+                    'class': 'tree_texts:list__list tree_texts:list__list:0 list',
                     'id': 'tree_texts:list__list:0:list'},
                 'children': [{
                     'attr': {
-                        'class': 'tree_texts:list__list:0:list:text1',
+                        'class': 'tree_texts:list__list:0:list:text1 text1',
                         'id': 'tree_texts:list__list:0:list:text1'},
                     'children': [],
                     'data': ('text1 <span class="_tree_text">'

@@ -501,7 +501,7 @@ class Element(object):
             'data': data,
             'attr': {
                 'id': TREE_PREFIX + ':'.join(tmp_prefixes),
-                'class': css_class,
+                'class': '%s %s' % (css_class, self.tagname),
             },
         }
         children = []
