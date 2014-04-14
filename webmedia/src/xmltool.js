@@ -245,13 +245,8 @@ if (typeof xmltool === 'undefined') {
             that.$tree.jstree("close_node", o);
             e.preventDefault();
         });
-        $(this.$form).on('mouseenter', 'textarea', function(){
-            // TODO: try to find a way to load all the textarea in background
-            // or load according to the scroll
-            $(this).autosize();
-        });
-        $(this.$form).on('focus', 'textarea', function(){
-            $(this).autosize();
+
+        $(this.$form).on('focus', 'textarea.form-control', function(){
             var id = xmltool.utils.escape_id($(this).parent().attr('id'));
             that.$tree.jstree('hover_node', $('#tree_' + id));
             $(this).on('keyup.xmltool', function(){
@@ -259,7 +254,7 @@ if (typeof xmltool === 'undefined') {
                 // sure the user has made an update
                 that.$form.trigger('field_change.xmltool');
             });
-        }).on('blur', 'textarea', function(){
+        }).on('blur', 'textarea.form-control', function(){
             var id = xmltool.utils.escape_id($(this).parent().attr('id'));
             var a = $('#tree_' + id).find('a');
             var elt = a.find('._tree_text');
@@ -294,7 +289,7 @@ if (typeof xmltool === 'undefined') {
             var comment_textarea = self.next('._comment');
 
             if (!comment_textarea.length){
-                comment_textarea = $('<textarea>').attr('name', self.data('comment-name')).addClass('_comment');
+                comment_textarea = $('<textarea>').attr('name', self.data('comment-name')).addClass('_comment').addClass('form-control');
                 self.after(comment_textarea);
             }
             // Create the dialog
