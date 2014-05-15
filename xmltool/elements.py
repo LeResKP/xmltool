@@ -1256,10 +1256,15 @@ def get_display_data_from_obj(obj):
     if obj.parent and isinstance(obj.parent, ListElement):
         prefixes = prefixes[:-1]
 
+    is_choice = obj._is_choice
+    if not is_choice and isinstance(obj.parent, ListElement):
+        # Check if there is multiple possible element in the list
+        is_choice = (len(obj.parent._elts) != 1)
+
     return {
         'jstree_data': jstree_data,
         'previous': _get_previous_js_selectors(obj, prefixes, index),
         'html': html,
         'elt_id': ':'.join(obj.prefixes),
-        'is_choice': obj._is_choice,
+        'is_choice': is_choice,
     }

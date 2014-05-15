@@ -1840,9 +1840,9 @@ class TestFunctions(TestCase):
         self.assertEqual(res, expected)
 
         # Test with is_choice
-        obj.is_choice = True
+        obj._is_choice = True
         res = elements.get_display_data_from_obj(obj)
-        res['is_choice'] = True
+        self.assertEqual(res['is_choice'], True)
 
         # Test with list object
         str_id = 'texts:list__list:0:list'
@@ -1904,6 +1904,10 @@ class TestFunctions(TestCase):
                          ('inside', '#tree_texts')]
         }
         self.assertEqual(res, expected)
+
+        obj.parent._elts = ['Fake1', 'Fake2']
+        res = elements.get_display_data_from_obj(obj)
+        self.assertEqual(res['is_choice'], True)
 
     def test_load_obj_from_id(self):
         dtd_str = '''
