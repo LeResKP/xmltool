@@ -17,6 +17,7 @@
   "dependencies": {
     "jquery.contenteditablesync": "~0.1.0",
     "jquery": "~1.11.0",
-    "bootstrap": "~3.2.0"
+    "bootstrap": "~3.2.0",
+    "ckeditor": "~4.4.3"
   }
 }

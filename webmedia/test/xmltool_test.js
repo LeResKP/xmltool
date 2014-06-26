@@ -276,5 +276,28 @@
         equal(res, 'class1');
     });
 
+    test('update_contenteditable_eol', function(){
+        expect(4);
+        var s = 'Hello world\nNew line';
+        var res = xmltool.utils.update_contenteditable_eol(s);
+        var expected = 'Hello worldNew line';
+        equal(res, expected);
+
+        s = 'Hello world\nNew<br />\n line';
+        res = xmltool.utils.update_contenteditable_eol(s);
+        expected = 'Hello worldNew\n line';
+        equal(res, expected);
+
+        s = 'Hello world\r\nNew<br>\n line';
+        res = xmltool.utils.update_contenteditable_eol(s);
+        expected = 'Hello worldNew\n line';
+        equal(res, expected);
+
+        s = 'Hello world\rNew<br >\n line';
+        res = xmltool.utils.update_contenteditable_eol(s);
+        expected = 'Hello worldNew\n line';
+        equal(res, expected);
+
+    });
 
 }(jQuery));

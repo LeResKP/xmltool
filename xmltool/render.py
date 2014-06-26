@@ -28,6 +28,9 @@ class Render(object):
     """Default render.
     """
 
+    def __init__(self, extra_attrs_func=None):
+        self.extra_attrs_func = extra_attrs_func
+
     def add_add_button(self):
         return True
 
@@ -43,6 +46,38 @@ class Render(object):
             u'</textarea>').format(
             attrs=attrs_to_str([('class', 'form-control')] + attrs),
             value=value)
+
+
+class ContenteditableRender(Render):
+    """Default render.
+    """
+
+    def __init__(self, extra_attrs_func=None, extra_div_attrs_func=None):
+        self.extra_attrs_func = extra_attrs_func
+        self.extra_div_attrs_func = extra_div_attrs_func
+
+    def text_element_to_html(self, obj, attrs, value):
+
+        div_attrs = [
+            ('class', 'contenteditable'),
+            ('class', 'form-control'),
+            ('contenteditable', 'true'),
+            ('spellcheck', 'false'),
+        ]
+        if self.extra_div_attrs_func:
+            div_attrs += self.extra_div_attrs_func(obj)
+
+        return (
+            u'<textarea{attrs}>{value}'
+            u'</textarea>'
+            u'<div{divattrs}>{htmlvalue}</div>'
+        ).format(
+            attrs=attrs_to_str([('class', 'form-control'),
+                                ('class', 'hidden')] + attrs),
+            value=value,
+            htmlvalue=value.replace('\n', '<br />'),
+            divattrs=attrs_to_str(div_attrs),
+        )
 
 
 class ReadonlyRender(Render):

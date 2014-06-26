@@ -268,6 +268,14 @@ if (typeof xmltool === 'undefined') {
                 elt.text('');
             }
             $(this).unbind('keyup.xmltool');
+        }).on('mouseenter focus', '.contenteditable', function(){
+            $(this).ckeditor({removePlugins: 'toolbar'});
+            $(this).contenteditablesync({
+                getContent: function($element) {
+                    var s = $element.ckeditorGet().getData();
+                    return xmltool.utils.update_contenteditable_eol(s);
+                }
+            });
         }).on('click', '.btn-delete', function(e){
             e.preventDefault();
             that.removeElement($(this));
