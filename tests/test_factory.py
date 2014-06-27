@@ -10,7 +10,7 @@ class TestFactory(TestCase):
 
     def test_load(self):
         obj = factory.load('tests/exercise.xml')
-        self.assertEqual(obj._tagname, 'Exercise')
+        self.assertEqual(obj.tagname, 'Exercise')
         try:
             obj = factory.load('tests/exercise-notvalid.xml')
             assert 0
@@ -22,13 +22,13 @@ class TestFactory(TestCase):
             )
         obj = factory.load('tests/exercise-notvalid.xml',
                                  validate=False)
-        self.assertEqual(obj._tagname, 'Exercise')
+        self.assertEqual(obj.tagname, 'Exercise')
 
     def test_load_string(self):
         xml_str = open('tests/exercise.xml', 'r').read()
         xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
         obj = factory.load_string(xml_str)
-        self.assertEqual(obj._tagname, 'Exercise')
+        self.assertEqual(obj.tagname, 'Exercise')
         try:
             xml_str = open('tests/exercise-notvalid.xml', 'r').read()
             xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
@@ -45,7 +45,7 @@ class TestFactory(TestCase):
         xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
         obj = factory.load_string(xml_str,
                                  validate=False)
-        self.assertEqual(obj._tagname, 'Exercise')
+        self.assertEqual(obj.tagname, 'Exercise')
 
     def test_load_string_unicode(self):
         xml_str = open('tests/exercise-notvalid.xml', 'r').read()
@@ -53,7 +53,7 @@ class TestFactory(TestCase):
         xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
         obj = factory.load_string(xml_str,
                                   validate=False)
-        self.assertEqual(obj._tagname, 'Exercise')
+        self.assertEqual(obj.tagname, 'Exercise')
 
     def test_generate_form(self):
         html = factory.generate_form('tests/exercise.xml')

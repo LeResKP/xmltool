@@ -2,6 +2,7 @@
 
 import os
 import urllib2
+import requests
 import StringIO
 from lxml import etree
 import re
@@ -37,11 +38,10 @@ def get_dtd_content(url, path=None):
     :rtype: string
     """
     if is_http_url(url):
-        req = urllib2.Request(url)
-        response = urllib2.urlopen(req)
-        s = response.read()
-        response.close()
-        return s
+        res = requests.get(url, timeout=5)
+        # Use res.content instead of res.text because we want string. If we get
+        # unicode, it fails when creating classes with type().
+        return res.content
 
     if path and not url.startswith('/'):
         url = os.path.join(path, url)
@@ -120,7 +120,7 @@ def numdict_to_list(dct):
             if all(number_re.match(k) for k in v):
                 lis = []
                 if v:
-                    for index in range(int(max(v.keys())) + 1):
+                    for index in range(int(max(map(int, v.keys()))) + 1):
                         value = None
                         if str(index) in v:
                             value = v[str(index)]

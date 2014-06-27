@@ -1,6 +1,6 @@
 %define modname xmltool
-%define version 0.3.6.1
-%define unmangled_version 0.3.6.1
+%define version 0.3.6.2
+%define unmangled_version 0.3.6.2
 %define release 1
 
 Summary: Tool to manipulate XML files
@@ -29,6 +29,11 @@ The main goal of this package was to create a HTML form to edit and create a XML
 
 Changelog
 =========
+
+O.3.6.2:
+    * Support to have comment inside a TextElement
+    * Improve HTML rendering
+    * Bug fix: make numdict_to_list works when we have more than 9 elements
 
 O.3.6.1:
     * Be able to skip attributes and comments when we load object
