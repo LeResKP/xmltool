@@ -664,9 +664,36 @@ class TextElement(Element):
             (self.text or '').strip())
 
     def load_from_xml(self, xml):
+        """
+        TODO: we should support to have sub element in TextElement
+        """
         self.set_lxml_elt(xml)
         self._load_extra_from_xml(xml)
-        self.text = xml.text
+        if len(xml):
+            # Special case: we have comments in the text element
+            # Since on iteration we only get comment elements, we parse in 2
+            # steps.
+            self.text = ''
+
+            # Get the comments
+            comments = []
+            for e in xml:
+                if isinstance(e, etree._Comment):
+                    comments += [e.text]
+            if comments:
+                self._comment = self._comment or ''
+                if self._comment:
+                    self._comment += '\n'
+                self._comment += '\n'.join(comments)
+
+            for s in xml.itertext():
+                if s in comments:
+                    comments.remove(s)
+                    continue
+                self.text += s
+            self.text = self.text or None
+        else:
+            self.text = xml.text
         # We use _exists to know if the tag is defined in the XML.
         self._exists = True
 

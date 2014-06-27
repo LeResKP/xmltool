@@ -930,6 +930,17 @@ class TestTextElement(TestCase):
         self.assertEqual(obj._comment, 'comment')
         self.assertEqual(obj._attributes, {'attr': 'value'})
 
+        text.text = 'Hello world'
+        comment1 = etree.Comment('comment inside a tag')
+        text.append(comment1)
+
+        obj = self.cls()
+        obj.load_from_xml(text)
+        self.assertEqual(obj.text, 'Hello world')
+        self.assertEqual(obj._exists, True)
+        self.assertEqual(obj._comment, 'comment\ncomment inside a tag')
+        self.assertEqual(obj._attributes, {'attr': 'value'})
+
         obj = self.cls()
         obj.load_from_xml(empty)
         self.assertEqual(obj.text, '')
