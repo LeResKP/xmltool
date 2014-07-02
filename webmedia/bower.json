@@ -1,0 +1,22 @@
+{
+  "name": "xmltool",
+  "version": "0.3.6",
+  "homepage": "https://github.com/LeResKP/xmltool",
+  "authors": [
+    "Aurélien Matouillot <a.matouillot@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery.contenteditablesync": "~0.1.0",
+    "jquery": "~1.11.0",
+    "bootstrap": "~3.2.0"
+  }
+}
