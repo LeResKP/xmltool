@@ -6,3 +6,5 @@ from factory import (
     update,
     new,
 )
+
+from elements import EOL
