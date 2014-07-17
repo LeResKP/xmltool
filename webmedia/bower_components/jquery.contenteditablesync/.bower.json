@@ -1,0 +1,42 @@
+{
+  "name": "jquery.contenteditablesync",
+  "version": "0.1.1",
+  "homepage": "https://github.com/LeResKP/jquery.contenteditablesync",
+  "authors": [
+    "Aurélien Matouillot <a.matouillot@gmail.com>"
+  ],
+  "description": "Synchronize the change of a contenteditable to a target like a textarea.",
+  "keywords": [
+    "jQuery",
+    "contenteditable",
+    "synchronize",
+    "synchronization",
+    "textarea"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "contenteditablesync.jquery.json",
+    "CONTRIBUTING.md",
+    "Gruntfile.js",
+    "libs",
+    "LICENSE-MIT",
+    "package.json",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": ">= 1.9.0"
+  },
+  "_release": "0.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.1.1",
+    "commit": "123d42934694914502e7f482a2d25ce3b2612722"
+  },
+  "_source": "git://github.com/LeResKP/jquery.contenteditablesync.git",
+  "_target": "~0.1.0",
+  "_originalSource": "jquery.contenteditablesync"
+}
