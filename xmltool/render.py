@@ -1,4 +1,3 @@
-
 def attrs_to_str(attrs):
     """Create string from the given attrs
 
@@ -56,6 +55,9 @@ class ContenteditableRender(Render):
         self.extra_attrs_func = extra_attrs_func
         self.extra_div_attrs_func = extra_div_attrs_func
 
+    def cleanup_value(self, value):
+        return value.replace('\n', '<br />')
+
     def text_element_to_html(self, obj, attrs, value):
 
         div_attrs = [
@@ -75,9 +77,17 @@ class ContenteditableRender(Render):
             attrs=attrs_to_str([('class', 'form-control'),
                                 ('class', 'hidden')] + attrs),
             value=value,
-            htmlvalue=value.replace('\n', '<br />'),
+            htmlvalue=self.cleanup_value(value),
             divattrs=attrs_to_str(div_attrs),
         )
+
+
+class CKeditorRender(ContenteditableRender):
+
+    def cleanup_value(self, value):
+        value = super(CKeditorRender, self).cleanup_value(value)
+        # Add the non breaking spaces like CKeditor do when it adds spaces.
+        return value.replace('  ', ' &nbsp;')
 
 
 class ReadonlyRender(Render):
