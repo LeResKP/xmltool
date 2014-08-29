@@ -6,6 +6,8 @@ from elements import (
     ListElement,
     ChoiceElement,
 )
+from dogpile.cache.api import NO_VALUE
+from . import cache
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -222,8 +224,7 @@ def _create_classes(dtd_dict):
     return class_dict
 
 
-def parse(dtd_str=None, dtd_url=None, path=None):
-    # TODO: try to put a cache on this function
+def _parse(dtd_str=None, dtd_url=None, path=None):
     if not dtd_str and not dtd_url:
         raise ValueError('You didn\'t provide dtd_str nor dtd_url')
 
@@ -236,3 +237,23 @@ def parse(dtd_str=None, dtd_url=None, path=None):
     dtd_dict = dtd_to_dict_v2(dtd_str)
     return _create_classes(dtd_dict)
 
+
+def parse(dtd_str=None, dtd_url=None, path=None, cache_key=None):
+    def perform():
+        return _parse(dtd_str=dtd_str, dtd_url=dtd_url, path=path)
+
+    if cache.CACHE_TIMEOUT is None:
+        return perform()
+
+    if not cache_key and dtd_url:
+        cache_key = 'xmltool.parse.%s' % dtd_url
+
+    if not cache_key:
+        return perform()
+
+    v = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
+    if v is not NO_VALUE:
+        return v
+    v = perform()
+    cache.region.set(cache_key, v)
+    return v

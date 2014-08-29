@@ -6,20 +6,8 @@ import StringIO
 from lxml import etree
 import re
 import webob
-from dogpile.cache import make_region
 from dogpile.cache.api import NO_VALUE
-
-
-CACHE_TIMEOUT = None
-if os.environ.get('XMLTOOL_CACHE_TIMEOUT'):
-    try:
-        CACHE_TIMEOUT = int(os.environ.get('XMLTOOL_CACHE_TIMEOUT'))
-    except ValueError:
-        # TODO: add logging
-        pass
-
-# Use to put the dtd content in cache
-region = make_region().configure("dogpile.cache.memory")
+from . import cache
 
 
 # This hack helps work with different versions of WebOb
@@ -71,15 +59,15 @@ def get_dtd_content(url, path=None):
     :return: The content of the given url
     :rtype: string
     """
-    if CACHE_TIMEOUT is None:
+    if cache.CACHE_TIMEOUT is None:
         return _get_dtd_content(url, path=path)
 
     cache_key = 'xmltool.get_dtd_content.%s.%s' % (url, path)
-    v = region.get(cache_key, CACHE_TIMEOUT)
+    v = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
     if v is not NO_VALUE:
         return v
     content = _get_dtd_content(url, path=path)
-    region.set(cache_key, content)
+    cache.region.set(cache_key, content)
     return content
 
 

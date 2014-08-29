@@ -6,6 +6,7 @@ from xmltool import utils
 from test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
 import webob
 import mock
+from xmltool import cache
 
 
 class TestUtils(TestCase):
@@ -38,17 +39,19 @@ class TestUtils(TestCase):
             content = utils.get_dtd_content(url)
             self.assertEqual(content, 'my content')
 
-        utils.CACHE_TIMEOUT = 3600
+        cache.CACHE_TIMEOUT = 3600
+        try:
+            with mock.patch('xmltool.utils._get_dtd_content',
+                            return_value='my content'):
+                content = utils.get_dtd_content(url)
+                self.assertEqual(content, 'my content')
 
-        with mock.patch('xmltool.utils._get_dtd_content',
-                        return_value='my content'):
-            content = utils.get_dtd_content(url)
-            self.assertEqual(content, 'my content')
-
-        with mock.patch('xmltool.utils._get_dtd_content',
-                        return_value='my new content'):
-            content = utils.get_dtd_content(url)
-            self.assertEqual(content, 'my content')
+            with mock.patch('xmltool.utils._get_dtd_content',
+                            return_value='my new content'):
+                content = utils.get_dtd_content(url)
+                self.assertEqual(content, 'my content')
+        finally:
+            cache.CACHE_TIMEOUT = None
 
     def test_validate_xml(self):
         root = etree.fromstring(EXERCISE_XML)
