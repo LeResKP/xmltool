@@ -268,6 +268,23 @@ if (typeof xmltool === 'undefined') {
                 elt.text('');
             }
             $(this).unbind('keyup.xmltool');
+        }).on('blur', '.contenteditable', function(){
+            // TODO: refactor this function with the previous one, the
+            // difference is the way to get the string.
+            var id = xmltool.utils.escape_id($(this).parent().attr('id'));
+            var a = $('#tree_' + id).find('a');
+            var elt = a.find('._tree_text');
+            if (elt.length === 0){
+                elt = $('<span class="_tree_text"/>').appendTo(a);
+            }
+            var s = $(this).ckeditorGet().getData();
+            if(s){
+                s = xmltool.utils.update_contenteditable_eol(s);
+                elt.text(' (' + xmltool.utils.truncate(s, 30) + ')');
+            }
+            else{
+                elt.text('');
+            }
         }).on('mouseenter focus', '.contenteditable', function(){
             $(this).ckeditor({removePlugins: 'toolbar'});
             $(this).contenteditablesync({
