@@ -149,6 +149,15 @@ if (typeof xmltool === 'undefined') {
                 return null;
             }
             return cls.split(' ')[0];
+        },
+        update_contenteditable_eol: function(s) {
+            // We want \n as new line when the text comes from contenteditale
+            s = s.replace(/\r?\n?/g, '');
+            s = s.replace(/<br ?\/?>/g, '\n');
+            // Remove the non breaking spaces since we don't want to add it in
+            // the XML files
+            s = s.replace(/\u00A0/g, ' ');
+            return s;
         }
     };
 

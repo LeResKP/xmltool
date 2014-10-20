@@ -25,7 +25,8 @@ def load(filename, validate=True):
     if validate:
         utils.validate_xml(tree, dtd_str)
 
-    dic = dtd_parser.parse(dtd_str=dtd_str)
+    dic = dtd_parser.parse(dtd_str=dtd_str,
+                           cache_key='xmltool.parse.%s' % dtd_url)
     root = tree.getroot()
     obj = dic[root.tag]()
     obj.load_from_xml(root)

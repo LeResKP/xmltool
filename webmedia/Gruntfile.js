@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         stripBanners: true
       },
       dist: {
-        src: ['libs/bootstrap-3.0.2/js/*.js', 'src/*.js'],
+        src: ['bower_components/bootstrap/dist/js/bootstrap.js', 'src/*.js'],
         dest: 'dist/js/<%= pkg.name %>.js'
       },
     },
@@ -60,7 +60,7 @@ module.exports = function(grunt) {
     less: {
         development: {
             options: {
-                paths: ['libs/bootstrap-3.0.2/less/']
+                paths: ['bower_components/bootstrap/less/']
             },
             files: {
                 "dist/css/<%= pkg.name %>.css": "css/xmltool.less"
@@ -68,7 +68,7 @@ module.exports = function(grunt) {
         },
         production: {
             options: {
-                paths: ['libs/bootstrap-3.0.2/less/'],
+                paths: ['bower_components/bootstrap/less/'],
                 cleancss: true
             },
             files: {

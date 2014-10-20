@@ -9,6 +9,10 @@ The main goal of this package was to create a HTML form to edit and create a XML
 Changelog
 =========
 
+O.3.7:
+    * Cache to get the dtd content
+    * CKEditor render
+
 O.3.6.2:
     * Support to have comment inside a TextElement
     * Improve HTML rendering

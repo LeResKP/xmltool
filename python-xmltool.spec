@@ -1,6 +1,6 @@
 %define modname xmltool
-%define version 0.3.6.2
-%define unmangled_version 0.3.6.2
+%define version 0.3.7
+%define unmangled_version 0.3.7
 %define release 1
 
 Summary: Tool to manipulate XML files

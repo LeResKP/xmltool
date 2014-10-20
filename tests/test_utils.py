@@ -5,6 +5,8 @@ from lxml import etree
 from xmltool import utils
 from test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
 import webob
+import mock
+from xmltool import cache
 
 
 class TestUtils(TestCase):
@@ -17,16 +19,39 @@ class TestUtils(TestCase):
         url = 'https://file.txt'
         self.assertTrue(utils.is_http_url(url))
 
-    def test_get_dtd_content(self):
+    def test__get_dtd_content(self):
         url = ('https://raw.github.com/LeResKP/'
                'xmltool/master/tests/exercise.dtd')
-        http_content = utils.get_dtd_content(url)
+        http_content = utils._get_dtd_content(url)
         url = 'tests/exercise.dtd'
-        fs_content = utils.get_dtd_content(url)
+        fs_content = utils._get_dtd_content(url)
         self.assertEqual(http_content, fs_content)
         url = 'exercise.dtd'
-        fs_content = utils.get_dtd_content(url, path='tests/')
+        fs_content = utils._get_dtd_content(url, path='tests/')
         self.assertEqual(http_content, fs_content)
+
+    def test_get_dtd_content(self):
+        url = 'tests/exercise.dtd'
+        content = utils.get_dtd_content(url)
+
+        with mock.patch('xmltool.utils._get_dtd_content',
+                        return_value='my content'):
+            content = utils.get_dtd_content(url)
+            self.assertEqual(content, 'my content')
+
+        cache.CACHE_TIMEOUT = 3600
+        try:
+            with mock.patch('xmltool.utils._get_dtd_content',
+                            return_value='my content'):
+                content = utils.get_dtd_content(url)
+                self.assertEqual(content, 'my content')
+
+            with mock.patch('xmltool.utils._get_dtd_content',
+                            return_value='my new content'):
+                content = utils.get_dtd_content(url)
+                self.assertEqual(content, 'my content')
+        finally:
+            cache.CACHE_TIMEOUT = None
 
     def test_validate_xml(self):
         root = etree.fromstring(EXERCISE_XML)

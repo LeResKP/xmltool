@@ -10,6 +10,7 @@ from xmltool.elements import (
     TextElement,
     ChoiceElement,
     get_obj_from_str_id,
+    update_eol,
 )
 from xmltool import render
 import xmltool.elements as elements
@@ -42,6 +43,23 @@ class TestElement(TestCase):
                              'children_classes': []})
         self.cls = type('Cls', (Element, ), {'tagname': 'tag',
                                              'children_classes': [self.sub_cls]})
+
+    def test_update_eol(self):
+        res = update_eol('Hello\r\n')
+        self.assertEqual(res, 'Hello\n')
+
+        res = update_eol('Hello\n')
+        self.assertEqual(res, 'Hello\n')
+
+        elements.EOL = '\r\n'
+        res = update_eol('Hello\r\n')
+        self.assertEqual(res, 'Hello\r\n')
+
+        res = update_eol('Hello\n')
+        self.assertEqual(res, 'Hello\r\n')
+
+        res = update_eol('Hello\r')
+        self.assertEqual(res, 'Hello\r\n')
 
     def test_prefixes_no_cache(self):
         obj = type('Cls', (Element, ),

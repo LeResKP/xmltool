@@ -6,6 +6,8 @@ from elements import (
     ListElement,
     ChoiceElement,
 )
+from dogpile.cache.api import NO_VALUE
+from . import cache
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -26,17 +28,17 @@ def parse_element(value):
     if not matchobj:
         matchobj = empty_element_regex_compile.match(value)
     if not matchobj:
-        raise Exception, 'Error parsing element %s' % value
+        raise Exception('Error parsing element %s' % value)
     name, elements = matchobj.groups()
     if elements.count(')') != elements.count('('):
-        raise Exception, 'Unbalanced parenthesis %s' % value
+        raise Exception('Unbalanced parenthesis %s' % value)
     return name, elements.replace(' ', '')
 
 
 def parse_entity(value):
     matchobj = entity_regex_compile.match(value)
     if not matchobj:
-        raise Exception, 'Error parsing entity %s' % value
+        raise Exception('Error parsing entity %s' % value)
     name, elements = matchobj.groups()
     return name.replace(' ', ''), elements.replace(' ', '')
 
@@ -77,7 +79,7 @@ def dtd_to_dict_v2(dtd):
             tagname, attributes = parse_attribute(value)
             dtd_attributes.setdefault(tagname, []).extend(attributes)
         else:
-            raise Exception, '%s is not supported' % element
+            raise Exception('%s is not supported' % element)
 
     dic = {}
     for tagname, elements in dtd_elements.items():
@@ -222,13 +224,12 @@ def _create_classes(dtd_dict):
     return class_dict
 
 
-def parse(dtd_str=None, dtd_url=None, path=None):
-    # TODO: try to put a cache on this function
+def _parse(dtd_str=None, dtd_url=None, path=None):
     if not dtd_str and not dtd_url:
-        raise ValueError, 'You didn\'t provide dtd_str nor dtd_url'
+        raise ValueError('You didn\'t provide dtd_str nor dtd_url')
 
     if dtd_str and dtd_url:
-        raise ValueError, 'You should provide either dtd_str or dtd_url'
+        raise ValueError('You should provide either dtd_str or dtd_url')
 
     if dtd_url:
         dtd_str = utils.get_dtd_content(dtd_url, path)
@@ -236,3 +237,23 @@ def parse(dtd_str=None, dtd_url=None, path=None):
     dtd_dict = dtd_to_dict_v2(dtd_str)
     return _create_classes(dtd_dict)
 
+
+def parse(dtd_str=None, dtd_url=None, path=None, cache_key=None):
+    def perform():
+        return _parse(dtd_str=dtd_str, dtd_url=dtd_url, path=path)
+
+    if cache.CACHE_TIMEOUT is None:
+        return perform()
+
+    if not cache_key and dtd_url:
+        cache_key = 'xmltool.parse.%s' % dtd_url
+
+    if not cache_key:
+        return perform()
+
+    v = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
+    if v is not NO_VALUE:
+        return v
+    v = perform()
+    cache.region.set(cache_key, v)
+    return v

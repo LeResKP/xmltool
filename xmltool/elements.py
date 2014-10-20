@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import re
 from lxml import etree
 import dtd_parser
 import utils
@@ -10,8 +11,19 @@ from . import render
 
 warnings.simplefilter("always")
 
+
 DEFAULT_ENCODING = 'UTF-8'
 TREE_PREFIX = 'tree_'
+
+# We expect just '\n' in the XML output
+EOL = '\n'
+eol_regex = re.compile(r'\r?\n|\r\n?')
+
+
+def update_eol(text):
+    """We only want EOL as end of line
+    """
+    return eol_regex.sub(EOL, text)
 
 
 class EmptyElement(object):
@@ -290,7 +302,7 @@ class Element(object):
     def _comment_to_xml(self, xml):
         if not self._comment:
             return None
-        elt = etree.Comment(self._comment)
+        elt = etree.Comment(update_eol(self._comment))
         xml.addprevious(elt)
 
     def _comment_to_html(self, prefixes, index):
@@ -715,7 +727,7 @@ class TextElement(Element):
                     'It\'s forbidden to have a value to an EMPTY tag')
             xml.text = None
         else:
-            xml.text = self.text or ''
+            xml.text = update_eol(self.text or '')
         return xml
 
     def _get_html_attrs(self, prefixes, rows, index=None):

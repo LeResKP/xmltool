@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 import os
-import urllib2
 import requests
 import StringIO
 from lxml import etree
 import re
 import webob
+from dogpile.cache.api import NO_VALUE
+from . import cache
 
 
 # This hack helps work with different versions of WebOb
@@ -27,7 +28,7 @@ def is_http_url(url):
     return False
 
 
-def get_dtd_content(url, path=None):
+def _get_dtd_content(url, path=None):
     """Get the content of url.
 
     :param url: the url of the dtd file.
@@ -46,6 +47,28 @@ def get_dtd_content(url, path=None):
     if path and not url.startswith('/'):
         url = os.path.join(path, url)
     return open(url, 'r').read()
+
+
+def get_dtd_content(url, path=None):
+    """Get the content of url.
+
+    :param url: the url of the dtd file.
+    :type url: str
+    :param path: the path to use for a local file.
+    :type path: str
+    :return: The content of the given url
+    :rtype: string
+    """
+    if cache.CACHE_TIMEOUT is None:
+        return _get_dtd_content(url, path=path)
+
+    cache_key = 'xmltool.get_dtd_content.%s.%s' % (url, path)
+    v = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
+    if v is not NO_VALUE:
+        return v
+    content = _get_dtd_content(url, path=path)
+    cache.region.set(cache_key, content)
+    return content
 
 
 def validate_xml(xml_obj, dtd_str):
