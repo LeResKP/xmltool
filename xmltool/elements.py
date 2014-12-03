@@ -6,10 +6,7 @@ from lxml import etree
 import dtd_parser
 import utils
 from distutils.version import StrictVersion
-import warnings
 from . import render
-
-warnings.simplefilter("always")
 
 
 DEFAULT_ENCODING = 'UTF-8'
@@ -55,55 +52,6 @@ class Element(object):
     # The render used to make HTML rendering.
     # See render.py for more details
     html_render = None
-
-    # Old style support
-    def _get_root(self):
-        msg = "Instead of using obj._root use obj.root"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.root
-
-    def _set_root(self, value):
-        msg = "Instead of using obj._root = value use obj.root = value"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        self.root = value
-
-    _root = property(_get_root, _set_root)
-
-    def _get_parent(self):
-        msg = "Instead of using obj._parent use obj.parent"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.parent
-
-    def _set_parent(self, value):
-        msg = "Instead of using obj._parent = value use obj.parent = value"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        self.parent = value
-
-    _parent = property(_get_parent, _set_parent)
-
-    def _get_tagname(self):
-        msg = "Instead of using obj._tagname use obj.tagname"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.tagname
-
-    def _set_tagname(self, value):
-        msg = "Instead of using obj._tagname = value use obj.tagname = value"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        self.tagname = value
-
-    _tagname = property(_get_tagname, _set_tagname)
-
-    def _get_sourceline(self):
-        msg = "Instead of using obj._sourceline use obj.sourceline"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.sourceline
-
-    def _set_sourceline(self, value):
-        msg = "Instead of using obj._sourceline = value use obj.sourceline = value"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        self.sourceline = value
-
-    _sourceline = property(_get_sourceline, _set_sourceline)
 
     def __init__(self, parent=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
@@ -527,28 +475,6 @@ class Element(object):
         dic['children'] = children
         return dic
 
-    def __setattr__(self, prop, value):
-        if self.get_child_class(prop):
-            # If it's an element set the value to the dict of elements
-            self.xml_elements[prop] = value
-            msg = ("You should use the dict way to set a value: "
-                   "obj[prop] = value")
-            warnings.warn(msg, DeprecationWarning, stacklevel=2)
-            return
-        object.__setattr__(self, prop, value)
-
-    def __getattribute__(self, prop):
-        try:
-            v = object.__getattribute__(self, prop)
-            return v
-        except AttributeError:
-            if prop in self.xml_elements:
-                msg = ("You should use the dict way to get a value: "
-                       "obj[prop] or obj.get(prop)")
-                warnings.warn(msg, DeprecationWarning, stacklevel=2)
-                return self.xml_elements[prop]
-            raise
-
     def __setitem__(self, tagname, value):
         # TODO: Perhaps we should check the value type and if the tagname is
         # allowed
@@ -656,19 +582,6 @@ class Element(object):
 class TextElement(Element):
     text = None
     _exists = False
-
-    # Old style support
-    def _set_value(self, v):
-        msg = "Instead of using obj._value = value use obj.text = value"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        self.text = v
-
-    def _get_value(self):
-        msg = "Instead of using obj._value use obj.text"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.text
-
-    _value = property(_get_value, _set_value)
 
     def __repr__(self):
         return '<TextElement %s "%s">' % (
