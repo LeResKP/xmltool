@@ -132,13 +132,13 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
         assert name
         if not islist:
             parent_cls = type('%sChoice' % name, (ChoiceElement,), {
-                '_elts': [],
+                '_choice_classes': [],
                 'tagname': 'choice__%s' % name,
                 '_required': required
             })
         else:
             parent_cls = type('%sList' % name, (ListElement, ), {
-                '_elts': [],
+                '_choice_classes': [],
                 'tagname': 'list__%s' % name,
                 '_required': required,
             })
@@ -152,7 +152,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
             # TODO: We can have choice in list, so this parameter name is not really
             # explicit!
             sub_cls._is_choice = not islist
-            parent_cls._elts += [sub_cls]
+            parent_cls._choice_classes += [sub_cls]
         return parent_cls
 
     if not islist:
@@ -163,7 +163,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
     newcls = type(cls.__name__, (cls, ), {'_required': required})
 
     listcls = type('%sList' % cls.__name__, (ListElement, ), {
-        '_elts': [newcls],
+        '_choice_classes': [newcls],
         '_required': required,
         'tagname': 'list__%s' % name
     })

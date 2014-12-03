@@ -460,7 +460,7 @@ class TestElement(TestCase):
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
                          'children_classes': [],
-                         '_elts': [sub_cls]})
+                         '_choice_classes': [sub_cls]})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
@@ -541,7 +541,7 @@ class TestElement(TestCase):
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                             {'tagname': 'element',
-                             '_elts': [sub_cls]
+                             '_choice_classes': [sub_cls]
                             })
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
@@ -583,7 +583,7 @@ class TestElement(TestCase):
         self.assertEqual(html, expected)
 
         sub_cls = type('SubCls', (Element,), {'tagname': 'tag'})
-        cls = type('MultipleCls', (ChoiceElement,), {'_elts': [sub_cls]})
+        cls = type('MultipleCls', (ChoiceElement,), {'_choice_classes': [sub_cls]})
         self.cls.parent = cls
         self.cls._is_choice = True
         html = self.cls._get_html_add_button(['prefix'])
@@ -748,7 +748,7 @@ class TestElement(TestCase):
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
-                         '_elts': [sub_cls]})
+                         '_choice_classes': [sub_cls]})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
@@ -1073,7 +1073,7 @@ class TestTextElement(TestCase):
         obj.parent = type('MyListElement', (ListElement, ),
                            {'tagname': 'mytag',
                             '_attribute_names': [],
-                            '_elts': [],
+                            '_choice_classes': [],
                             'children_classes': []})()
         html = obj.to_html()
         expected = ('<div id="tag">'
@@ -1126,7 +1126,7 @@ class TestTextElement(TestCase):
         obj.parent = type('MyListElement', (ListElement, ),
                            {'tagname': 'mytag',
                             '_attribute_names': [],
-                            '_elts': [],
+                            '_choice_classes': [],
                             'children_classes': []})()
         html = obj.to_html()
         expected = ('<div id="tag">'
@@ -1146,7 +1146,7 @@ class TestListElement(TestCase):
                              '_attribute_names': ['attr'],
                              'children_classes': []})
         self.cls = type('Cls', (ListElement,), {'tagname': 'list_cls',
-                                                '_elts': [self.sub_cls]})
+                                                '_choice_classes': [self.sub_cls]})
 
     def test__get_allowed_tagnames(self):
         self.assertEqual(self.cls._get_allowed_tagnames(), ['list_cls', 'tag'])
@@ -1168,7 +1168,7 @@ class TestListElement(TestCase):
 
     def test__get_value_from_parent_multiple(self):
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
-        self.cls._elts += [sub_cls]
+        self.cls._choice_classes += [sub_cls]
         obj_cls = type('Cls', (Element,), {'tagname': 'list_cls',
                                            'children_classes': []})
         parent_obj_cls = type('Cls', (Element,), {'tagname': 'tg',
@@ -1189,7 +1189,7 @@ class TestListElement(TestCase):
 
     def test__add(self):
         sub_cls = type('LisCls', (ListElement, ), {'tagname': 'tag',
-                                                   '_elts': [],
+                                                   '_choice_classes': [],
                                                    'children_classes': []})
         parent_obj = type('PCls', (Element, ), {'tagname': 'tag1',
                                                 'children_classes': [sub_cls]})()
@@ -1216,7 +1216,7 @@ class TestListElement(TestCase):
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj['tag'], [obj1, obj2])
 
-        self.cls._elts = [type('Cls', (TextElement, ),
+        self.cls._choice_classes = [type('Cls', (TextElement, ),
                           {'tagname': 'tag',
                            'children_classes': []})]
         obj3 = self.cls._create('tag', parent_obj, 'my value')
@@ -1229,10 +1229,10 @@ class TestListElement(TestCase):
     def test__add_multiple(self):
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1',
                                                'children_classes': []})
-        self.cls._elts += [sub_cls]
+        self.cls._choice_classes += [sub_cls]
 
         lelement = type('LisCls', (ListElement, ), {'tagname': 'list_cls',
-                                                    '_elts': [],
+                                                    '_choice_classes': [],
                                                     'children_classes': []})
 
         parent_obj = type('PCls', (Element, ), {'tagname': 'tag1',
@@ -1297,7 +1297,7 @@ class TestListElement(TestCase):
         self.assertEqual(lis[0].tag, 'tag')
 
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
-        self.cls._elts += [sub_cls]
+        self.cls._choice_classes += [sub_cls]
         obj = self.cls()
         obj._required = True
         lis = obj.to_xml()
@@ -1321,7 +1321,7 @@ class TestListElement(TestCase):
 
     def test__get_html_add_button_multiple(self):
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
-        self.cls._elts += [sub_cls]
+        self.cls._choice_classes += [sub_cls]
         html = self.cls._get_html_add_button(None)
         expected = ('<select class="btn-add btn-list">'
                     '<option>New tag/tag1</option>'
@@ -1440,7 +1440,7 @@ class TestListElement(TestCase):
         sub_cls = type('SubCls', (Element, ),
                        {'tagname': 'tag1',
                         'children_classes': []})
-        self.cls._elts += [sub_cls]
+        self.cls._choice_classes += [sub_cls]
 
         parent_obj = self.cls()
         obj1 = self.sub_cls(parent_obj)
@@ -1500,7 +1500,7 @@ class TestChoiceElement(TestCase):
         self.cls = type('Cls', (ChoiceElement,),
                         {'tagname': 'choice_cls',
                          'children_classes': [],
-                         '_elts': [self.sub_cls1,
+                         '_choice_classes': [self.sub_cls1,
                                    self.sub_cls2]})
 
     def test__get_allowed_tagnames(self):
@@ -1579,7 +1579,7 @@ class TestChoiceElement(TestCase):
         parent = type('Cls', (TextElement, ),
                       {'tagname': 'tag',
                        'children_classes': []})()
-        self.cls._elts = [type('Cls', (TextElement, ),
+        self.cls._choice_classes = [type('Cls', (TextElement, ),
                           {'tagname': 'tag',
                            'children_classes': []})]
         obj2 = self.cls._create('tag', parent, 'my value')
@@ -1934,7 +1934,7 @@ class TestFunctions(TestCase):
         }
         self.assertEqual(res, expected)
 
-        obj.parent._elts = ['Fake1', 'Fake2']
+        obj.parent._choice_classes = ['Fake1', 'Fake2']
         res = elements.get_display_data_from_obj(obj)
         self.assertEqual(res['is_choice'], True)
 

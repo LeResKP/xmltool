@@ -723,11 +723,11 @@ class TextElement(Element):
 
 
 class MultipleMixin(object):
-    _elts = None
+    _choice_classes = None
 
     @classmethod
     def get_child_class(cls, tagname):
-        for e in cls._elts:
+        for e in cls._choice_classes:
             if e.tagname == tagname:
                 return e
 
@@ -741,7 +741,7 @@ class ListElement(list, MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        return [cls.tagname] + [e.tagname for e in cls._elts]
+        return [cls.tagname] + [e.tagname for e in cls._choice_classes]
 
     @classmethod
     def _check_addable(cls, obj, tagname):
@@ -767,9 +767,9 @@ class ListElement(list, MultipleMixin, Element):
         if lis is None:
             lis = cls(parent)
             parent[cls.tagname] = lis
-            if len(cls._elts) == 1:
-                # Create a shortcut since we already have one element
-                parent[cls._elts[0].tagname] = lis
+            if len(cls._choice_classes) == 1:
+                # Create a shortcut since we only have one element
+                parent[cls._choice_classes[0].tagname] = lis
 
         if tagname == cls.tagname:
             # Special case, when we pass tagname of the class we just want to
@@ -795,8 +795,8 @@ class ListElement(list, MultipleMixin, Element):
         self.remove_empty_element()
         lis = []
         if not len(self) and self._required:
-            if len(self._elts) == 1:
-                e = self.add(self._elts[0].tagname)
+            if len(self._choice_classes) == 1:
+                e = self.add(self._choice_classes[0].tagname)
 
         for e in self:
             if e._comment:
@@ -810,32 +810,32 @@ class ListElement(list, MultipleMixin, Element):
         if index is None:
             # This element is a list, we should always have an index.
             index = 0
-        if len(cls._elts) == 1:
+        if len(cls._choice_classes) == 1:
             css_classes = ['btn-add btn-list']
             if css_class:
                 css_classes += [css_class]
 
             tmp_prefixes = list(prefixes or []) + [
-                cls.tagname, index, cls._elts[0].tagname]
+                cls.tagname, index, cls._choice_classes[0].tagname]
             data_id = ':'.join(
                 map(str, filter((lambda x: x is not None), tmp_prefixes)))
             button = ('<a class="%s" '
                       'data-elt-id="%s">New %s</a>') % (
                           ' '.join(css_classes),
                           data_id,
-                          cls._elts[0].tagname)
+                          cls._choice_classes[0].tagname)
             return button
 
         assert not css_class
         button = '<select class="btn-add btn-list">'
-        options = '/'.join([e.tagname for e in cls._elts])
+        options = '/'.join([e.tagname for e in cls._choice_classes])
         button += '<option>New %s</option>' % options
 
         tmp_prefixes = list(prefixes or [])
         tmp_prefixes.append(cls.tagname)
         tmp_prefixes.append(str(index))
         prefix_str = ':'.join(tmp_prefixes)
-        for e in cls._elts:
+        for e in cls._choice_classes:
             button += '<option value="%s:%s">%s</option>' % (
                 prefix_str,
                 e.tagname,
@@ -846,8 +846,8 @@ class ListElement(list, MultipleMixin, Element):
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
         tg = cls.tagname
-        if len(cls._elts) == 1:
-            tg = cls._elts[0].tagname
+        if len(cls._choice_classes) == 1:
+            tg = cls._choice_classes[0].tagname
         return parent_obj.xml_elements.get(tg)
 
     def to_html(self, prefixes=None, index=None, delete_btn=False,
@@ -859,8 +859,8 @@ class ListElement(list, MultipleMixin, Element):
         assert index is None
 
         if not len(self) and (self._required or partial):
-            if len(self._elts) == 1:
-                e = self.add(self._elts[0].tagname)
+            if len(self._choice_classes) == 1:
+                e = self.add(self._choice_classes[0].tagname)
 
         renderer = self.get_html_render()
         i = -1
@@ -886,8 +886,8 @@ class ListElement(list, MultipleMixin, Element):
 
     def to_jstree_dict(self, prefixes, index=None, offset=0):
         if not len(self) and (self._required):
-            if len(self._elts) == 1:
-                e = self.add(self._elts[0].tagname)
+            if len(self._choice_classes) == 1:
+                e = self.add(self._choice_classes[0].tagname)
 
         lis = []
         for i, e in enumerate(self):
@@ -910,7 +910,7 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
-        return [e.tagname for e in cls._elts]
+        return [e.tagname for e in cls._choice_classes]
 
     @classmethod
     def _create(cls, tagname, parent, value=None):
@@ -930,7 +930,7 @@ class ChoiceElement(MultipleMixin, Element):
         """
         # If one of the different choice is already added, we can't add
         # anything.
-        for elt in cls._elts:
+        for elt in cls._choice_classes:
             if elt.tagname in obj:
                 err = '%s is already defined' % elt.tagname
                 if elt.tagname != tagname:
@@ -949,8 +949,8 @@ class ChoiceElement(MultipleMixin, Element):
             css_classes += [css_class]
 
         button = '<select class="%s">' % ' '.join(css_classes)
-        button += '<option>New %s</option>' % '/'.join([e.tagname for e in cls._elts])
-        for e in cls._elts:
+        button += '<option>New %s</option>' % '/'.join([e.tagname for e in cls._choice_classes])
+        for e in cls._choice_classes:
             button += '<option value="%s">%s</option>' % (
                 e._get_str_prefix(prefixes, index, None),
                 e.tagname)
@@ -959,7 +959,7 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
-        for elt in cls._elts:
+        for elt in cls._choice_classes:
             v = parent_obj.xml_elements.get(elt.tagname)
             if v:
                 return v
@@ -1211,7 +1211,7 @@ def get_display_data_from_obj(obj):
     is_choice = obj._is_choice
     if not is_choice and isinstance(obj.parent, ListElement):
         # Check if there is multiple possible element in the list
-        is_choice = (len(obj.parent._elts) != 1)
+        is_choice = (len(obj.parent._choice_classes) != 1)
 
     return {
         'jstree_data': jstree_data,
