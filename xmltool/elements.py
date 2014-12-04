@@ -39,6 +39,7 @@ class Element(object):
     children_classes = None
     _required = False
     parent = None
+    _parent_cls = None
     sourceline = None
     _comment = None
     _is_choice = False
@@ -348,7 +349,7 @@ class Element(object):
     @classmethod
     def _get_html_add_button(cls, prefixes, index=None, css_class=None):
         if cls._is_choice:
-            return cls.parent._get_html_add_button(prefixes, index, css_class)
+            return cls._parent_cls._get_html_add_button(prefixes, index, css_class)
 
         value = cls._get_str_prefix(prefixes, index)
         css_classes = ['btn-add']

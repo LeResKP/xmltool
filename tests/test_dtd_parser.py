@@ -512,7 +512,7 @@ class DtdParser(TestCase):
         self.assertEqual(cls.__name__, 'tagList')
         self.assertEqual(cls._required, True)
         self.assertEqual(len(cls._choice_classes), 1)
-        self.assertEqual(cls._choice_classes[0].parent, cls)
+        self.assertEqual(cls._choice_classes[0]._parent_cls, cls)
         self.assertEqual(cls._choice_classes[0]._required, True)
 
         dtd_dict = {
@@ -544,9 +544,9 @@ class DtdParser(TestCase):
         self.assertEqual(len(cls._choice_classes), 2)
         elt1 = cls._choice_classes[0]
         elt2 = cls._choice_classes[1]
-        self.assertEqual(elt1.parent, cls)
+        self.assertEqual(elt1._parent_cls, cls)
         self.assertEqual(elt1._required, True)
-        self.assertEqual(elt2.parent, cls)
+        self.assertEqual(elt2._parent_cls, cls)
         self.assertEqual(elt2._required, True)
 
         cls = dtd_parser._create_new_class(
@@ -558,9 +558,9 @@ class DtdParser(TestCase):
         self.assertEqual(len(cls._choice_classes), 2)
         elt1 = cls._choice_classes[0]
         elt2 = cls._choice_classes[1]
-        self.assertEqual(elt1.parent, cls)
+        self.assertEqual(elt1._parent_cls, cls)
         self.assertEqual(elt1._required, True)
-        self.assertEqual(elt2.parent, cls)
+        self.assertEqual(elt2._parent_cls, cls)
         self.assertEqual(elt2._required, True)
 
     def test__create_classes(self):
@@ -590,7 +590,7 @@ class DtdParser(TestCase):
         self.assertEqual(subtag.__name__, 'subtag')
         self.assertEqual(subtag._required, True)
         self.assertEqual(subtag.children_classes, [])
-        self.assertEqual(subtag.parent, tag)
+        self.assertEqual(subtag._parent_cls, tag)
 
     def test__parse(self):
         try:

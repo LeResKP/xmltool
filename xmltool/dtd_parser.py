@@ -148,7 +148,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
             assert not subislist
             sub_cls = _create_new_class(class_dict, subname, subrequired,
                                         subislist, subconditionals)
-            sub_cls.parent = parent_cls
+            sub_cls._parent_cls = parent_cls
             # TODO: We can have choice in list, so this parameter name is not really
             # explicit!
             sub_cls._is_choice = not islist
@@ -167,7 +167,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
         '_required': required,
         'tagname': 'list__%s' % name
     })
-    newcls.parent = listcls
+    newcls._parent_cls = listcls
     return listcls
 
 
@@ -218,7 +218,7 @@ def _create_classes(dtd_dict):
                 continue
             sub_cls = _create_new_class(
                 class_dict, name, required, islist, conditionals)
-            sub_cls.parent = cls
+            sub_cls._parent_cls = cls
             cls.children_classes += [sub_cls]
 
     return class_dict
