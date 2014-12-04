@@ -26,8 +26,8 @@ def update_eol(text):
 class EmptyElement(object):
     """This object is used in the ListElement to keep the good index.
     """
-    def __init__(self, parent):
-        self.parent = parent
+    def __init__(self, parent_obj):
+        self._parent_obj = parent_obj
 
 
 class Element(object):
@@ -38,7 +38,6 @@ class Element(object):
     _attributes = None
     children_classes = None
     _required = False
-    parent = None
     _parent_cls = None
     sourceline = None
     _comment = None
@@ -54,11 +53,11 @@ class Element(object):
     # See render.py for more details
     html_render = None
 
-    def __init__(self, parent=None, *args, **kw):
+    def __init__(self, parent_obj=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
-        self.parent = parent
-        if self.parent is not None:
-            self.root = self.parent.root
+        self._parent_obj = parent_obj
+        if self._parent_obj is not None:
+            self.root = self._parent_obj.root
         else:
             self.root = self
 
@@ -74,10 +73,10 @@ class Element(object):
         during the construction is not finished
         """
         prefixes = []
-        if self.parent:
-            prefixes = self.parent.prefixes_no_cache
-            if isinstance(self.parent, ListElement):
-                prefixes += [str(self.parent.index(self))]
+        if self._parent_obj:
+            prefixes = self._parent_obj.prefixes_no_cache
+            if isinstance(self._parent_obj, ListElement):
+                prefixes += [str(self._parent_obj.index(self))]
         prefixes += [self.tagname]
         return prefixes
 
@@ -87,10 +86,10 @@ class Element(object):
         """
         if self._cache_prefixes is None:
             prefixes = []
-            if self.parent:
-                prefixes = self.parent.prefixes
-                if isinstance(self.parent, ListElement):
-                    prefixes += [str(self.parent.index(self))]
+            if self._parent_obj:
+                prefixes = self._parent_obj.prefixes
+                if isinstance(self._parent_obj, ListElement):
+                    prefixes += [str(self._parent_obj.index(self))]
             self._cache_prefixes = prefixes + [self.tagname]
         return self._cache_prefixes
 
@@ -139,12 +138,12 @@ class Element(object):
         return ':'.join(tmp_prefixes)
 
     @classmethod
-    def _create(cls, tagname, parent, value=None):
-        obj = cls(parent)
-        if not isinstance(parent, list):
+    def _create(cls, tagname, parent_obj, value=None):
+        obj = cls(parent_obj)
+        if not isinstance(parent_obj, list):
             # We don't need to set the element to the parent since it will be
             # append to it!
-            parent[tagname] = obj
+            parent_obj[tagname] = obj
         if value:
             if not issubclass(cls, TextElement):
                 raise Exception("Can't set value to non TextElement")
@@ -318,7 +317,7 @@ class Element(object):
                     if d is None:
                         # Add empty element to keep index in the list.
                         lis = self.add(key)
-                        elt = EmptyElement(parent=lis)
+                        elt = EmptyElement(parent_obj=lis)
                         lis.append(elt)
                     else:
                         assert(len(d) == 1)
@@ -381,7 +380,7 @@ class Element(object):
                 add_btn=True,  partial=False):
 
         renderer = self.get_html_render()
-        if not self._has_value() and not self._required and self.parent and not partial:
+        if not self._has_value() and not self._required and self._parent_obj and not partial:
             if not renderer.add_add_button():
                 return ''
             # Add button!
@@ -396,7 +395,7 @@ class Element(object):
 
         legend = self.tagname
         if renderer.add_add_button():
-            if ((not self._required and self.parent and add_btn)
+            if ((not self._required and self._parent_obj and add_btn)
                or self._is_choice):
                 legend += self._get_html_add_button(prefixes or [],
                                                     index, 'hidden')
@@ -404,7 +403,7 @@ class Element(object):
         ident = ':'.join(tmp_prefixes)
         if renderer.add_delete_button():
             # Don't allow to delete root element!
-            if (not self._required and self.parent) or delete_btn or partial or self._is_choice:
+            if (not self._required and self._parent_obj) or delete_btn or partial or self._is_choice:
                 # NOTE: we assume the parent is a list if index is not None
                 if (index is not None):
                     legend += ('<a class="btn-delete btn-list" '
@@ -672,7 +671,7 @@ class TextElement(Element):
                 return ''
             return self._get_html_add_button(prefixes, index)
 
-        parent_is_list = isinstance(self.parent, ListElement)
+        parent_is_list = isinstance(self._parent_obj, ListElement)
         add_button = ''
         if renderer.add_add_button():
             if (not parent_is_list and not self._required) or self._is_choice:
@@ -762,15 +761,15 @@ class ListElement(list, MultipleMixin, Element):
         return e
 
     @classmethod
-    def _create(cls, tagname, parent, value=None):
+    def _create(cls, tagname, parent_obj, value=None):
         # Get the list element or create it
-        lis = parent.get(cls.tagname)
+        lis = parent_obj.get(cls.tagname)
         if lis is None:
-            lis = cls(parent)
-            parent[cls.tagname] = lis
+            lis = cls(parent_obj)
+            parent_obj[cls.tagname] = lis
             if len(cls._choice_classes) == 1:
                 # Create a shortcut since we only have one element
-                parent[cls._choice_classes[0].tagname] = lis
+                parent_obj[cls._choice_classes[0].tagname] = lis
 
         if tagname == cls.tagname:
             # Special case, when we pass tagname of the class we just want to
@@ -914,9 +913,9 @@ class ChoiceElement(MultipleMixin, Element):
         return [e.tagname for e in cls._choice_classes]
 
     @classmethod
-    def _create(cls, tagname, parent, value=None):
+    def _create(cls, tagname, parent_obj, value=None):
         elt = cls.get_child_class(tagname)
-        return elt._create(tagname, parent, value)
+        return elt._create(tagname, parent_obj, value)
 
     def add(self, *args, **kw):
         raise Exception('Can\'t add element to ChoiceElement')
@@ -1035,7 +1034,7 @@ def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
             subelt = splitted.pop(0)
             while len(subobj) < s:
                 # We don't have enough element, add some empty one
-                elt = EmptyElement(parent=subobj)
+                elt = EmptyElement(parent_obj=subobj)
                 subobj.append(elt)
             # If the last element is missing we should add the right element
             # type
@@ -1045,8 +1044,8 @@ def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
 
             if isinstance(subobj, EmptyElement):
                 # The element is empty, we remove it and create the good one!
-                subobj.parent.remove(subobj)
-                subobj = subobj.parent.add(subelt, index=s)
+                subobj._parent_obj.remove(subobj)
+                subobj = subobj._parent_obj.add(subelt, index=s)
         except ValueError:
             if s not in subobj:
                 subobj.add(s)
@@ -1064,27 +1063,27 @@ def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
     if isinstance(target_obj, EmptyElement):
         # The target is an empty object, we remove it and replace it by the
         # right object.
-        parent = target_obj.parent
-        assert(isinstance(parent, ListElement))
-        index = parent.index(target_obj)
-        parent.pop(index)
+        parent_obj = target_obj._parent_obj
+        assert(isinstance(parent_obj, ListElement))
+        index = parent_obj.index(target_obj)
+        parent_obj.pop(index)
         # Should always been the -2:
         # -1 is the object we want to copy
         # -2 is the container, should also be a list
         # normally a ListElement is at least 3 elements
         tagname = source_id.split(':')[-2]
-        if not parent.is_addable(tagname):
+        if not parent_obj.is_addable(tagname):
             return None
-        target_obj = parent.add(tagname, index=index)
+        target_obj = parent_obj.add(tagname, index=index)
 
     tagname = source_id.split(':')[-1]
-    parent = None
+    parent_obj = None
     if target_obj.is_addable(tagname):
         return target_obj
 
-    parent = target_obj.parent
-    if parent and parent.is_addable(tagname):
-        return parent
+    parent_obj = target_obj._parent_obj
+    if parent_obj and parent_obj.is_addable(tagname):
+        return parent_obj
 
     return None
 
@@ -1119,14 +1118,14 @@ def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=Non
 def _get_previous_js_selectors(obj, prefixes, index):
     lis = []
 
-    parent = obj.parent
+    parent = obj._parent_obj
     if not parent:
         return lis
 
     parent_is_list = isinstance(parent, ListElement)
     tmp_prefixes = prefixes[:-1]
     if parent_is_list:
-        parent = parent.parent
+        parent = parent._parent_obj
         if int(index) > 0:
             index = int(index) - 1
             lis += [
@@ -1155,20 +1154,20 @@ def _get_previous_js_selectors(obj, prefixes, index):
 
 def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    if isinstance(obj.parent, ListElement):
+    if isinstance(obj._parent_obj, ListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
-        tmp += obj.parent._get_html_add_button(prefixes[:-2], index+1)
+        tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
     return obj.to_html(prefixes[:-1], index, partial=True)
 
 
 def _get_html_from_obj(obj, prefixes, index):
-    if isinstance(obj.parent, ListElement):
+    if isinstance(obj._parent_obj, ListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
-        tmp += obj.parent._get_html_add_button(prefixes[:-2], index+1)
+        tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
     return obj.to_html(prefixes[:-1], index, partial=True)
@@ -1191,14 +1190,14 @@ def get_display_data_from_obj(obj):
     # able to calculate it! Currently it sucks!
     index = None
     prefixes = obj.prefixes
-    if obj.parent and isinstance(obj.parent, ListElement):
+    if obj._parent_obj and isinstance(obj._parent_obj, ListElement):
         index = int(obj.prefixes[-2])
         prefixes = prefixes[:-1]
 
     html = _get_html_from_obj(obj, prefixes, index)
 
     prefixes = obj.prefixes[:-1]
-    if isinstance(obj.parent, ListElement):
+    if isinstance(obj._parent_obj, ListElement):
         index = prefixes[-1]
         prefixes = prefixes[:-1]
         jstree_data = obj.to_jstree_dict(prefixes, index=index)
@@ -1206,13 +1205,13 @@ def get_display_data_from_obj(obj):
         jstree_data = obj.to_jstree_dict(prefixes)
 
     prefixes = obj.prefixes
-    if obj.parent and isinstance(obj.parent, ListElement):
+    if obj._parent_obj and isinstance(obj._parent_obj, ListElement):
         prefixes = prefixes[:-1]
 
     is_choice = obj._is_choice
-    if not is_choice and isinstance(obj.parent, ListElement):
+    if not is_choice and isinstance(obj._parent_obj, ListElement):
         # Check if there is multiple possible element in the list
-        is_choice = (len(obj.parent._choice_classes) != 1)
+        is_choice = (len(obj._parent_obj._choice_classes) != 1)
 
     return {
         'jstree_data': jstree_data,

@@ -1965,4 +1965,4 @@ class TestXPath(TestCase):
 
         res = actor_obj.xpath('..')
         self.assertEqual(len(res), 1)
-        self.assertEqual(res[0], actor_obj.parent.parent)
+        self.assertEqual(res[0], actor_obj._parent_obj._parent_obj)

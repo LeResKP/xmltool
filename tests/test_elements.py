@@ -71,7 +71,7 @@ class TestElement(TestCase):
         self.assertEqual(obj.prefixes_no_cache, ['tag'])
         self.assertEqual(parent_obj.prefixes_no_cache, ['ptag'])
 
-        obj.parent = parent_obj
+        obj._parent_obj = parent_obj
         self.assertEqual(obj.prefixes_no_cache, ['ptag', 'tag'])
 
     def test_prefixes(self):
@@ -85,7 +85,7 @@ class TestElement(TestCase):
         self.assertEqual(parent_obj.prefixes, ['ptag'])
 
         # The prefixes are in the cache
-        obj.parent = parent_obj
+        obj._parent_obj = parent_obj
         self.assertEqual(obj.prefixes, ['tag'])
         self.assertEqual(obj._cache_prefixes, ['tag'])
 
@@ -174,7 +174,7 @@ class TestElement(TestCase):
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
         obj = self.cls._create('tagname', parent_obj)
-        self.assertEqual(obj.parent, parent_obj)
+        self.assertEqual(obj._parent_obj, parent_obj)
         self.assertEqual(obj.root, parent_obj)
         self.assertTrue(isinstance(obj, Element))
         self.assertEqual(parent_obj['tagname'], obj)
@@ -615,7 +615,7 @@ class TestElement(TestCase):
                      'subtag</a></div></div>')
         self.assertEqual(html, expected1)
 
-        obj.parent = 'my fake parent'
+        obj._parent_obj = 'my fake parent'
         html = obj.to_html()
         expected_button = ('<a class="btn-add" data-elt-id="tag">'
                            'Add tag</a>')
@@ -655,7 +655,7 @@ class TestElement(TestCase):
                      '</div></div>')
         self.assertEqual(html, expected1)
 
-        obj.parent = 'my fake parent'
+        obj._parent_obj = 'my fake parent'
         html = obj.to_html()
         self.assertEqual(html, '')
 
@@ -808,7 +808,7 @@ class TestElement(TestCase):
             self.assertEqual(str(e), 'Invalid child unexisting')
         subtag = obj.get_or_add('subtag')
         self.assertTrue(subtag)
-        self.assertEqual(subtag.parent, obj)
+        self.assertEqual(subtag._parent_obj, obj)
         self.assertEqual(subtag.root, obj)
 
         subtag1 = obj.get_or_add('subtag')
@@ -928,7 +928,7 @@ class TestTextElement(TestCase):
                        'children_classes': []})()
         obj = self.cls._create('tagname', parent, 'my value')
         self.assertEqual(obj.text, 'my value')
-        self.assertEqual(obj.parent, parent)
+        self.assertEqual(obj._parent_obj, parent)
 
     def test_load_from_xml(self):
         root = etree.Element('root')
@@ -1070,7 +1070,7 @@ class TestTextElement(TestCase):
         self.assertEqual(html, expected)
 
         obj.text = None
-        obj.parent = type('MyListElement', (ListElement, ),
+        obj._parent_obj = type('MyListElement', (ListElement, ),
                            {'tagname': 'mytag',
                             '_attribute_names': [],
                             '_choice_classes': [],
@@ -1123,7 +1123,7 @@ class TestTextElement(TestCase):
         self.assertEqual(html, expected)
 
         obj.text = None
-        obj.parent = type('MyListElement', (ListElement, ),
+        obj._parent_obj = type('MyListElement', (ListElement, ),
                            {'tagname': 'mytag',
                             '_attribute_names': [],
                             '_choice_classes': [],
@@ -1204,14 +1204,14 @@ class TestListElement(TestCase):
 
         obj1 = self.cls._create('tag', parent_obj)
         self.assertTrue(obj1.tagname, 'tag')
-        self.assertEqual(obj1.parent, parent_obj['tag'])
+        self.assertEqual(obj1._parent_obj, parent_obj['tag'])
         self.assertEqual(obj1.root, parent_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertEqual(parent_obj['tag'], [obj1])
 
         obj2 = self.cls._create('tag', parent_obj)
         self.assertTrue(obj2.tagname, 'tag')
-        self.assertEqual(obj2.parent, parent_obj['tag'])
+        self.assertEqual(obj2._parent_obj, parent_obj['tag'])
         self.assertEqual(obj2.root, parent_obj)
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj['tag'], [obj1, obj2])
@@ -1240,7 +1240,7 @@ class TestListElement(TestCase):
         parent_obj['list_cls'] = lelement(parent_obj)
         obj1 = self.cls._create('tag', parent_obj)
         self.assertTrue(obj1.tagname, 'tag')
-        self.assertEqual(obj1.parent, parent_obj['list_cls'])
+        self.assertEqual(obj1._parent_obj, parent_obj['list_cls'])
         self.assertEqual(obj1.root, parent_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertFalse(hasattr(parent_obj, 'tag'))
@@ -1248,7 +1248,7 @@ class TestListElement(TestCase):
 
         obj2 = self.cls._create('tag1', parent_obj)
         self.assertTrue(obj2.tagname, 'tag1')
-        self.assertEqual(obj2.parent, parent_obj['list_cls'])
+        self.assertEqual(obj2._parent_obj, parent_obj['list_cls'])
         self.assertEqual(obj2.root, parent_obj)
         self.assertTrue(isinstance(obj2, Element))
         self.assertEqual(parent_obj['list_cls'], [obj1, obj2])
@@ -1268,7 +1268,7 @@ class TestListElement(TestCase):
     def test_remove_empty_element(self):
         obj = self.cls()
         obj.append(None)
-        obj.append(elements.EmptyElement(parent=obj))
+        obj.append(elements.EmptyElement(parent_obj=obj))
         self.assertEqual(len(obj), 2)
         obj.remove_empty_element()
         self.assertEqual(len(obj), 1)
@@ -1572,7 +1572,7 @@ class TestChoiceElement(TestCase):
 
         obj1 = self.cls._create('tag1', parent_obj)
         self.assertTrue(obj1.tagname, 'tag')
-        self.assertEqual(obj1.parent, parent_obj)
+        self.assertEqual(obj1._parent_obj, parent_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertEqual(parent_obj['tag1'], obj1)
 
@@ -1584,7 +1584,7 @@ class TestChoiceElement(TestCase):
                            'children_classes': []})]
         obj2 = self.cls._create('tag', parent, 'my value')
         self.assertEqual(obj2.text, 'my value')
-        self.assertEqual(obj2.parent, parent)
+        self.assertEqual(obj2._parent_obj, parent)
 
     def test__get_html_add_button(self):
         html = self.cls._get_html_add_button(None)
@@ -1934,7 +1934,7 @@ class TestFunctions(TestCase):
         }
         self.assertEqual(res, expected)
 
-        obj.parent._choice_classes = ['Fake1', 'Fake2']
+        obj._parent_obj._choice_classes = ['Fake1', 'Fake2']
         res = elements.get_display_data_from_obj(obj)
         self.assertEqual(res['is_choice'], True)
 
@@ -1962,7 +1962,7 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'tag2')
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj.parent.tagname, 'texts')
+        self.assertEqual(obj._parent_obj.tagname, 'texts')
 
         str_id = 'texts:list__list:0:list:text'
         data = {
@@ -1979,8 +1979,8 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'text')
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj.parent.tagname, 'list')
-        self.assertEqual(len(obj.parent.parent), 1)
+        self.assertEqual(obj._parent_obj.tagname, 'list')
+        self.assertEqual(len(obj._parent_obj._parent_obj), 1)
 
         # Test with list but missing elements: we have the element of index 2
         # and not the ones for index 0, 1
@@ -2001,8 +2001,8 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'text')
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj.parent.tagname, 'list')
-        list_obj = obj.parent.parent
+        self.assertEqual(obj._parent_obj.tagname, 'list')
+        list_obj = obj._parent_obj._parent_obj
         self.assertEqual(len(list_obj), 3)
         self.assertTrue(isinstance(list_obj[0], elements.EmptyElement))
         self.assertTrue(isinstance(list_obj[1], elements.EmptyElement))
@@ -2023,13 +2023,13 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'text')
         self.assertEqual(obj.text, None)
-        self.assertEqual(obj.parent.tagname, 'list')
-        list_obj = obj.parent.parent
+        self.assertEqual(obj._parent_obj.tagname, 'list')
+        list_obj = obj._parent_obj._parent_obj
         self.assertEqual(len(list_obj), 3)
         self.assertFalse(isinstance(list_obj[0], elements.EmptyElement))
         self.assertTrue(isinstance(list_obj[1], elements.EmptyElement))
         self.assertFalse(isinstance(list_obj[2], elements.EmptyElement))
-        self.assertEqual(list_obj[2], obj.parent)
+        self.assertEqual(list_obj[2], obj._parent_obj)
 
         # Test with enough element, but the one we want is an empty one
         str_id = 'texts:list__list:1:list:text'
@@ -2053,14 +2053,14 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'text')
         self.assertEqual(obj.text, None)
-        self.assertEqual(obj.parent.tagname, 'list')
-        list_obj = obj.parent.parent
+        self.assertEqual(obj._parent_obj.tagname, 'list')
+        list_obj = obj._parent_obj._parent_obj
         self.assertEqual(len(list_obj), 3)
         self.assertFalse(isinstance(list_obj[0], elements.EmptyElement))
         # The good element has been generated
         self.assertFalse(isinstance(list_obj[1], elements.EmptyElement))
         self.assertFalse(isinstance(list_obj[2], elements.EmptyElement))
-        self.assertEqual(list_obj[1], obj.parent)
+        self.assertEqual(list_obj[1], obj._parent_obj)
 
     def test_load_obj_from_id_choices(self):
         dtd_str = '''
@@ -2086,7 +2086,7 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj.parent.tagname, 'list__tag1_tag2')
+        self.assertEqual(obj._parent_obj.tagname, 'list__tag1_tag2')
 
         dtd_str = '''
         <!ELEMENT texts (tag1|tag2)>
@@ -2107,7 +2107,7 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj.parent.tagname, 'texts')
+        self.assertEqual(obj._parent_obj.tagname, 'texts')
 
         data = {
             'texts': {}
@@ -2115,7 +2115,7 @@ class TestFunctions(TestCase):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, None)
-        self.assertEqual(obj.parent.tagname, 'texts')
+        self.assertEqual(obj._parent_obj.tagname, 'texts')
 
     def test_get_parent_to_add_obj(self):
         dtd_str = '''
@@ -2203,7 +2203,7 @@ class TestFunctions(TestCase):
         parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
-        lis = parentobj.parent
+        lis = parentobj._parent_obj
         self.assertTrue(isinstance(lis[0], elements.EmptyElement))
         self.assertEqual(lis[1], parentobj)
 
@@ -2252,4 +2252,4 @@ class TestFunctions(TestCase):
                                                dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'list')
         self.assertEqual(obj['text'].text, 'Text to copy')
-        self.assertEqual(len(obj.parent), 2)
+        self.assertEqual(len(obj._parent_obj), 2)
