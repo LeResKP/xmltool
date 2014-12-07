@@ -1741,9 +1741,9 @@ class TestFunctions(TestCase):
         str_id = 'texts:unexisting'
         try:
             html = get_obj_from_str_id(str_id, dtd_str=dtd_str)
-            assert 0
+            assert(False)
         except Exception, e:
-            self.assertEqual(str(e), 'Unsupported tag unexisting')
+            self.assertEqual(str(e), 'Invalid child unexisting')
 
         str_id = 'texts:text'
         html = get_obj_from_str_id(str_id, dtd_str=dtd_str)

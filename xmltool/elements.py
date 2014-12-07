@@ -129,11 +129,13 @@ class Element(object):
 
     @classmethod
     def get_child_class(cls, tagname):
-        # TODO: this function should return the child class corresponding to
-        # the tagname. For example if the tagname is an element of a list if
-        # should return the list cls
-        dic = cls._get_creatable_subclass_by_tagnames()
-        return dic.get(tagname)
+        """Returns the child class where the tagname can be added. For example
+        if it's an element of list return the list class.
+        """
+        for c in cls.children_classes:
+            for tn in c._get_creatable_class_by_tagnames():
+                if tn == tagname:
+                    return c
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
@@ -152,6 +154,17 @@ class Element(object):
             if v is not None:
                 return True
         return False
+
+    @property
+    def children(self):
+        for cls in self.children_classes:
+            v = cls._get_value_from_parent(self)
+            if v:
+                if isinstance(v, list):
+                    for subv in v:
+                        yield subv
+                else:
+                    yield v
 
     @classmethod
     def _get_prefixes(cls, prefixes, index, name=None):
@@ -795,6 +808,16 @@ class MultipleMixin(object):
             dic.update(c._get_creatable_class_by_tagnames())
         return dic
 
+    @classmethod
+    def get_child_class(cls, tagname):
+        """Returns the child class where the tagname can be added. For example
+        if it's an element of list return the list class.
+        """
+        for c in cls._choice_classes:
+            for tn in c._get_creatable_class_by_tagnames():
+                if tn == tagname:
+                    return c
+
 
 class ListElement(list, MultipleMixin, Element):
 
@@ -1050,21 +1073,14 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     index = None
     while splitted:
         s = splitted.pop(0)
+        obj = obj.add(s, index=index)
+        if len(splitted) > 0:
+            index = None
         prefixes += [s]
-        tmp_cls = obj.get_child_class(s)
-        if not tmp_cls:
-            raise Exception('Unsupported tag %s' % s)
-
-        if issubclass(tmp_cls, ListElement):
-            # Remove the id
-            index = splitted.pop(0)
+        if isinstance(obj, list):
+            index = int(splitted.pop(0))
             if len(splitted) > 1:
-                prefixes += [index]
-                index = None
-            s = splitted.pop(0)
-            prefixes += [s]
-
-        obj = obj.add(s)
+                prefixes += [str(index)]
     return obj, prefixes, index
 
 
@@ -1178,6 +1194,7 @@ def _get_previous_js_selectors(obj, prefixes, index):
 
     parent = obj._parent_obj
     if not parent:
+        # No parent it's the root tag.
         return lis
 
     parent_is_list = isinstance(parent, ListElement)
@@ -1193,21 +1210,13 @@ def _get_previous_js_selectors(obj, prefixes, index):
             return lis
         tmp_prefixes = tmp_prefixes[:-1]
 
-    # TODO hack: remove this!
-    tagname = obj.tagname
-    if isinstance(obj, InListMixin):
-        tagname = obj._parent_obj.tagname
-
-    sub = parent.get_child_class(tagname)
-    if sub._is_choice:
-        # TODO: HACK: because get_child_class returns a sub child of class
-        sub = sub._parent_cls
+    sub = parent.get_child_class(obj.tagname)
     assert(sub)
 
-    for elt in parent.children_classes:
-        if elt == sub:
+    for child in parent.children_classes:
+        if child == sub:
             break
-        tmp_prefix = list(tmp_prefixes) + [elt.tagname]
+        tmp_prefix = list(tmp_prefixes) + [child.tagname]
         lis += [('after', '.%s%s' % (
             TREE_PREFIX,
             ':'.join(tmp_prefix)))]
