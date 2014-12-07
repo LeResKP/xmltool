@@ -107,11 +107,6 @@ class Element(object):
         return self._cache_prefixes
 
     @classmethod
-    def _get_allowed_tagnames(cls):
-        # TODO: delete those function and update the tests
-        return [cls.tagname]
-
-    @classmethod
     def _get_creatable_class_by_tagnames(cls):
         """Returns the possible classes addable for this class
         """
@@ -137,11 +132,6 @@ class Element(object):
         # TODO: this function should return the child class corresponding to
         # the tagname. For example if the tagname is an element of a list if
         # should return the list cls
-
-        # for e in cls.children_classes:
-        #     for tg in e._get_allowed_tagnames():
-        #         if tg == tagname:
-        #             return e
         dic = cls._get_creatable_subclass_by_tagnames()
         return dic.get(tagname)
 
@@ -814,12 +804,9 @@ class ListElement(list, MultipleMixin, Element):
         Element.__init__(self, *args, **kw)
 
     @classmethod
-    def _get_allowed_tagnames(cls):
-        # TODO: delete those function and update the tests
-        return [cls.tagname] + [e.tagname for e in cls._choice_classes]
-
-    @classmethod
     def _get_creatable_class_by_tagnames(cls):
+        # We need to add cls.tagname here to be able to create the list when we
+        # call add('list_tagname')
         dic = super(ListElement, cls)._get_creatable_class_by_tagnames()
         dic[cls.tagname] = cls
         return dic
@@ -980,11 +967,6 @@ class ListElement(list, MultipleMixin, Element):
 
 
 class ChoiceElement(MultipleMixin, Element):
-
-    @classmethod
-    def _get_allowed_tagnames(cls):
-        # TODO: delete those function and update the tests
-        return [e.tagname for e in cls._choice_classes]
 
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
@@ -1216,12 +1198,9 @@ def _get_previous_js_selectors(obj, prefixes, index):
     if isinstance(obj, InListMixin):
         tagname = obj._parent_obj.tagname
 
-    # if obj._is_choice:
-    #     tagname = obj._parent_obj.tagname
-
     sub = parent.get_child_class(tagname)
     if sub._is_choice:
-        # HACK: because get_child_class returns a sub child of class
+        # TODO: HACK: because get_child_class returns a sub child of class
         sub = sub._parent_cls
     assert(sub)
 

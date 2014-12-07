@@ -64,23 +64,6 @@ class TestElement(TestCase):
         self.cls._parent_cls = root_cls
         self.sub_cls._parent_cls = self.cls
 
-    def test_update_eol(self):
-        res = update_eol('Hello\r\n')
-        self.assertEqual(res, 'Hello\n')
-
-        res = update_eol('Hello\n')
-        self.assertEqual(res, 'Hello\n')
-
-        elements.EOL = '\r\n'
-        res = update_eol('Hello\r\n')
-        self.assertEqual(res, 'Hello\r\n')
-
-        res = update_eol('Hello\n')
-        self.assertEqual(res, 'Hello\r\n')
-
-        res = update_eol('Hello\r')
-        self.assertEqual(res, 'Hello\r\n')
-
     def test_prefixes_no_cache(self):
         obj = self.cls()
         sub_obj = self.sub_cls(obj)
@@ -101,8 +84,31 @@ class TestElement(TestCase):
         sub_obj._cache_prefixes = None
         self.assertEqual(sub_obj.prefixes, ['subtag'])
 
-    def test__get_allowed_tagnames(self):
-        self.assertEqual(self.cls._get_allowed_tagnames(), ['tag'])
+    def test__get_creatable_class_by_tagnames(self):
+        self.assertEqual(self.cls._get_creatable_class_by_tagnames(),
+                         {'tag': self.cls})
+
+    def test__get_creatable_subclass_by_tagnames(self):
+        res = self.cls._get_creatable_subclass_by_tagnames()
+        expected = {'subtag': self.sub_cls}
+        self.assertEqual(res, expected)
+
+        sub_cls1 = type(
+            'SubCls1', (Element,),
+            {
+                'tagname': 'subtag1',
+                'children_classes': [],
+                '_parent_cls': self.cls,
+            }
+        )
+        self.cls.children_classes += [sub_cls1]
+
+        res = self.cls._get_creatable_subclass_by_tagnames()
+        expected = {
+            'subtag': self.sub_cls,
+            'subtag1': sub_cls1,
+        }
+        self.assertEqual(res, expected)
 
     def test_get_child_class(self):
         self.assertEqual(self.cls.get_child_class('subtag'), self.sub_cls)
@@ -953,8 +959,19 @@ class TestTextElement(TestCase):
     def test___repr__(self):
         self.assertTrue(repr(self.cls()))
 
-    def test__get_allowed_tagnames(self):
-        self.assertEqual(self.cls._get_allowed_tagnames(), ['tag'])
+    def test__get_creatable_class_by_tagnames(self):
+        res = self.cls._get_creatable_class_by_tagnames()
+        expected = {
+            'tag': self.cls
+        }
+        self.assertEqual(res, expected)
+
+    def test__get_creatable_subclass_by_tagnames(self):
+        res = self.cls._get_creatable_subclass_by_tagnames()
+        expected = {
+            'subtag': self.sub_cls
+        }
+        self.assertEqual(res, expected)
 
     def test__add(self):
         obj = self.cls._create('tagname', self.root_obj, 'my value')
@@ -1206,8 +1223,20 @@ class TestListElement(TestCase):
         self.cls._parent_cls = self.root_cls
         self.sub_cls._parent_cls = self.cls
 
-    def test__get_allowed_tagnames(self):
-        self.assertEqual(self.cls._get_allowed_tagnames(), ['tag', 'subtag'])
+    def test__get_creatable_class_by_tagnames(self):
+        res = self.cls._get_creatable_class_by_tagnames()
+        expected = {
+            'subtag': self.sub_cls,
+            'tag': self.cls,
+        }
+        self.assertEqual(res, expected)
+
+    def test__get_creatable_subclass_by_tagnames(self):
+        res = self.cls._get_creatable_subclass_by_tagnames()
+        expected = {
+            'subtag': self.sub_cls,
+        }
+        self.assertEqual(res, expected)
 
     def test_get_child_class(self):
         self.assertEqual(self.cls.get_child_class('subtag'), self.sub_cls)
@@ -1555,9 +1584,21 @@ class TestChoiceElement(TestCase):
         self.sub_cls1._parent_cls = self.cls
         self.sub_cls2._parent_cls = self.cls
 
-    def test__get_allowed_tagnames(self):
-        self.assertEqual(self.cls._get_allowed_tagnames(),
-                         ['subtag1', 'subtag2'])
+    def test__get_creatable_class_by_tagnames(self):
+        res = self.cls._get_creatable_class_by_tagnames()
+        expected = {
+            'subtag1': self.sub_cls1,
+            'subtag2': self.sub_cls2,
+        }
+        self.assertEqual(res, expected)
+
+    def test__get_creatable_subclass_by_tagnames(self):
+        res = self.cls._get_creatable_subclass_by_tagnames()
+        expected = {
+            'subtag1': self.sub_cls1,
+            'subtag2': self.sub_cls2,
+        }
+        self.assertEqual(res, expected)
 
     def test_get_child_class(self):
         self.assertEqual(self.cls.get_child_class('subtag1'), self.sub_cls1)
@@ -1674,6 +1715,23 @@ class TestChoiceElement(TestCase):
 
 
 class TestFunctions(TestCase):
+
+    def test_update_eol(self):
+        res = update_eol('Hello\r\n')
+        self.assertEqual(res, 'Hello\n')
+
+        res = update_eol('Hello\n')
+        self.assertEqual(res, 'Hello\n')
+
+        elements.EOL = '\r\n'
+        res = update_eol('Hello\r\n')
+        self.assertEqual(res, 'Hello\r\n')
+
+        res = update_eol('Hello\n')
+        self.assertEqual(res, 'Hello\r\n')
+
+        res = update_eol('Hello\r')
+        self.assertEqual(res, 'Hello\r\n')
 
     def test_get_obj_from_str_id(self):
         dtd_str = '''
