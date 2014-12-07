@@ -110,20 +110,21 @@ class TestElement(TestCase):
 
     def test__get_value_from_parent(self):
         obj = self.cls(self.root_obj)
-        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
-        self.root_obj['tag'] = obj
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), obj)
+        self.root_obj['tag'] = None
+        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
 
     def test__get_sub_value(self):
         result = self.cls._get_sub_value(self.root_obj)
         self.assertFalse(result)
         self.cls._required = True
         obj = self.cls(self.root_obj)
+        self.assertEqual(self.cls._get_sub_value(self.root_obj), obj)
+
+        self.root_obj['tag'] = None
         result = self.cls._get_sub_value(self.root_obj)
         self.assertTrue(result)
         self.assertTrue(result != obj)
-        self.root_obj['tag'] = obj
-        self.assertEqual(self.cls._get_sub_value(self.root_obj), obj)
 
     def test__has_value(self):
         obj = self.cls()
@@ -158,16 +159,16 @@ class TestElement(TestCase):
 
     def test__add(self):
         try:
-            obj = self.cls._create('tagname', self.root_obj, 'my value')
+            obj = self.cls._create('tag', self.root_obj, 'my value')
             assert(False)
         except Exception, e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
-        obj = self.cls._create('tagname', self.root_obj)
+        obj = self.cls._create('tag', self.root_obj)
         self.assertEqual(obj._parent_obj, self.root_obj)
         self.assertEqual(obj.root, self.root_obj)
         self.assertTrue(isinstance(obj, Element))
-        self.assertEqual(self.root_obj['tagname'], obj)
+        self.assertEqual(self.root_obj['tag'], obj)
 
     def test_is_addable(self):
         obj = self.cls()
@@ -182,8 +183,15 @@ class TestElement(TestCase):
         self.assertEqual(res, False)
 
     def test_add(self):
-        parent_obj = FakeClass()
-        obj = self.cls(parent_obj)
+        root_cls = type(
+            'RootElement', (Element,),
+            {
+                'tagname': 'root_element',
+                'children_classes': [],
+            }
+        )
+        root_obj = root_cls()
+        obj = self.cls(root_obj)
         newobj = obj.add('subtag')
         self.assertTrue(newobj)
         try:
@@ -191,8 +199,8 @@ class TestElement(TestCase):
         except Exception, e:
             self.assertEqual(str(e), 'Invalid child unexisting')
 
-        parent_obj = FakeClass()
-        obj = self.cls(parent_obj)
+        root_obj = root_cls()
+        obj = self.cls(root_obj)
         try:
             newobj = obj.add('subtag', 'my value')
             assert 0
@@ -825,18 +833,24 @@ class TestElement(TestCase):
         obj = self.sub_cls(parent_obj)
 
         lis = [e for e in parent_obj.walk()]
-        self.assertEqual(lis, [])
-
-        parent_obj['subtag'] = obj
-        lis = [e for e in parent_obj.walk()]
         self.assertEqual(lis, [obj])
 
-        sub_sub_cls = type('SubSubCls', (TextElement, ),
-                       {'tagname': 'subsub',
-                        'children_classes': []})
+        parent_obj['subtag'] = None
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [])
+
+        sub_sub_cls = type(
+            'SubSubCls', (TextElement, ),
+            {
+                'tagname': 'subsub',
+                'children_classes': [],
+                '_parent_cls': self.sub_cls,
+            }
+        )
         self.sub_cls.children_classes = [sub_sub_cls]
-        subsub1 = sub_sub_cls()
-        obj['subsub'] = subsub1
+
+        obj = self.sub_cls(parent_obj)
+        subsub1 = sub_sub_cls(obj)
         lis = [e for e in parent_obj.walk()]
         self.assertEqual(lis, [obj, subsub1])
 
@@ -844,14 +858,10 @@ class TestElement(TestCase):
         parent_obj = self.cls()
         obj = self.sub_cls(parent_obj)
         lis = parent_obj.findall('subtag')
-        self.assertEqual(lis, [])
+        self.assertEqual(lis, [obj])
 
         lis = parent_obj.findall('unexisting')
         self.assertEqual(lis, [])
-
-        parent_obj['subtag'] = obj
-        lis = parent_obj.findall('subtag')
-        self.assertEqual(lis, [obj])
 
     def test_write(self):
         filename = 'tests/test.xml'
@@ -1205,8 +1215,9 @@ class TestListElement(TestCase):
 
     def test__get_value_from_parent(self):
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
-        list_obj = self.cls()
-        obj = self.sub_cls(list_obj)
+        root_obj = self.root_cls()
+        list_obj = self.cls(root_obj)
+        obj = self.sub_cls(list_obj, parent=root_obj)
         list_obj.append(obj)
         self.root_obj['subtag'] = list_obj
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), [obj])
@@ -1214,8 +1225,9 @@ class TestListElement(TestCase):
     def test__get_value_from_parent_multiple(self):
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
         self.cls._choice_classes += [sub_cls]
-        list_obj = self.cls()
-        obj = self.sub_cls(list_obj)
+        root_obj = self.root_cls()
+        list_obj = self.cls(root_obj)
+        obj = self.sub_cls(list_obj, parent=root_obj)
         list_obj.append(obj)
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
         self.root_obj['subtag'] = list_obj
@@ -1235,25 +1247,27 @@ class TestListElement(TestCase):
 
     def test__add(self):
         try:
-            obj1 = self.cls._create('subtag', self.root_obj, 'my value')
+            obj1 = self.cls._create('tag', self.root_obj, 'my value')
             assert(False)
         except Exception, e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
-        obj1 = self.cls._create('subtag', self.root_obj)
-        self.assertTrue(obj1.tagname, 'subtag')
+        obj1 = self.cls._create('tag', self.root_obj)
+        self.assertTrue(obj1.tagname, 'tag')
         self.assertEqual(obj1._parent_obj, self.root_obj)
         self.assertEqual(obj1.root, self.root_obj)
         self.assertTrue(isinstance(obj1, Element))
         self.assertEqual(self.root_obj['tag'].root, self.root_obj)
 
         # Since the object already exists it just return it!
-        obj2 = self.cls._create('subtag', self.root_obj)
+        obj2 = self.cls._create('tag', self.root_obj)
         self.assertEqual(obj1, obj2)
 
-        # The passed tag is not used
-        obj3 = self.cls._create('unexisting', self.root_obj)
-        self.assertEqual(obj1, obj3)
+        try:
+            self.cls._create('unexisting', self.root_obj)
+            assert(False)
+        except Exception, e:
+            self.assertEqual(str(e), 'Unsupported tagname unexisting')
 
     def test_add_list_of_list(self):
         dtd_str = '''
@@ -1456,9 +1470,10 @@ class TestListElement(TestCase):
                         'children_classes': []})
         self.cls._choice_classes += [sub_cls]
 
+        root_obj = self.root_cls()
         parent_obj = self.cls()
-        obj1 = self.sub_cls(parent_obj)
-        obj2 = sub_cls(parent_obj)
+        obj1 = self.sub_cls(parent_obj=parent_obj, parent=root_obj)
+        obj2 = sub_cls(parent_obj=parent_obj, parent=root_obj)
 
         parent_obj.extend([obj1, obj2])
         lis = [e for e in parent_obj.walk()]

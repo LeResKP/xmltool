@@ -53,9 +53,21 @@ class Element(object):
     # See render.py for more details
     html_render = None
 
-    def __init__(self, parent_obj=None, *args, **kw):
+    def __init__(self, parent_obj=None, parent=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
+        # parent and parent_obj are differents where the element is in a list:
+        # the parent_obj of the element is the list but the parent is the
+        # parent of the list. It's because the ListElement is just a container
+        # not a real element.
         self._parent_obj = parent_obj
+        self.parent = parent
+        if self.parent is None:
+            self.parent = self._parent_obj
+            if self.parent is not None:
+                # Only attach the property if we don't have a given parent,
+                # since when we pass the parent, the property is already
+                # attached.
+                self.parent[self.tagname] = self
 
         if self._parent_obj is not None:
             self.root = self._parent_obj.root
@@ -142,8 +154,6 @@ class Element(object):
         v = cls._get_value_from_parent(parent_obj)
         if not v and cls._required:
             v = cls(parent_obj)
-            # TODO: find solution to make it authaumatic
-            parent_obj[cls.tagname] = v
         return v
 
     def _has_value(self):
@@ -171,7 +181,6 @@ class Element(object):
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
         obj = cls(parent_obj)
-        parent_obj[tagname] = obj
         if value:
             obj.set_text(value)
         return obj
@@ -394,8 +403,6 @@ class Element(object):
         if not v:
             # We always want an object since we need at least a add button.
             v = cls(parent_obj)
-            # TODO: are we sure of the tagname (what about list?)
-            parent_obj[cls.tagname] = v
         return v.to_html(prefixes, index)
 
     def get_html_render(self):
@@ -467,8 +474,6 @@ class Element(object):
         if not v and cls._required:
             # We always want an object since we need at least a add button.
             v = cls(parent_obj)
-            # TODO: are we sure of the tagname (what about list?)
-            parent_obj[cls.tagname] = v
         if v is not None:
             return v.to_jstree_dict(prefixes, index)
 
@@ -764,8 +769,7 @@ class InListMixin(object):
     def _create(cls, tagname, parent_obj, value=None, index=None):
         # Make sure the parent list is create and get it.
         list_parent_obj = parent_obj.get_or_add(cls._parent_cls.tagname)
-        obj = cls(list_parent_obj)
-        parent_obj[cls._parent_cls.tagname] = list_parent_obj
+        obj = cls(parent_obj=list_parent_obj, parent=parent_obj)
         if index is not None:
             list_parent_obj.insert(index, obj)
         else:
@@ -828,29 +832,18 @@ class ListElement(list, MultipleMixin, Element):
         pass
 
     def add(self, *args, **kw):
-        # index = kw.pop('index', None)
-        e = self._parent_obj.add(*args, **kw)
-        # e = super(ListElement, self).add(*args, **kw)
-        assert(e)
-        # if index is not None:
-        #     self.insert(index, e)
-        # else:
-        #     self.append(e)
-        return e
+        # The logic to add Element to a list is on the parent
+        return self._parent_obj.add(*args, **kw)
 
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
-        """
-        .. note:: tagname is not use, it's just for compatiblity.
-        """
-        # TODO: perhaps we should check tagname is one of choice classes or
-        # cls.tagname
+        if tagname != cls.tagname:
+            raise Exception('Unsupported tagname %s' % tagname)
 
         # Get the list element or create it
         lis = parent_obj.get(cls.tagname)
         if lis is None:
             lis = cls(parent_obj)
-            parent_obj[cls.tagname] = lis
             if len(cls._choice_classes) == 1:
                 # Create a shortcut since we only have one element
                 parent_obj[cls._choice_classes[0].tagname] = lis
