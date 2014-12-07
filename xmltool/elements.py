@@ -56,6 +56,7 @@ class Element(object):
     def __init__(self, parent_obj=None, *args, **kw):
         super(Element, self).__init__(*args, **kw)
         self._parent_obj = parent_obj
+
         if self._parent_obj is not None:
             self.root = self._parent_obj.root
         else:
@@ -95,14 +96,42 @@ class Element(object):
 
     @classmethod
     def _get_allowed_tagnames(cls):
+        # TODO: delete those function and update the tests
         return [cls.tagname]
 
     @classmethod
+    def _get_creatable_class_by_tagnames(cls):
+        """Returns the possible classes addable for this class
+        """
+        return {cls.tagname: cls}
+
+    @classmethod
+    def _get_creatable_subclass_by_tagnames(cls):
+        """Returns the possible sub classes addable to this class
+        """
+        dic = {}
+        for c in cls.children_classes:
+            dic.update(c._get_creatable_class_by_tagnames())
+        return dic
+
+    @classmethod
+    def get_class_to_create(cls, tagname):
+        """Returns the class to create according to the given tagname
+        """
+        return cls._get_creatable_subclass_by_tagnames().get(tagname)
+
+    @classmethod
     def get_child_class(cls, tagname):
-        for e in cls.children_classes:
-            for tg in e._get_allowed_tagnames():
-                if tg == tagname:
-                    return e
+        # TODO: this function should return the child class corresponding to
+        # the tagname. For example if the tagname is an element of a list if
+        # should return the list cls
+
+        # for e in cls.children_classes:
+        #     for tg in e._get_allowed_tagnames():
+        #         if tg == tagname:
+        #             return e
+        dic = cls._get_creatable_subclass_by_tagnames()
+        return dic.get(tagname)
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
@@ -113,6 +142,8 @@ class Element(object):
         v = cls._get_value_from_parent(parent_obj)
         if not v and cls._required:
             v = cls(parent_obj)
+            # TODO: find solution to make it authaumatic
+            parent_obj[cls.tagname] = v
         return v
 
     def _has_value(self):
@@ -138,16 +169,11 @@ class Element(object):
         return ':'.join(tmp_prefixes)
 
     @classmethod
-    def _create(cls, tagname, parent_obj, value=None):
+    def _create(cls, tagname, parent_obj, value=None, index=None):
         obj = cls(parent_obj)
-        if not isinstance(parent_obj, list):
-            # We don't need to set the element to the parent since it will be
-            # append to it!
-            parent_obj[tagname] = obj
+        parent_obj[tagname] = obj
         if value:
-            if not issubclass(cls, TextElement):
-                raise Exception("Can't set value to non TextElement")
-            obj.text = value
+            obj.set_text(value)
         return obj
 
     @classmethod
@@ -160,7 +186,7 @@ class Element(object):
     def is_addable(self, tagname):
         """Check if the given tagname can be added to the object
         """
-        cls = self.get_child_class(tagname)
+        cls = self.get_class_to_create(tagname)
         if cls is None:
             return False
         try:
@@ -170,15 +196,18 @@ class Element(object):
             pass
         return False
 
-    def add(self, tagname, value=None):
-        cls = self.get_child_class(tagname)
+    def add(self, tagname, value=None, index=None):
+        cls = self.get_class_to_create(tagname)
         if cls is None:
             raise Exception('Invalid child %s' % tagname)
 
         # May raise an exception
         cls._check_addable(self, tagname)
-        obj = cls._create(tagname, self, value)
+        obj = cls._create(tagname, self, value, index)
         return obj
+
+    def set_text(self, value):
+        raise Exception("Can't set value to non TextElement")
 
     def add_attribute(self, name, value):
         if name not in self._attribute_names:
@@ -365,6 +394,8 @@ class Element(object):
         if not v:
             # We always want an object since we need at least a add button.
             v = cls(parent_obj)
+            # TODO: are we sure of the tagname (what about list?)
+            parent_obj[cls.tagname] = v
         return v.to_html(prefixes, index)
 
     def get_html_render(self):
@@ -436,6 +467,8 @@ class Element(object):
         if not v and cls._required:
             # We always want an object since we need at least a add button.
             v = cls(parent_obj)
+            # TODO: are we sure of the tagname (what about list?)
+            parent_obj[cls.tagname] = v
         if v is not None:
             return v.to_jstree_dict(prefixes, index)
 
@@ -588,6 +621,9 @@ class TextElement(Element):
             self.tagname,
             (self.text or '').strip())
 
+    def set_text(self, value):
+        self.text = value
+
     def load_from_xml(self, xml):
         """
         TODO: we should support to have sub element in TextElement
@@ -722,14 +758,48 @@ class TextElement(Element):
         )
 
 
+class InListMixin(object):
+
+    @classmethod
+    def _create(cls, tagname, parent_obj, value=None, index=None):
+        # Make sure the parent list is create and get it.
+        list_parent_obj = parent_obj.get_or_add(cls._parent_cls.tagname)
+        obj = cls(list_parent_obj)
+        parent_obj[cls._parent_cls.tagname] = list_parent_obj
+        if index is not None:
+            list_parent_obj.insert(index, obj)
+        else:
+            list_parent_obj.append(obj)
+        if value:
+            obj.set_text(value)
+        return obj
+
+    @classmethod
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        # We can always add an element to a list.
+        pass
+
+
 class MultipleMixin(object):
     _choice_classes = None
 
     @classmethod
-    def get_child_class(cls, tagname):
-        for e in cls._choice_classes:
-            if e.tagname == tagname:
-                return e
+    def _get_creatable_class_by_tagnames(cls):
+        dic = {}
+        for c in cls._choice_classes:
+            dic[c.tagname] = c
+        return dic
+
+    @classmethod
+    def _get_creatable_subclass_by_tagnames(cls):
+        """Returns the possible sub classes addable to this class
+        """
+        dic = {}
+        for c in cls._choice_classes:
+            dic.update(c._get_creatable_class_by_tagnames())
+        return dic
 
 
 class ListElement(list, MultipleMixin, Element):
@@ -741,7 +811,14 @@ class ListElement(list, MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
+        # TODO: delete those function and update the tests
         return [cls.tagname] + [e.tagname for e in cls._choice_classes]
+
+    @classmethod
+    def _get_creatable_class_by_tagnames(cls):
+        dic = super(ListElement, cls)._get_creatable_class_by_tagnames()
+        dic[cls.tagname] = cls
+        return dic
 
     @classmethod
     def _check_addable(cls, obj, tagname):
@@ -751,17 +828,24 @@ class ListElement(list, MultipleMixin, Element):
         pass
 
     def add(self, *args, **kw):
-        index = kw.pop('index', None)
-        e = super(ListElement, self).add(*args, **kw)
+        # index = kw.pop('index', None)
+        e = self._parent_obj.add(*args, **kw)
+        # e = super(ListElement, self).add(*args, **kw)
         assert(e)
-        if index is not None:
-            self.insert(index, e)
-        else:
-            self.append(e)
+        # if index is not None:
+        #     self.insert(index, e)
+        # else:
+        #     self.append(e)
         return e
 
     @classmethod
-    def _create(cls, tagname, parent_obj, value=None):
+    def _create(cls, tagname, parent_obj, value=None, index=None):
+        """
+        .. note:: tagname is not use, it's just for compatiblity.
+        """
+        # TODO: perhaps we should check tagname is one of choice classes or
+        # cls.tagname
+
         # Get the list element or create it
         lis = parent_obj.get(cls.tagname)
         if lis is None:
@@ -770,15 +854,11 @@ class ListElement(list, MultipleMixin, Element):
             if len(cls._choice_classes) == 1:
                 # Create a shortcut since we only have one element
                 parent_obj[cls._choice_classes[0].tagname] = lis
-
-        if tagname == cls.tagname:
-            # Special case, when we pass tagname of the class we just want to
-            # get the list object.
-            return lis
-        elt = cls.get_child_class(tagname)
-        obj = elt._create(tagname, lis, value)
-        lis.append(obj)
-        return obj
+        if value:
+            # TODO: not really nice, it's just to raise the same Exception as
+            # Element.set_text.
+            lis.set_text(value)
+        return lis
 
     def remove_empty_element(self):
         """Remove the empty elements from this list since it should not be
@@ -910,12 +990,13 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _get_allowed_tagnames(cls):
+        # TODO: delete those function and update the tests
         return [e.tagname for e in cls._choice_classes]
 
     @classmethod
-    def _create(cls, tagname, parent_obj, value=None):
-        elt = cls.get_child_class(tagname)
-        return elt._create(tagname, parent_obj, value)
+    def _create(cls, tagname, parent_obj, value=None, index=None):
+        elt_cls = cls.get_class_to_create(tagname)
+        return elt_cls._create(tagname, parent_obj, value, index)
 
     def add(self, *args, **kw):
         raise Exception('Can\'t add element to ChoiceElement')
@@ -978,6 +1059,7 @@ class ChoiceElement(MultipleMixin, Element):
 
     def to_jstree_dict(self, prefixes, index=None):
         # Nothing to add in for this object
+        raise NotImplementedError
         return {}
 
 
@@ -1028,6 +1110,7 @@ def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
     while splitted:
         s = splitted.pop(0)
         try:
+            # import pdb; pdb.set_trace()
             s = int(s)
             # The sub id just after an integer is for the type object, we don't
             # need it here.
@@ -1135,7 +1218,19 @@ def _get_previous_js_selectors(obj, prefixes, index):
             return lis
         tmp_prefixes = tmp_prefixes[:-1]
 
-    sub = parent.get_child_class(obj.tagname)
+    # TODO hack: remove this!
+    tagname = obj.tagname
+    if isinstance(obj, InListMixin):
+        tagname = obj._parent_obj.tagname
+
+    # if obj._is_choice:
+    #     tagname = obj._parent_obj.tagname
+
+    sub = parent.get_child_class(tagname)
+    if sub._is_choice:
+        # HACK: because get_child_class returns a sub child of class
+        sub = sub._parent_cls
+    assert(sub)
 
     for elt in parent.children_classes:
         if elt == sub:

@@ -5,6 +5,7 @@ from elements import (
     TextElement,
     ListElement,
     ChoiceElement,
+    InListMixin,
 )
 from dogpile.cache.api import NO_VALUE
 from . import cache
@@ -122,22 +123,27 @@ def _parse_elts(elts):
     return lis
 
 
-def _create_new_class(class_dict, name, required, islist, conditionals):
+def _create_new_class(class_dict, name, required, islist, conditionals,
+                      inlist=False):
     base_cls = class_dict.get(name)
     if base_cls is None and not conditionals:
         raise ValueError('You should provide a base_cls or conditionals for %s' % name)
     cls = base_cls
+
+    classes = ()
+    if inlist:
+        classes += (InListMixin,)
     if conditionals:
         assert not base_cls
         assert name
         if not islist:
-            parent_cls = type('%sChoice' % name, (ChoiceElement,), {
+            parent_cls = type('%sChoice' % name, classes + (ChoiceElement,), {
                 '_choice_classes': [],
                 'tagname': 'choice__%s' % name,
                 '_required': required
             })
         else:
-            parent_cls = type('%sList' % name, (ListElement, ), {
+            parent_cls = type('%sList' % name, classes + (ListElement,), {
                 '_choice_classes': [],
                 'tagname': 'list__%s' % name,
                 '_required': required,
@@ -147,7 +153,8 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
             assert not subconditionals, subconditionals
             assert not subislist
             sub_cls = _create_new_class(class_dict, subname, subrequired,
-                                        subislist, subconditionals)
+                                        subislist, subconditionals,
+                                        inlist=islist)
             sub_cls._parent_cls = parent_cls
             # TODO: We can have choice in list, so this parameter name is not really
             # explicit!
@@ -156,13 +163,13 @@ def _create_new_class(class_dict, name, required, islist, conditionals):
         return parent_cls
 
     if not islist:
-        return type(cls.__name__, (cls, ), {
+        return type(cls.__name__, classes + (cls,), {
             '_required': required})
 
     # Always create a new cls to make sure _required is well defined
-    newcls = type(cls.__name__, (cls, ), {'_required': required})
+    newcls = type(cls.__name__, (InListMixin, cls, ), {'_required': required})
 
-    listcls = type('%sList' % cls.__name__, (ListElement, ), {
+    listcls = type('%sList' % cls.__name__, classes + (ListElement, ), {
         '_choice_classes': [newcls],
         '_required': required,
         'tagname': 'list__%s' % name

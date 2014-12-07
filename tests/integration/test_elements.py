@@ -1285,7 +1285,6 @@ class TestElementChoiceList(ElementTester):
     str_to_html = choicelist_str_to_html
     js_selector = choice_list_js_selector
 
-
     def test_add(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
         classes = dtd_parser._create_classes(dtd_dict)

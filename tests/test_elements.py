@@ -11,6 +11,7 @@ from xmltool.elements import (
     ChoiceElement,
     get_obj_from_str_id,
     update_eol,
+    InListMixin,
 )
 from xmltool import render
 import xmltool.elements as elements
@@ -442,7 +443,7 @@ class TestElement(TestCase):
         self.assertEqual(obj['element']._attributes, None)
 
     def test_load_from_dict_sub_list(self):
-        sub_cls = type('Element', (Element,),
+        sub_cls = type('Element', (InListMixin, Element,),
                        {'tagname': 'sub',
                         'children_classes': [],
                         '_attribute_names': ['attr']})
@@ -453,6 +454,8 @@ class TestElement(TestCase):
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
+        list_cls._parent_cls = cls
+        sub_cls._parent_cls = list_cls
         dic = {}
         obj = cls()
         obj.load_from_dict(dic)
@@ -604,12 +607,15 @@ class TestElement(TestCase):
                      'subtag</a></div></div>')
         self.assertEqual(html, expected1)
 
+        obj = self.cls()
         obj._parent_obj = 'my fake parent'
         html = obj.to_html()
         expected_button = ('<a class="btn-add" data-elt-id="tag">'
                            'Add tag</a>')
         self.assertEqual(html, expected_button)
 
+        obj = self.cls()
+        obj._parent_obj = 'my fake parent'
         html = obj.to_html(partial=True)
         expected2 = (
             '<div class="panel panel-default tag" id="tag">'
@@ -626,10 +632,14 @@ class TestElement(TestCase):
         )
         self.assertEqual(html, expected2)
 
+        obj = self.cls()
+        obj._parent_obj = 'my fake parent'
         obj._required = True
         html = obj.to_html()
         self.assertEqual(html, expected1)
 
+        obj = self.cls()
+        obj._parent_obj = 'my fake parent'
         obj._required = False
         obj['subtag'] = self.sub_cls(obj)
         html = obj.to_html()
@@ -644,10 +654,14 @@ class TestElement(TestCase):
                      '</div></div>')
         self.assertEqual(html, expected1)
 
+        obj = self.cls()
+        obj.root.html_render = render.ReadonlyRender()
         obj._parent_obj = 'my fake parent'
         html = obj.to_html()
         self.assertEqual(html, '')
 
+        obj = self.cls()
+        obj.root.html_render = render.ReadonlyRender()
         html = obj.to_html(partial=True)
         expected2 = (
             '<div class="panel panel-default tag" id="tag">'
@@ -731,7 +745,7 @@ class TestElement(TestCase):
         self.assertEqual(result, expected)
 
     def test_to_jstree_dict_with_ListElement(self):
-        sub_cls = type('Element', (Element,),
+        sub_cls = type('Element', (InListMixin, Element,),
                        {'tagname': 'sub',
                         'children_classes': [],
                         '_attribute_names': ['attr']})
@@ -741,6 +755,9 @@ class TestElement(TestCase):
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
+
+        list_cls._parent_cls = cls
+        sub_cls._parent_cls = list_cls
         obj = cls()
         result = obj.to_jstree_dict([])
         expected = {
@@ -1154,7 +1171,7 @@ class TestListElement(TestCase):
 
     def setUp(self):
         self.sub_cls = type(
-            'SubCls', (Element, ),
+            'SubCls', (InListMixin, Element, ),
             {
                 'tagname': 'subtag',
                 '_attribute_names': ['attr'],
@@ -1168,15 +1185,15 @@ class TestListElement(TestCase):
                 '_choice_classes': [self.sub_cls]
             }
         )
-        root_cls = type(
+        self.root_cls = type(
             'Cls', (Element,),
             {
                 'tagname': 'parent_tag',
                 'children_classes': [self.cls]
             }
         )
-        self.root_obj = root_cls()
-        self.cls._parent_cls = root_cls
+        self.root_obj = self.root_cls()
+        self.cls._parent_cls = self.root_cls
         self.sub_cls._parent_cls = self.cls
 
     def test__get_allowed_tagnames(self):
@@ -1207,7 +1224,9 @@ class TestListElement(TestCase):
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), [obj])
 
     def test_is_addable(self):
-        obj = self.cls()
+        obj = self.root_obj.add(self.cls.tagname)
+        # Can't add same object as child
+        self.assertEqual(obj.is_addable(self.cls.tagname), False)
         self.assertEqual(obj.is_addable('subtag'), True)
         self.assertEqual(obj.is_addable('test'), False)
         # Addable even we already have element defined
@@ -1215,10 +1234,6 @@ class TestListElement(TestCase):
         self.assertEqual(obj.is_addable('subtag'), True)
 
     def test__add(self):
-        list_obj = self.cls(self.root_obj)
-        self.root_obj['tag'] = list_obj
-
-        self.assertEqual(self.root_obj['tag'].root, self.root_obj)
         try:
             obj1 = self.cls._create('subtag', self.root_obj, 'my value')
             assert(False)
@@ -1227,57 +1242,18 @@ class TestListElement(TestCase):
 
         obj1 = self.cls._create('subtag', self.root_obj)
         self.assertTrue(obj1.tagname, 'subtag')
-        self.assertEqual(obj1._parent_obj, list_obj)
+        self.assertEqual(obj1._parent_obj, self.root_obj)
         self.assertEqual(obj1.root, self.root_obj)
         self.assertTrue(isinstance(obj1, Element))
-        self.assertEqual(list_obj, [obj1])
+        self.assertEqual(self.root_obj['tag'].root, self.root_obj)
 
+        # Since the object already exists it just return it!
         obj2 = self.cls._create('subtag', self.root_obj)
-        self.assertTrue(obj2.tagname, 'subtag')
-        self.assertEqual(obj2._parent_obj, list_obj)
-        self.assertEqual(obj2.root, self.root_obj)
-        self.assertTrue(isinstance(obj2, Element))
-        self.assertEqual(list_obj, [obj1, obj2])
+        self.assertEqual(obj1, obj2)
 
-        self.cls._choice_classes = [
-            type('Cls', (TextElement, ),
-                 {
-                     'tagname': 'subtag',
-                     'children_classes': []
-                 })]
-        obj3 = self.cls._create('subtag', self.root_obj, 'my value')
-        self.assertEqual(obj3.text, 'my value')
-
-        obj4 = self.root_obj['tag'].add('subtag', index=0)
-        self.assertEqual(list_obj.index(obj4), 0)
-        self.assertEqual(len(list_obj), 4)
-
-    def test__add_multiple(self):
-        sub_cls = type(
-            'SubCls', (Element, ),
-            {
-                'tagname': 'subtag1',
-                'children_classes': [],
-                'parent_cls': self.cls,
-            }
-        )
-        self.cls._choice_classes += [sub_cls]
-        list_obj = self.cls(self.root_obj)
-        self.root_obj['tag'] = list_obj
-        obj1 = self.cls._create('subtag', self.root_obj)
-        self.assertEqual(obj1.tagname, 'subtag')
-        self.assertEqual(obj1._parent_obj, list_obj)
-        self.assertEqual(obj1.root, self.root_obj)
-        self.assertTrue(isinstance(obj1, Element))
-        self.assertFalse(hasattr(self.root_obj, 'subtag'))
-        self.assertEqual(list_obj, [obj1])
-
-        obj2 = self.cls._create('subtag1', self.root_obj)
-        self.assertEqual(obj2.tagname, 'subtag1')
-        self.assertEqual(obj2._parent_obj, list_obj)
-        self.assertEqual(obj2.root, self.root_obj)
-        self.assertTrue(isinstance(obj2, Element))
-        self.assertEqual(list_obj, [obj1, obj2])
+        # The passed tag is not used
+        obj3 = self.cls._create('unexisting', self.root_obj)
+        self.assertEqual(obj1, obj3)
 
     def test_add_list_of_list(self):
         dtd_str = '''
@@ -1291,6 +1267,16 @@ class TestListElement(TestCase):
         subtext = text.add('subtext', 'value')
         self.assertEqual(subtext.text, 'value')
 
+        # We can add another text
+        obj.add('text')
+
+        # List already exists, it just returns it
+        list_obj = obj.add(text._parent_cls.tagname)
+        self.assertEqual(text._parent_obj, list_obj)
+
+        l = list_obj.add(text._parent_cls.tagname)
+        self.assertEqual(list_obj, l)
+
     def test_remove_empty_element(self):
         obj = self.cls()
         obj.append(None)
@@ -1301,7 +1287,7 @@ class TestListElement(TestCase):
         self.assertEqual(obj, [None])
 
     def test_to_xml(self):
-        obj = self.cls()
+        obj = self.root_cls().add(self.cls.tagname)
         lis = obj.to_xml()
         self.assertEqual(lis, [])
 
@@ -1315,16 +1301,18 @@ class TestListElement(TestCase):
         self.assertEqual(lis[0].text, 'comment')
         self.assertEqual(lis[1].tag, 'subtag')
 
-        obj = self.cls()
+        obj = self.root_cls().add(self.cls.tagname)
         obj._required = True
         lis = obj.to_xml()
         # Empty required with only one element, xml is created!
         self.assertEqual(len(lis), 1)
         self.assertEqual(lis[0].tag, 'subtag')
 
+        # Manu choice element, even if the list is required, we don't know
+        # which choice to add so we do noting.
         sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
         self.cls._choice_classes += [sub_cls]
-        obj = self.cls()
+        obj = self.root_cls().add(self.cls.tagname)
         obj._required = True
         lis = obj.to_xml()
         self.assertEqual(lis, [])
@@ -1357,7 +1345,7 @@ class TestListElement(TestCase):
         self.assertEqual(html, expected)
 
     def test_to_html(self):
-        obj = self.cls()
+        obj = self.root_obj.add(self.cls.tagname)
         html = obj.to_html()
         expected = ('<div class="list-container">'
                     '<a class="btn-add btn-list" '
@@ -1415,7 +1403,7 @@ class TestListElement(TestCase):
         self.assertEqual(html, expected)
 
     def test_to_html_readonly(self):
-        obj = self.cls()
+        obj = self.root_obj.add(self.cls.tagname)
         obj.root.html_render = render.ReadonlyRender()
         html = obj.to_html()
         expected = '<div class="list-container"></div>'
@@ -1449,7 +1437,7 @@ class TestListElement(TestCase):
         self.assertEqual(html, expected)
 
     def test_to_jstree_dict(self):
-        obj = self.cls()
+        obj = self.root_obj.add(self.cls.tagname)
         result = obj.to_jstree_dict([])
         self.assertEqual(result, [])
 
@@ -1663,8 +1651,11 @@ class TestChoiceElement(TestCase):
 
     def test_to_jstree_dict(self):
         obj = self.cls()
-        result = obj.to_jstree_dict([])
-        self.assertEqual(result, {})
+        try:
+            obj.to_jstree_dict([])
+            assert(False)
+        except NotImplementedError:
+            pass
 
 
 class TestFunctions(TestCase):
