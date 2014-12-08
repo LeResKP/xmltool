@@ -7,7 +7,8 @@ from xmltool.elements import (
     TextElement,
     Element,
     ListElement,
-    ChoiceElement
+    ChoiceElement,
+    InListMixin,
 )
 import mock
 from xmltool import cache
@@ -514,6 +515,7 @@ class DtdParser(TestCase):
         self.assertEqual(len(cls._choice_classes), 1)
         self.assertEqual(cls._choice_classes[0]._parent_cls, cls)
         self.assertEqual(cls._choice_classes[0]._required, True)
+        self.assertTrue(issubclass(cls._choice_classes[0], InListMixin))
 
         dtd_dict = {
             'tag': {'elts': '(tag1|tag2)', 'attrs': []},
@@ -527,9 +529,9 @@ class DtdParser(TestCase):
         class_dic = dtd_parser._create_class_dict(dtd_dict)
         try:
             cls = dtd_parser._create_new_class(
-            class_dic, 'tag1_tag2', required=True, islist=False,
-            conditionals=[])
-            assert 0
+                class_dic, 'tag1_tag2', required=True, islist=False,
+                conditionals=[])
+            assert(False)
         except Exception, e:
             self.assertEqual(
                 str(e),
@@ -560,8 +562,10 @@ class DtdParser(TestCase):
         elt2 = cls._choice_classes[1]
         self.assertEqual(elt1._parent_cls, cls)
         self.assertEqual(elt1._required, True)
+        self.assertTrue(issubclass(elt1, InListMixin))
         self.assertEqual(elt2._parent_cls, cls)
         self.assertEqual(elt2._required, True)
+        self.assertTrue(issubclass(elt2, InListMixin))
 
     def test__create_classes(self):
         dtd_dict = {

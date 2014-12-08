@@ -130,20 +130,16 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
         raise ValueError('You should provide a base_cls or conditionals for %s' % name)
     cls = base_cls
 
-    classes = ()
-    if inlist:
-        classes += (InListMixin,)
     if conditionals:
-        assert not base_cls
         assert name
         if not islist:
-            parent_cls = type('%sChoice' % name, classes + (ChoiceElement,), {
+            parent_cls = type('%sChoice' % name, (ChoiceElement,), {
                 '_choice_classes': [],
                 'tagname': 'choice__%s' % name,
                 '_required': required
             })
         else:
-            parent_cls = type('%sList' % name, classes + (ListElement,), {
+            parent_cls = type('%sList' % name, (ListElement,), {
                 '_choice_classes': [],
                 'tagname': 'list__%s' % name,
                 '_required': required,
@@ -163,13 +159,16 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
         return parent_cls
 
     if not islist:
+        classes = ()
+        if inlist:
+            classes = (InListMixin,)
         return type(cls.__name__, classes + (cls,), {
             '_required': required})
 
     # Always create a new cls to make sure _required is well defined
     newcls = type(cls.__name__, (InListMixin, cls, ), {'_required': required})
 
-    listcls = type('%sList' % cls.__name__, classes + (ListElement, ), {
+    listcls = type('%sList' % cls.__name__, (ListElement, ), {
         '_choice_classes': [newcls],
         '_required': required,
         'tagname': 'list__%s' % name
