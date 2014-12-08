@@ -622,7 +622,6 @@ class Element(object):
 
 class TextElement(Element):
     text = None
-    _exists = False
 
     def __repr__(self):
         return '<TextElement %s "%s">' % (
@@ -660,11 +659,12 @@ class TextElement(Element):
                     comments.remove(s)
                     continue
                 self.text += s
-            self.text = self.text or None
+            self.text = self.text
         else:
             self.text = xml.text
-        # We use _exists to know if the tag is defined in the XML.
-        self._exists = True
+
+        # We should have text != None to be sure we keep the existing empty tag.
+        self.text = self.text or ''
 
     def load_from_dict(self, dic, skip_extra=False):
         data = dic[self.tagname]
@@ -709,8 +709,8 @@ class TextElement(Element):
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True, partial=False):
         renderer = self.get_html_render()
-        if (not self._exists and not self.text and
-           not self._required and not partial):
+
+        if self.text is None and not self._required:
             if not renderer.add_add_button():
                 return ''
             return self._get_html_add_button(prefixes, index)
@@ -1081,6 +1081,9 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
             index = int(splitted.pop(0))
             if len(splitted) > 1:
                 prefixes += [str(index)]
+
+    if isinstance(obj, TextElement):
+        obj.set_text('')
     return obj, prefixes, index
 
 

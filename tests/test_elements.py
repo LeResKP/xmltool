@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from unittest import TestCase
-from lxml import etree
+from lxml import etree, html as lxml_html
 import os.path
 from xmltool import utils, dtd_parser
 from xmltool.elements import (
@@ -983,7 +983,6 @@ class TestTextElement(TestCase):
         text = etree.Element('text')
         text.text = 'text'
         empty = etree.Element('empty')
-        empty.text = ''
         comment = etree.Comment('comment')
         root.append(comment)
         root.append(text)
@@ -992,7 +991,6 @@ class TestTextElement(TestCase):
         obj = self.cls()
         obj.load_from_xml(text)
         self.assertEqual(obj.text, 'text')
-        self.assertEqual(obj._exists, True)
         self.assertEqual(obj._comment, 'comment')
         self.assertEqual(obj._attributes, {'attr': 'value'})
 
@@ -1003,14 +1001,12 @@ class TestTextElement(TestCase):
         obj = self.cls()
         obj.load_from_xml(text)
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj._exists, True)
         self.assertEqual(obj._comment, 'comment\ncomment inside a tag')
         self.assertEqual(obj._attributes, {'attr': 'value'})
 
         obj = self.cls()
         obj.load_from_xml(empty)
         self.assertEqual(obj.text, '')
-        self.assertEqual(obj._exists, True)
         self.assertEqual(obj._comment, None)
 
     def test_load_from_dict(self):
@@ -1080,6 +1076,7 @@ class TestTextElement(TestCase):
         expected = '<a class="btn-add" data-elt-id="tag">Add tag</a>'
         self.assertEqual(html, expected)
 
+        obj.set_text('')
         html = obj.to_html(partial=True)
         expected = ('<div id="tag">'
                     '<label>tag</label>'
@@ -1145,6 +1142,7 @@ class TestTextElement(TestCase):
         html = obj.to_html()
         self.assertEqual(html, '')
 
+        obj.set_text('')
         html = obj.to_html(partial=True)
         expected = ('<div id="tag">'
                     '<label>tag</label>'
@@ -1716,6 +1714,16 @@ class TestChoiceElement(TestCase):
 
 class TestFunctions(TestCase):
 
+    def assertEqual_(self, html, expected):
+        document_root = lxml_html.fromstring(html)
+        h = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        document_root = lxml_html.fromstring(expected)
+        e = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        self.maxDiff = None
+        self.assertEqual(h, e)
+
     def test_update_eol(self):
         res = update_eol('Hello\r\n')
         self.assertEqual(res, 'Hello\n')
@@ -1776,7 +1784,7 @@ class TestFunctions(TestCase):
                     '</div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="texts:list__text:1:text">New text</a>')
-        self.assertEqual(html, expected)
+        self.assertEqual_(html, expected)
 
         dtd_str = '''
         <!ELEMENT texts (list*)>
