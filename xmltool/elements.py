@@ -438,8 +438,7 @@ class Element(object):
             return False
         return (not self._required) or self._is_choice
 
-    def to_html(self, prefixes=None, index=None, delete_btn=False,
-                add_btn=True,  partial=False):
+    def to_html(self, prefixes=None, index=None, partial=False):
 
         renderer = self.get_html_render()
         if not self._has_value() and not self._required and self._parent_obj and not partial:
@@ -447,10 +446,9 @@ class Element(object):
                 return ''
             # Add button!
             return self._get_html_add_button(prefixes, index)
-        return self.to_html2(prefixes, index, delete_btn, add_btn, partial)
+        return self.to_html2(prefixes, index, partial)
 
-    def to_html2(self, prefixes=None, index=None, delete_btn=False,
-                 add_btn=True,  partial=False):
+    def to_html2(self, prefixes=None, index=None, partial=False):
         renderer = self.get_html_render()
         tmp_prefixes = self._get_prefixes(prefixes, index)
         sub_html = [self._attributes_to_html(prefixes, index)]
@@ -726,18 +724,16 @@ class TextElement(Element):
         ]
         return attrs
 
-    def to_html(self, prefixes=None, index=None, delete_btn=False,
-                add_btn=True, partial=False):
+    def to_html(self, prefixes=None, index=None, partial=False):
         renderer = self.get_html_render()
 
         if self.text is None and not self._required:
             if not renderer.add_add_button():
                 return ''
             return self._get_html_add_button(prefixes, index)
-        return self.to_html2(prefixes, index, delete_btn, add_btn, partial)
+        return self.to_html2(prefixes, index, partial)
 
-    def to_html2(self, prefixes=None, index=None, delete_btn=False,
-                add_btn=True, partial=False):
+    def to_html2(self, prefixes=None, index=None, partial=False):
         renderer = self.get_html_render()
         parent_is_list = isinstance(self._parent_obj, ListElement)
         add_button = ''
@@ -749,7 +745,7 @@ class TextElement(Element):
         delete_button = ''
         ident = self._get_str_prefix(prefixes, index)
         if renderer.add_delete_button():
-            if (delete_btn or not self._required
+            if (not self._required
                or self._is_choice or parent_is_list):
                 if parent_is_list:
                     delete_button = (
@@ -981,8 +977,7 @@ class ListElement(list, MultipleMixin, Element):
             tg = cls._choice_classes[0].tagname
         return parent_obj.xml_elements.get(tg)
 
-    def to_html(self, prefixes=None, index=None, delete_btn=False,
-                add_btn=True, partial=False, offset=0):
+    def to_html(self, prefixes=None, index=None, partial=False, offset=0):
 
         self.remove_empty_element()
         # We should not have the following parameter for this object
@@ -1001,9 +996,8 @@ class ListElement(list, MultipleMixin, Element):
                 lis += [self._get_html_add_button(prefixes, (i+offset))]
             lis += [e.to_html(((prefixes or [])+[self.tagname]),
                               (i+offset),
-                              delete_btn=True,
                               partial=False,
-                              add_btn=False)]
+                              )]
 
         if renderer.add_add_button():
             lis += [self._get_html_add_button(prefixes, i+offset+1)]
@@ -1280,21 +1274,21 @@ def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     if isinstance(obj._parent_obj, ListElement):
         index = int(index or 0)
-        tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
+        tmp = obj.to_html(prefixes[:-1], index, partial=False)
         tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
-    return obj.to_html(prefixes[:-1], index, partial=True)
+    return obj.to_html(prefixes[:-1], index, partial=False)
 
 
 def _get_html_from_obj(obj, prefixes, index):
     if isinstance(obj._parent_obj, ListElement):
         index = int(index or 0)
-        tmp = obj.to_html(prefixes[:-1], index, add_btn=False, partial=True)
+        tmp = obj.to_html(prefixes[:-1], index, partial=False)
         tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
-    return obj.to_html(prefixes[:-1], index, partial=True)
+    return obj.to_html(prefixes[:-1], index, partial=False)
 
 
 def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
