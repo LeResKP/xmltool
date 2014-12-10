@@ -438,17 +438,17 @@ class Element(object):
             return False
         return (not self._required) or self._is_choice
 
-    def to_html(self, prefixes=None, index=None, partial=False):
+    def to_html(self, prefixes=None, index=None):
 
         renderer = self.get_html_render()
-        if not self._has_value() and not self._required and self._parent_obj and not partial:
+        if not self._has_value() and not self._required and self._parent_obj:
             if not renderer.add_add_button():
                 return ''
             # Add button!
             return self._get_html_add_button(prefixes, index)
-        return self.to_html2(prefixes, index, partial)
+        return self.to_html2(prefixes, index)
 
-    def to_html2(self, prefixes=None, index=None, partial=False):
+    def to_html2(self, prefixes=None, index=None):
         renderer = self.get_html_render()
         tmp_prefixes = self._get_prefixes(prefixes, index)
         sub_html = [self._attributes_to_html(prefixes, index)]
@@ -724,16 +724,16 @@ class TextElement(Element):
         ]
         return attrs
 
-    def to_html(self, prefixes=None, index=None, partial=False):
+    def to_html(self, prefixes=None, index=None):
         renderer = self.get_html_render()
 
         if self.text is None and not self._required:
             if not renderer.add_add_button():
                 return ''
             return self._get_html_add_button(prefixes, index)
-        return self.to_html2(prefixes, index, partial)
+        return self.to_html2(prefixes, index)
 
-    def to_html2(self, prefixes=None, index=None, partial=False):
+    def to_html2(self, prefixes=None, index=None):
         renderer = self.get_html_render()
         parent_is_list = isinstance(self._parent_obj, ListElement)
         add_button = ''
@@ -977,14 +977,14 @@ class ListElement(list, MultipleMixin, Element):
             tg = cls._choice_classes[0].tagname
         return parent_obj.xml_elements.get(tg)
 
-    def to_html(self, prefixes=None, index=None, partial=False, offset=0):
+    def to_html(self, prefixes=None, index=None, offset=0):
 
         self.remove_empty_element()
         # We should not have the following parameter for this object
         assert self._attributes is None
         assert index is None
 
-        if not len(self) and (self._required or partial):
+        if not len(self) and self._required:
             if len(self._choice_classes) == 1:
                 e = self.add(self._choice_classes[0].tagname)
 
@@ -996,14 +996,11 @@ class ListElement(list, MultipleMixin, Element):
                 lis += [self._get_html_add_button(prefixes, (i+offset))]
             lis += [e.to_html(((prefixes or [])+[self.tagname]),
                               (i+offset),
-                              partial=False,
                               )]
 
         if renderer.add_add_button():
             lis += [self._get_html_add_button(prefixes, i+offset+1)]
 
-        if partial:
-            return ''.join(lis)
         return '<div class="list-container">%s</div>' % ''.join(lis)
 
     def to_jstree_dict(self, prefixes, index=None, offset=0):
@@ -1274,21 +1271,21 @@ def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     if isinstance(obj._parent_obj, ListElement):
         index = int(index or 0)
-        tmp = obj.to_html(prefixes[:-1], index, partial=False)
+        tmp = obj.to_html(prefixes[:-1], index)
         tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
-    return obj.to_html(prefixes[:-1], index, partial=False)
+    return obj.to_html(prefixes[:-1], index)
 
 
 def _get_html_from_obj(obj, prefixes, index):
     if isinstance(obj._parent_obj, ListElement):
         index = int(index or 0)
-        tmp = obj.to_html(prefixes[:-1], index, partial=False)
+        tmp = obj.to_html(prefixes[:-1], index)
         tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
         return tmp
 
-    return obj.to_html(prefixes[:-1], index, partial=False)
+    return obj.to_html(prefixes[:-1], index)
 
 
 def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):

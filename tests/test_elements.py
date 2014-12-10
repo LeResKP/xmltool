@@ -631,7 +631,10 @@ class TestElement(BaseTest):
 
         obj = self.cls()
         obj._parent_obj = 'my fake parent'
-        html = obj.to_html(partial=True)
+        obj._required = True
+        html = obj.to_html()
+        self.assertEqual(html, expected1)
+
         expected2 = (
             '<div class="panel panel-default tag" id="tag">'
             '<div class="panel-heading">'
@@ -645,13 +648,6 @@ class TestElement(BaseTest):
             '<a class="btn-add" data-elt-id="tag:subtag">Add subtag</a>'
             '</div></div>'
         )
-        self.assertEqual(html, expected2)
-
-        obj = self.cls()
-        obj._parent_obj = 'my fake parent'
-        obj._required = True
-        html = obj.to_html()
-        self.assertEqual(html, expected1)
 
         obj = self.cls()
         obj._parent_obj = 'my fake parent'
@@ -677,7 +673,7 @@ class TestElement(BaseTest):
 
         obj = self.cls()
         obj.root.html_render = render.ReadonlyRender()
-        html = obj.to_html(partial=True)
+        html = obj.to_html()
         expected2 = (
             '<div class="panel panel-default tag" id="tag">'
             '<div class="panel-heading">'
@@ -1078,7 +1074,7 @@ class TestTextElement(BaseTest):
         self.assertEqual(html, expected)
 
         obj.set_text('')
-        html = obj.to_html(partial=True)
+        html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
                     '<a class="btn-add hidden" '
@@ -1144,7 +1140,7 @@ class TestTextElement(BaseTest):
         self.assertEqual(html, '')
 
         obj.set_text('')
-        html = obj.to_html(partial=True)
+        html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
                     '<textarea class="form-control tag" name="tag:_value" '
@@ -1395,21 +1391,6 @@ class TestListElement(BaseTest):
                     '</div>')
         self.assertEqual_(html, expected)
 
-        html = obj.to_html(partial=True)
-        expected = ('<a class="btn-add btn-list" '
-                    'data-elt-id="tag:0:subtag">New subtag</a>'
-                    '<div class="panel panel-default subtag" id="tag:0:subtag">'
-                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag\:0\:subtag">subtag'
-                    '<a class="btn-delete btn-list" '
-                    'data-target="#tag:0:subtag" title="Delete"></a>'
-                    '<a data-comment-name="tag:0:subtag:_comment" '
-                    'class="btn-comment" title="Add comment"></a>'
-                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:0:subtag">'
-                    '</div></div>'
-                    '<a class="btn-add btn-list" '
-                    'data-elt-id="tag:1:subtag">New subtag</a>')
-        self.assertEqual_(html, expected)
-
         obj._required = True
         html = obj.to_html()
         expected = ('<div class="list-container">'
@@ -1451,13 +1432,6 @@ class TestListElement(BaseTest):
         obj.root.html_render = render.ReadonlyRender()
         html = obj.to_html()
         expected = '<div class="list-container"></div>'
-        self.assertEqual(html, expected)
-
-        html = obj.to_html(partial=True)
-        expected = ('<div class="panel panel-default subtag" id="tag:0:subtag">'
-                    '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag\:0\:subtag">subtag'
-                    '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag:0:subtag">'
-                    '</div></div>')
         self.assertEqual(html, expected)
 
         obj._required = True
