@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from unittest import TestCase
+from xmltool.testbase import BaseTest
 from lxml import etree
 import tw2.core as twc
 import tw2.core.testbase as tw2test
@@ -27,7 +28,7 @@ from ..test_dtd_parser import (
 _marker = object()
 
 
-class ElementTester(TestCase):
+class ElementTester(BaseTest):
     # Should be defined in the inheritance classes
     dtd_str = None
     xml = None
@@ -65,7 +66,7 @@ class ElementTester(TestCase):
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj.to_html(), self.expected_html)
+        self.assertEqual_(obj.to_html(), self.expected_html)
 
     def test_load_from_dict(self):
         if self.__class__ == ElementTester:
@@ -95,7 +96,7 @@ class ElementTester(TestCase):
         for elt_str, expected_html in self.str_to_html:
             result = elements.get_obj_from_str_id(elt_str,
                                                dtd_str=self.dtd_str)
-            self.assertEqual(result, expected_html)
+            self.assertEqual_(result, expected_html)
 
     # TODO: add this when it works fine
     # def test_jstree(self):
@@ -148,7 +149,6 @@ class TestElementPCDATA(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div id="texts:text">'
@@ -240,7 +240,6 @@ class TestElementPCDATAEmpty(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div id="texts:text">'
@@ -299,7 +298,6 @@ class TestElementPCDATANotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
@@ -345,7 +343,6 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
@@ -401,7 +398,6 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
@@ -481,7 +477,6 @@ class TestListElement(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -607,7 +602,6 @@ class TestListElementEmpty(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -718,7 +712,6 @@ class TestListElementNotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -788,7 +781,6 @@ class TestListElementEmptyNotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -860,8 +852,6 @@ class TestListElementElementEmpty(ElementTester):
         '<div class="panel panel-default text" '
         'id="texts:list__text:0:text">'
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text'
-        '<a class="btn-delete btn-list" '
-        'data-target="#texts:list__text:0:text" title="Delete"></a>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
@@ -885,7 +875,6 @@ class TestListElementElementEmpty(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" '
          'title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
@@ -895,8 +884,6 @@ class TestListElementElementEmpty(ElementTester):
          '<div class="panel panel-default text" '
          'id="texts:list__text:0:text">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text'
-         '<a class="btn-delete btn-list" '
-         'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
@@ -947,7 +934,6 @@ choice_str_to_html = [
     ('texts',
      '<div class="panel panel-default texts" id="texts">'
      '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-     '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
      '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
      '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
      '<select class="btn-add">'
@@ -1156,7 +1142,6 @@ choicelist_str_to_html = [
     ('texts',
      '<div class="panel panel-default texts" id="texts">'
      '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-     '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
      '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
      '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
      '<div class="list-container">'
@@ -1552,7 +1537,6 @@ class TestListElementOfList(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -1687,7 +1671,6 @@ class TestElementWithAttributes(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" '
          'title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'

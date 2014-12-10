@@ -400,6 +400,10 @@ class Element(object):
             value,
             cls.tagname)
 
+    def _get_html_delete_button(self, ident):
+        return ('<a class="btn-delete" '
+                'data-target="#%s" title="Delete"></a>') % ident
+
     @classmethod
     def _to_html(cls, parent_obj, prefixes=None, index=None):
         v = cls._get_value_from_parent(parent_obj)
@@ -417,6 +421,23 @@ class Element(object):
             self.root.html_render = render.Render()
         return self.root.html_render
 
+    def _add_html_add_button(self):
+        """
+        """
+        renderer = self.get_html_render()
+        if not renderer.add_add_button():
+            return False
+        return (not self._required) or self._is_choice
+
+    def _add_html_delete_button(self, index):
+        """
+        """
+        assert(index is None)
+        renderer = self.get_html_render()
+        if not renderer.add_delete_button():
+            return False
+        return (not self._required) or self._is_choice
+
     def to_html(self, prefixes=None, index=None, delete_btn=False,
                 add_btn=True,  partial=False):
 
@@ -426,32 +447,31 @@ class Element(object):
                 return ''
             # Add button!
             return self._get_html_add_button(prefixes, index)
+        return self.to_html2(prefixes, index, delete_btn, add_btn, partial)
 
+    def to_html2(self, prefixes=None, index=None, delete_btn=False,
+                 add_btn=True,  partial=False):
+        renderer = self.get_html_render()
         tmp_prefixes = self._get_prefixes(prefixes, index)
         sub_html = [self._attributes_to_html(prefixes, index)]
+
         for elt in self.children_classes:
             tmp = elt._to_html(self, tmp_prefixes)
             if tmp:
                 sub_html += [tmp]
 
         legend = self.tagname
-        if renderer.add_add_button():
-            if ((not self._required and self._parent_obj and add_btn)
-               or self._is_choice):
+
+        ident = ':'.join(tmp_prefixes)
+
+        if self._parent_obj:
+            if self._add_html_add_button():
                 legend += self._get_html_add_button(prefixes or [],
                                                     index, 'hidden')
 
-        ident = ':'.join(tmp_prefixes)
-        if renderer.add_delete_button():
-            # Don't allow to delete root element!
-            if (not self._required and self._parent_obj) or delete_btn or partial or self._is_choice:
-                # NOTE: we assume the parent is a list if index is not None
-                if (index is not None):
-                    legend += ('<a class="btn-delete btn-list" '
-                               'data-target="#%s" title="Delete"></a>') % ident
-                else:
-                    legend += ('<a class="btn-delete" '
-                               'data-target="#%s" title="Delete"></a>') % ident
+            if self._add_html_delete_button(index):
+                legend += self._get_html_delete_button(ident)
+
         if renderer.add_comment():
             legend += self._comment_to_html(prefixes, index)
         html = [(
@@ -714,7 +734,11 @@ class TextElement(Element):
             if not renderer.add_add_button():
                 return ''
             return self._get_html_add_button(prefixes, index)
+        return self.to_html2(prefixes, index, delete_btn, add_btn, partial)
 
+    def to_html2(self, prefixes=None, index=None, delete_btn=False,
+                add_btn=True, partial=False):
+        renderer = self.get_html_render()
         parent_is_list = isinstance(self._parent_obj, ListElement)
         add_button = ''
         if renderer.add_add_button():
@@ -785,8 +809,32 @@ class InListMixin(object):
     def _check_addable(cls, obj, tagname):
         """Check if the given tagname is addable to the given obj
         """
+        # TODO: perhaps we have some check to do here
         # We can always add an element to a list.
         pass
+
+    def _add_html_add_button(self):
+        """The add button is added in ListElement.to_html
+        """
+        return False
+
+    def _add_html_delete_button(self, index):
+        """
+        """
+        renderer = self.get_html_render()
+        if not renderer.add_delete_button():
+            return False
+        if index is not None and index > 0:
+            # if list, only the first can be required
+            return True
+        return (not self._required) or self._is_choice
+
+    def _get_html_delete_button(self, ident):
+        return ('<a class="btn-delete btn-list" '
+                'data-target="#%s" title="Delete"></a>') % ident
+
+    def to_html(self, *args, **kw):
+        return self.to_html2(*args, **kw)
 
 
 class MultipleMixin(object):
@@ -949,15 +997,12 @@ class ListElement(list, MultipleMixin, Element):
         i = -1
         lis = []
         for i, e in enumerate(self):
-            if not partial and renderer.add_add_button():
+            if renderer.add_add_button():
                 lis += [self._get_html_add_button(prefixes, (i+offset))]
-            force = False
-            if i == 0 and (partial or self._required):
-                force = True
             lis += [e.to_html(((prefixes or [])+[self.tagname]),
                               (i+offset),
                               delete_btn=True,
-                              partial=force,
+                              partial=False,
                               add_btn=False)]
 
         if renderer.add_add_button():

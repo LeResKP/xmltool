@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from unittest import TestCase
+from xmltool.testbase import BaseTest
 from lxml import etree, html as lxml_html
 import os.path
 from xmltool import utils, dtd_parser
@@ -36,7 +37,7 @@ class FakeClass(object):
         self.xml_elements = {}
 
 
-class TestElement(TestCase):
+class TestElement(BaseTest):
 
     def setUp(self):
         self.sub_cls = type(
@@ -927,7 +928,7 @@ class TestElement(TestCase):
                 os.remove(filename)
 
 
-class TestTextElement(TestCase):
+class TestTextElement(BaseTest):
 
     def setUp(self):
         self.sub_cls = type(
@@ -1192,7 +1193,7 @@ class TestTextElement(TestCase):
         self.assertEqual(html, expected)
 
 
-class TestListElement(TestCase):
+class TestListElement(BaseTest):
 
     def setUp(self):
         self.sub_cls = type(
@@ -1392,10 +1393,12 @@ class TestListElement(TestCase):
                     '<a class="btn-add btn-list" '
                     'data-elt-id="tag:0:subtag">New subtag</a>'
                     '</div>')
-        self.assertEqual(html, expected)
+        self.assertEqual_(html, expected)
 
         html = obj.to_html(partial=True)
-        expected = ('<div class="panel panel-default subtag" id="tag:0:subtag">'
+        expected = ('<a class="btn-add btn-list" '
+                    'data-elt-id="tag:0:subtag">New subtag</a>'
+                    '<div class="panel panel-default subtag" id="tag:0:subtag">'
                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag\:0\:subtag">subtag'
                     '<a class="btn-delete btn-list" '
                     'data-target="#tag:0:subtag" title="Delete"></a>'
@@ -1405,7 +1408,7 @@ class TestListElement(TestCase):
                     '</div></div>'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="tag:1:subtag">New subtag</a>')
-        self.assertEqual(html, expected)
+        self.assertEqual_(html, expected)
 
         obj._required = True
         html = obj.to_html()
@@ -1424,7 +1427,7 @@ class TestListElement(TestCase):
                     '<a class="btn-add btn-list" '
                     'data-elt-id="tag:1:subtag">New subtag</a>'
                     '</div>')
-        self.assertEqual(html, expected)
+        self.assertEqual_(html, expected)
 
         html = obj.to_html(offset=10)
         expected = ('<div class="list-container">'
@@ -1441,7 +1444,7 @@ class TestListElement(TestCase):
                     '<a class="btn-add btn-list" '
                     'data-elt-id="tag:11:subtag">New subtag</a>'
                     '</div>')
-        self.assertEqual(html, expected)
+        self.assertEqual_(html, expected)
 
     def test_to_html_readonly(self):
         obj = self.root_obj.add(self.cls.tagname)
@@ -1545,7 +1548,7 @@ class TestListElement(TestCase):
             pass
 
 
-class TestChoiceElement(TestCase):
+class TestChoiceElement(BaseTest):
 
     def setUp(self):
         self.sub_cls1 = type(
@@ -1712,17 +1715,7 @@ class TestChoiceElement(TestCase):
             pass
 
 
-class TestFunctions(TestCase):
-
-    def assertEqual_(self, html, expected):
-        document_root = lxml_html.fromstring(html)
-        h = etree.tostring(document_root, encoding='unicode',
-                           pretty_print=True)
-        document_root = lxml_html.fromstring(expected)
-        e = etree.tostring(document_root, encoding='unicode',
-                           pretty_print=True)
-        self.maxDiff = None
-        self.assertEqual(h, e)
+class TestFunctions(BaseTest):
 
     def test_update_eol(self):
         res = update_eol('Hello\r\n')
