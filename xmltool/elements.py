@@ -970,13 +970,6 @@ class ListElement(list, MultipleMixin, Element):
         button += '</select>'
         return button
 
-    @classmethod
-    def _get_value_from_parent(cls, parent_obj):
-        tg = cls.tagname
-        if len(cls._choice_classes) == 1:
-            tg = cls._choice_classes[0].tagname
-        return parent_obj.xml_elements.get(tg)
-
     def to_html(self, prefixes=None, index=None, offset=0):
 
         self.remove_empty_element()

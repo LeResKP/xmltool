@@ -542,27 +542,25 @@ class TestElement(BaseTest):
         self.assertEqual(element.attrib, {'attr': 'value'})
 
     def test_to_xml_sub_list(self):
-        sub_cls = type('Element', (Element,),
+        sub_cls = type('Element', (InListMixin, Element,),
                        {'tagname': 'sub',
                         'children_classes': [],
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
-                            {'tagname': 'element',
-                             '_choice_classes': [sub_cls]
-                            })
+                        {'tagname': 'element',
+                         '_choice_classes': [sub_cls]})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
-                   'children_classes': [list_cls]})
+                    'children_classes': [list_cls]})
+        list_cls._parent_cls = cls
+        sub_cls._parent_cls = list_cls
         obj = cls()
-        obj1 = sub_cls()
+        lis = list_cls(obj)
+        obj1 = lis.add(sub_cls.tagname)
         obj1._comment = 'comment1'
         obj1._attributes = {'attr': 'value'}
-        obj2 = sub_cls()
+        obj2 = lis.add(sub_cls.tagname)
         obj2._comment = 'comment2'
-        lis = list_cls()
-        lis.append(obj1)
-        lis.append(obj2)
-        obj['sub'] = lis
         xml = obj.to_xml()
         self.assertEqual(xml.tag, 'tag')
         self.assertEqual(len(xml.getchildren()), 4)
@@ -1239,11 +1237,8 @@ class TestListElement(BaseTest):
 
     def test__get_value_from_parent(self):
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
-        root_obj = self.root_cls()
-        list_obj = self.cls(root_obj)
-        obj = self.sub_cls(list_obj, parent=root_obj)
-        list_obj.append(obj)
-        self.root_obj['subtag'] = list_obj
+        list_obj = self.cls(self.root_obj)
+        obj = list_obj.add(self.sub_cls.tagname)
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), [obj])
 
     def test__get_value_from_parent_multiple(self):
