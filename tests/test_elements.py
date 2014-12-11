@@ -13,6 +13,7 @@ from xmltool.elements import (
     get_obj_from_str_id,
     update_eol,
     InListMixin,
+    InChoiceMixin,
 )
 from xmltool import render
 import xmltool.elements as elements
@@ -1521,14 +1522,14 @@ class TestChoiceElement(BaseTest):
 
     def setUp(self):
         self.sub_cls1 = type(
-            'SubCls', (Element, ),
+            'SubCls', (InChoiceMixin, Element, ),
             {
                 'tagname': 'subtag1',
                 'children_classes': []
             }
         )
         self.sub_cls2 = type(
-            'SubCls', (Element, ),
+            'SubCls', (InChoiceMixin, Element, ),
             {
                 'tagname': 'subtag2',
                 'children_classes': []
@@ -1559,6 +1560,7 @@ class TestChoiceElement(BaseTest):
         expected = {
             'subtag1': self.sub_cls1,
             'subtag2': self.sub_cls2,
+            'tag': self.cls,
         }
         self.assertEqual(res, expected)
 
@@ -1603,38 +1605,72 @@ class TestChoiceElement(BaseTest):
         self.assertEqual(obj.is_addable('test'), False)
 
     def test_add(self):
-        parent_obj = type('ParentCls', (Element, ),
+        root_cls = type('ParentCls', (Element, ),
                           {'tagname': 'parent',
-                           'children_classes': [self.cls]})()
-        obj = self.cls(parent_obj)
+                           'children_classes': [self.cls]})
+        root_obj = root_cls()
+        obj = self.cls(root_obj)
 
         try:
             obj.add('test')
         except Exception, e:
-            self.assertEqual(str(e), 'Can\'t add element to ChoiceElement')
+            self.assertEqual(str(e), 'Invalid child test')
+
+        obj1 = obj.add('subtag1')
+        self.assertEqual(obj1._parent_obj, obj)
+        self.assertEqual(obj1.parent, root_obj)
+        self.assertEqual(root_obj['subtag1'], obj1)
+        self.assertEqual(root_obj['tag'], obj)
+
+        root_obj = root_cls()
+        choice_obj = root_obj.add('tag')
+        choice_obj.add('subtag1')
+
+        choice_obj1 = root_obj.add('tag')
+        # It's the same object when we add we just get it if defined
+        self.assertEqual(choice_obj, choice_obj1)
+
+        try:
+            choice_obj.add('subtag1')
+            assert(False)
+        except Exception, e:
+            self.assertEqual(str(e),
+                             'subtag1 is already defined')
+
+        try:
+            choice_obj.add('subtag2')
+            assert(False)
+        except Exception, e:
+            self.assertEqual(str(e),
+                             'subtag1 is defined so you can\'t add subtag2')
+
+        self.cls._choice_classes = [
+            type('Cls', (InChoiceMixin, TextElement, ),
+                 {
+                     'tagname': 'subtag',
+                     'children_classes': [],
+                     '_parent_cls': self.cls
+                 })]
+
+        root_obj = root_cls()
+        choice_obj2 = root_obj.add('tag')
+        obj2 = choice_obj2.add('subtag', 'my value')
+        self.assertEqual(obj2.text, 'my value')
+        self.assertEqual(obj2._parent_obj, choice_obj2)
+        self.assertEqual(obj2.parent, root_obj)
 
     def test__add(self):
         try:
-            obj1 = self.cls._create('subtag1', self.root_obj, 'my value')
+            obj1 = self.cls._create('tag', self.root_obj, 'my value')
             assert(False)
         except Exception, e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
-        obj1 = self.cls._create('subtag1', self.root_obj)
-        self.assertEqual(obj1.tagname, 'subtag1')
+        obj1 = self.cls._create('tag', self.root_obj)
+        self.assertEqual(obj1.tagname, 'tag')
         self.assertEqual(obj1._parent_obj, self.root_obj)
         self.assertTrue(isinstance(obj1, Element))
-        self.assertEqual(self.root_obj['subtag1'], obj1)
-
-        self.cls._choice_classes = [
-            type('Cls', (TextElement, ),
-                 {
-                     'tagname': 'subtag',
-                     'children_classes': []
-                 })]
-        obj2 = self.cls._create('subtag', self.root_obj, 'my value')
-        self.assertEqual(obj2.text, 'my value')
-        self.assertEqual(obj2._parent_obj, self.root_obj)
+        self.assertEqual(self.root_obj['tag'], obj1)
 
     def test__get_html_add_button(self):
         html = self.cls._get_html_add_button(None)
@@ -2174,7 +2210,8 @@ class TestFunctions(BaseTest):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj._parent_obj.tagname, 'texts')
+        self.assertEqual(obj._parent_obj.tagname, 'choice__tag1_tag2')
+        self.assertEqual(obj.parent.tagname, 'texts')
 
         data = {
             'texts': {}
@@ -2182,7 +2219,8 @@ class TestFunctions(BaseTest):
         obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, None)
-        self.assertEqual(obj._parent_obj.tagname, 'texts')
+        self.assertEqual(obj._parent_obj.tagname, 'choice__tag1_tag2')
+        self.assertEqual(obj.parent.tagname, 'texts')
 
     def test_get_parent_to_add_obj(self):
         dtd_str = '''

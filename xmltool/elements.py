@@ -786,6 +786,33 @@ class TextElement(Element):
         )
 
 
+class InChoiceMixin(object):
+
+    @classmethod
+    def _create(cls, tagname, parent_obj, value=None, index=None):
+        choice_parent_obj = parent_obj.get_or_add(cls._parent_cls.tagname)
+        obj = cls(parent_obj=choice_parent_obj, parent=parent_obj)
+        choice_parent_obj._value = obj
+        # TODO: when we will have ChoiceElement in ListElement we shouldn't
+        # create shortcut
+        # Remove the existing shortcut
+        for c in choice_parent_obj._choice_classes:
+            if c.tagname in parent_obj:
+                # TODO: Instead of using xml_elements, support __delitem__
+                del parent_obj.xml_elements[c.tagname]
+        # Create the new shortcut
+        parent_obj[obj.tagname] = obj
+        if value:
+            obj.set_text(value)
+        return obj
+
+    @classmethod
+    def _check_addable(cls, obj, tagname):
+        """Check if the given tagname is addable to the given obj
+        """
+        cls._parent_cls._check_addable(obj, tagname)
+
+
 class InListMixin(object):
 
     @classmethod
@@ -841,6 +868,7 @@ class MultipleMixin(object):
         dic = {}
         for c in cls._choice_classes:
             dic[c.tagname] = c
+        dic[cls.tagname] = cls
         return dic
 
     @classmethod
@@ -1022,11 +1050,20 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
-        elt_cls = cls.get_class_to_create(tagname)
-        return elt_cls._create(tagname, parent_obj, value, index)
+        if tagname != cls.tagname:
+            raise Exception('Unsupported tagname %s' % tagname)
+
+        # Get the list element or create it
+        choice = parent_obj.get(cls.tagname)
+        if choice is None:
+            choice = cls(parent_obj)
+        if value:
+            choice.set_text(value)
+        return choice
 
     def add(self, *args, **kw):
-        raise Exception('Can\'t add element to ChoiceElement')
+        # The logic to add Element to a choice is on the parent
+        return self._parent_obj.add(*args, **kw)
 
     def is_addable(self, tagname):
         # Nothing is addable to ChoiceElement
@@ -1036,6 +1073,11 @@ class ChoiceElement(MultipleMixin, Element):
     def _check_addable(cls, obj, tagname):
         """Check if the given tagname is addable to the given obj
         """
+        if tagname == cls.tagname:
+            # TODO: we should be able to add existing tag: in this case it just
+            # returns the existing on like the ListElement but it's not logic.
+            # We have get_or_add to do this.
+            return True
         # If one of the different choice is already added, we can't add
         # anything.
         for elt in cls._choice_classes:
@@ -1245,7 +1287,14 @@ def _get_previous_js_selectors(obj, prefixes, index):
     sub = parent.get_child_class(obj.tagname)
     assert(sub)
 
+    # TODO: hack: remove this
+    if isinstance(parent, ChoiceElement):
+        parent = parent._parent_obj
+
     for child in parent.children_classes:
+        if issubclass(child, ChoiceElement):
+            # TODO: hack: remove this
+            continue
         if child == sub:
             break
         tmp_prefix = list(tmp_prefixes) + [child.tagname]

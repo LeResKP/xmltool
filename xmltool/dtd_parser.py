@@ -6,6 +6,7 @@ from elements import (
     ListElement,
     ChoiceElement,
     InListMixin,
+    InChoiceMixin,
 )
 from dogpile.cache.api import NO_VALUE
 from . import cache
@@ -124,7 +125,7 @@ def _parse_elts(elts):
 
 
 def _create_new_class(class_dict, name, required, islist, conditionals,
-                      inlist=False):
+                      inlist=False, inchoice=False):
     base_cls = class_dict.get(name)
     if base_cls is None and not conditionals:
         raise ValueError('You should provide a base_cls or conditionals for %s' % name)
@@ -150,7 +151,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
             assert not subislist
             sub_cls = _create_new_class(class_dict, subname, subrequired,
                                         subislist, subconditionals,
-                                        inlist=islist)
+                                        inlist=islist, inchoice=(not islist))
             sub_cls._parent_cls = parent_cls
             # TODO: We can have choice in list, so this parameter name is not really
             # explicit!
@@ -160,8 +161,12 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
 
     if not islist:
         classes = ()
+        if inlist or inchoice:
+            assert(inlist != inchoice)
         if inlist:
             classes = (InListMixin,)
+        if inchoice:
+            classes = (InChoiceMixin,)
         return type(cls.__name__, classes + (cls,), {
             '_required': required})
 

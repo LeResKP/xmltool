@@ -9,6 +9,7 @@ from xmltool.elements import (
     ListElement,
     ChoiceElement,
     InListMixin,
+    InChoiceMixin,
 )
 import mock
 from xmltool import cache
@@ -547,8 +548,10 @@ class DtdParser(TestCase):
         elt1 = cls._choice_classes[0]
         elt2 = cls._choice_classes[1]
         self.assertEqual(elt1._parent_cls, cls)
+        self.assertTrue(issubclass(elt1, InChoiceMixin))
         self.assertEqual(elt1._required, True)
         self.assertEqual(elt2._parent_cls, cls)
+        self.assertTrue(issubclass(elt2, InChoiceMixin))
         self.assertEqual(elt2._required, True)
 
         cls = dtd_parser._create_new_class(
