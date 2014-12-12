@@ -88,7 +88,7 @@ class Element(object):
         prefixes = []
         if self._parent_obj:
             prefixes = self._parent_obj.prefixes_no_cache
-            if isinstance(self._parent_obj, ListElement):
+            if isinstance(self._parent_obj, BaseListElement):
                 prefixes += [str(self._parent_obj.index(self))]
         prefixes += [self.tagname]
         return prefixes
@@ -101,7 +101,7 @@ class Element(object):
             prefixes = []
             if self._parent_obj:
                 prefixes = self._parent_obj.prefixes
-                if isinstance(self._parent_obj, ListElement):
+                if isinstance(self._parent_obj, BaseListElement):
                     prefixes += [str(self._parent_obj.index(self))]
             self._cache_prefixes = prefixes + [self.tagname]
         return self._cache_prefixes
@@ -735,7 +735,7 @@ class TextElement(Element):
 
     def to_html2(self, prefixes=None, index=None):
         renderer = self.get_html_render()
-        parent_is_list = isinstance(self._parent_obj, ListElement)
+        parent_is_list = isinstance(self._parent_obj, BaseListElement)
         add_button = ''
         if renderer.add_add_button():
             if (not parent_is_list and not self._required) or self._is_choice:
@@ -860,38 +860,7 @@ class InListMixin(object):
         return self.to_html2(*args, **kw)
 
 
-class MultipleMixin(object):
-    _choice_classes = None
-
-    @classmethod
-    def _get_creatable_class_by_tagnames(cls):
-        dic = {}
-        for c in cls._choice_classes:
-            dic[c.tagname] = c
-        dic[cls.tagname] = cls
-        return dic
-
-    @classmethod
-    def _get_creatable_subclass_by_tagnames(cls):
-        """Returns the possible sub classes addable to this class
-        """
-        dic = {}
-        for c in cls._choice_classes:
-            dic.update(c._get_creatable_class_by_tagnames())
-        return dic
-
-    @classmethod
-    def get_child_class(cls, tagname):
-        """Returns the child class where the tagname can be added. For example
-        if it's an element of list return the list class.
-        """
-        for c in cls._choice_classes:
-            for tn in c._get_creatable_class_by_tagnames():
-                if tn == tagname:
-                    return c
-
-
-class ListElement(list, Element):
+class BaseListElement(list, Element):
 
     def __init__(self, *args, **kw):
         # We only want to call the __init__ from Element since the __init__
@@ -929,12 +898,11 @@ class ListElement(list, Element):
         # We can always add an element to a list.
         pass
 
-    def add(self, *args, **kw):
-        # The logic to add Element to a list is on the parent
-        return self._parent_obj.add(*args, **kw)
-
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
+        """Same function as ListElement without creating shortcut for direct
+        access to object.
+        """
         if tagname != cls.tagname:
             raise Exception('Unsupported tagname %s' % tagname)
 
@@ -942,12 +910,15 @@ class ListElement(list, Element):
         lis = parent_obj.get(cls.tagname)
         if lis is None:
             lis = cls(parent_obj)
-            parent_obj[cls._children_class.tagname] = lis
         if value:
             # TODO: not really nice, it's just to raise the same Exception as
             # Element.set_text.
             lis.set_text(value)
         return lis
+
+    def add(self, *args, **kw):
+        # The logic to add Element to a list is on the parent
+        return self._parent_obj.add(*args, **kw)
 
     def remove_empty_element(self):
         """Remove the empty elements from this list since it should not be
@@ -960,18 +931,66 @@ class ListElement(list, Element):
         for e in to_remove:
             self.remove(e)
 
-    def to_xml(self):
-        self.remove_empty_element()
-        lis = []
-        if not len(self) and self._required:
-            e = self.add(self._children_class.tagname)
+    def get_or_add(self, tagname):
+        raise NotImplementedError
 
+    def walk(self):
+        for elt in self:
+            yield elt
+            for e in elt.walk():
+                yield e
+
+    def _before_render(self):
+        self.remove_empty_element()
+
+    def to_xml(self):
+        self._before_render()
+        lis = []
         for e in self:
             if e._comment:
                 elt = etree.Comment(e._comment)
                 lis += [elt]
             lis += [e.to_xml()]
         return lis
+
+    def to_html(self, prefixes=None, index=None, offset=0):
+        # We should not have the following parameter for this object
+        assert self._attributes is None
+        assert index is None
+
+        self._before_render()
+
+        renderer = self.get_html_render()
+        i = -1
+        lis = []
+        for i, e in enumerate(self):
+            if renderer.add_add_button():
+                lis += [self._get_html_add_button(prefixes, (i+offset))]
+            lis += [e.to_html(((prefixes or [])+[self.tagname]),
+                              (i+offset),
+                              )]
+
+        if renderer.add_add_button():
+            lis += [self._get_html_add_button(prefixes, i+offset+1)]
+
+        return '<div class="list-container">%s</div>' % ''.join(lis)
+
+    def to_jstree_dict(self, prefixes, index=None, offset=0):
+        self._before_render()
+        lis = []
+        for i, e in enumerate(self):
+            v = e.to_jstree_dict((prefixes or [])+[self.tagname], i+offset)
+            if v:
+                lis += [v]
+        return lis
+
+
+class ListElement(BaseListElement):
+
+    def __init__(self, *args, **kw):
+        super(ListElement, self).__init__(*args, **kw)
+        # Create a shortcut
+        self._parent_obj[self._children_class.tagname] = self
 
     @classmethod
     def _get_html_add_button(cls, prefixes, index=None, css_class=None):
@@ -994,68 +1013,45 @@ class ListElement(list, Element):
                       cls._children_class.tagname)
         return button
 
-    def to_html(self, prefixes=None, index=None, offset=0):
-
-        self.remove_empty_element()
-        # We should not have the following parameter for this object
-        assert self._attributes is None
-        assert index is None
+    def _before_render(self):
+        super(ListElement, self)._before_render()
 
         if not len(self) and self._required:
-            e = self.add(self._children_class.tagname)
-
-        renderer = self.get_html_render()
-        i = -1
-        lis = []
-        for i, e in enumerate(self):
-            if renderer.add_add_button():
-                lis += [self._get_html_add_button(prefixes, (i+offset))]
-            lis += [e.to_html(((prefixes or [])+[self.tagname]),
-                              (i+offset),
-                              )]
-
-        if renderer.add_add_button():
-            lis += [self._get_html_add_button(prefixes, i+offset+1)]
-
-        return '<div class="list-container">%s</div>' % ''.join(lis)
-
-    def to_jstree_dict(self, prefixes, index=None, offset=0):
-        if not len(self) and (self._required):
-            e = self.add(self._children_class.tagname)
-
-        lis = []
-        for i, e in enumerate(self):
-            v = e.to_jstree_dict((prefixes or [])+[self.tagname], i+offset)
-            if v:
-                lis += [v]
-        return lis
-
-    def get_or_add(self, tagname):
-        raise NotImplementedError
-
-    def walk(self):
-        for elt in self:
-            yield elt
-            for e in elt.walk():
-                yield e
+            self.add(self._children_class.tagname)
 
 
-class ChoiceListElement(MultipleMixin, ListElement):
+class MultipleMixin(object):
+    _choice_classes = None
 
     @classmethod
-    def _create(cls, tagname, parent_obj, value=None, index=None):
-        if tagname != cls.tagname:
-            raise Exception('Unsupported tagname %s' % tagname)
+    def _get_creatable_class_by_tagnames(cls):
+        dic = {}
+        for c in cls._choice_classes:
+            dic[c.tagname] = c
+        dic[cls.tagname] = cls
+        return dic
 
-        # Get the list element or create it
-        lis = parent_obj.get(cls.tagname)
-        if lis is None:
-            lis = cls(parent_obj)
-        if value:
-            # TODO: not really nice, it's just to raise the same Exception as
-            # Element.set_text.
-            lis.set_text(value)
-        return lis
+    @classmethod
+    def _get_creatable_subclass_by_tagnames(cls):
+        """Returns the possible sub classes addable to this class
+        """
+        dic = {}
+        for c in cls._choice_classes:
+            dic.update(c._get_creatable_class_by_tagnames())
+        return dic
+
+    @classmethod
+    def get_child_class(cls, tagname):
+        """Returns the child class where the tagname can be added. For example
+        if it's an element of list return the list class.
+        """
+        for c in cls._choice_classes:
+            for tn in c._get_creatable_class_by_tagnames():
+                if tn == tagname:
+                    return c
+
+
+class ChoiceListElement(MultipleMixin, BaseListElement):
 
     @classmethod
     def _get_html_add_button(cls, prefixes, index=None, css_class=None):
@@ -1079,47 +1075,6 @@ class ChoiceListElement(MultipleMixin, ListElement):
                 e.tagname)
         button += '</select>'
         return button
-
-    def to_xml(self):
-        self.remove_empty_element()
-        lis = []
-
-        for e in self:
-            if e._comment:
-                elt = etree.Comment(e._comment)
-                lis += [elt]
-            lis += [e.to_xml()]
-        return lis
-
-    def to_jstree_dict(self, prefixes, index=None, offset=0):
-        lis = []
-        for i, e in enumerate(self):
-            v = e.to_jstree_dict((prefixes or [])+[self.tagname], i+offset)
-            if v:
-                lis += [v]
-        return lis
-
-    def to_html(self, prefixes=None, index=None, offset=0):
-
-        self.remove_empty_element()
-        # We should not have the following parameter for this object
-        assert self._attributes is None
-        assert index is None
-
-        renderer = self.get_html_render()
-        i = -1
-        lis = []
-        for i, e in enumerate(self):
-            if renderer.add_add_button():
-                lis += [self._get_html_add_button(prefixes, (i+offset))]
-            lis += [e.to_html(((prefixes or [])+[self.tagname]),
-                              (i+offset),
-                              )]
-
-        if renderer.add_add_button():
-            lis += [self._get_html_add_button(prefixes, i+offset+1)]
-
-        return '<div class="list-container">%s</div>' % ''.join(lis)
 
 
 class ChoiceElement(MultipleMixin, Element):
@@ -1288,7 +1243,7 @@ def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
         # The target is an empty object, we remove it and replace it by the
         # right object.
         parent_obj = target_obj._parent_obj
-        assert(isinstance(parent_obj, ListElement))
+        assert(isinstance(parent_obj, BaseListElement))
         index = parent_obj.index(target_obj)
         parent_obj.pop(index)
         # Should always been the -2:
@@ -1347,7 +1302,7 @@ def _get_previous_js_selectors(obj, prefixes, index):
         # No parent it's the root tag.
         return lis
 
-    parent_is_list = isinstance(parent, ListElement)
+    parent_is_list = isinstance(parent, BaseListElement)
     tmp_prefixes = prefixes[:-1]
     if parent_is_list:
         parent = parent._parent_obj
@@ -1387,7 +1342,7 @@ def _get_previous_js_selectors(obj, prefixes, index):
 
 def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, prefixes, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    if isinstance(obj._parent_obj, ListElement):
+    if isinstance(obj._parent_obj, BaseListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index)
         tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
@@ -1397,7 +1352,7 @@ def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
 
 
 def _get_html_from_obj(obj, prefixes, index):
-    if isinstance(obj._parent_obj, ListElement):
+    if isinstance(obj._parent_obj, BaseListElement):
         index = int(index or 0)
         tmp = obj.to_html(prefixes[:-1], index)
         tmp += obj._parent_obj._get_html_add_button(prefixes[:-2], index+1)
@@ -1423,14 +1378,14 @@ def get_display_data_from_obj(obj):
     # able to calculate it! Currently it sucks!
     index = None
     prefixes = obj.prefixes
-    if obj._parent_obj and isinstance(obj._parent_obj, ListElement):
+    if obj._parent_obj and isinstance(obj._parent_obj, BaseListElement):
         index = int(obj.prefixes[-2])
         prefixes = prefixes[:-1]
 
     html = _get_html_from_obj(obj, prefixes, index)
 
     prefixes = obj.prefixes[:-1]
-    if isinstance(obj._parent_obj, ListElement):
+    if isinstance(obj._parent_obj, BaseListElement):
         index = prefixes[-1]
         prefixes = prefixes[:-1]
         jstree_data = obj.to_jstree_dict(prefixes, index=index)
@@ -1438,7 +1393,7 @@ def get_display_data_from_obj(obj):
         jstree_data = obj.to_jstree_dict(prefixes)
 
     prefixes = obj.prefixes
-    if obj._parent_obj and isinstance(obj._parent_obj, ListElement):
+    if obj._parent_obj and isinstance(obj._parent_obj, BaseListElement):
         prefixes = prefixes[:-1]
 
     is_choice = obj._is_choice

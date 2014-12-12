@@ -1118,9 +1118,9 @@ class TestTextElement(BaseTest):
                 'tagname': 'mytag',
                 '_attribute_names': [],
                 '_choice_classes': [],
-                'children_classes': []
+                '_children_class': self.cls
             }
-        )()
+        )(self.root_obj)
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
@@ -1176,9 +1176,9 @@ class TestTextElement(BaseTest):
                 'tagname': 'mytag',
                 '_attribute_names': [],
                 '_choice_classes': [],
-                'children_classes': []
+                '_children_class': self.cls
             }
-        )()
+        )(self.root_obj)
         html = obj.to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
@@ -1300,7 +1300,7 @@ class TestListElement(BaseTest):
         self.assertEqual(list_obj, l)
 
     def test_remove_empty_element(self):
-        obj = self.cls()
+        obj = self.cls(self.root_obj)
         obj.append(None)
         obj.append(elements.EmptyElement(parent_obj=obj))
         self.assertEqual(len(obj), 2)
@@ -1454,7 +1454,7 @@ class TestListElement(BaseTest):
         self.assertEqual(lis, [sub1, subsub1, sub2])
 
     def test_get_or_add(self):
-        obj = self.cls()
+        obj = self.cls(self.root_obj)
         try:
             obj.get_or_add('unexisting')
             assert 0
