@@ -8,6 +8,7 @@ from xmltool.elements import (
     Element,
     ListElement,
     ChoiceElement,
+    ChoiceListElement,
     InListMixin,
     InChoiceMixin,
 )
@@ -513,10 +514,9 @@ class DtdParser(TestCase):
         self.assertTrue(issubclass(cls, ListElement))
         self.assertEqual(cls.__name__, 'tagList')
         self.assertEqual(cls._required, True)
-        self.assertEqual(len(cls._choice_classes), 1)
-        self.assertEqual(cls._choice_classes[0]._parent_cls, cls)
-        self.assertEqual(cls._choice_classes[0]._required, True)
-        self.assertTrue(issubclass(cls._choice_classes[0], InListMixin))
+        self.assertEqual(cls._children_class._parent_cls, cls)
+        self.assertEqual(cls._children_class._required, True)
+        self.assertTrue(issubclass(cls._children_class, InListMixin))
 
         dtd_dict = {
             'tag': {'elts': '(tag1|tag2)', 'attrs': []},
@@ -557,8 +557,8 @@ class DtdParser(TestCase):
         cls = dtd_parser._create_new_class(
             class_dic, 'tag1_tag2', required=True, islist=True,
             conditionals=conditionals)
-        self.assertTrue(issubclass(cls, ListElement))
-        self.assertEqual(cls.__name__, 'tag1_tag2List')
+        self.assertTrue(issubclass(cls, ChoiceListElement))
+        self.assertEqual(cls.__name__, 'tag1_tag2ChoiceList')
         self.assertEqual(cls._required, True)
         self.assertEqual(len(cls._choice_classes), 2)
         elt1 = cls._choice_classes[0]

@@ -4,6 +4,7 @@ from elements import (
     Element,
     TextElement,
     ListElement,
+    ChoiceListElement,
     ChoiceElement,
     InListMixin,
     InChoiceMixin,
@@ -140,7 +141,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
                 '_required': required
             })
         else:
-            parent_cls = type('%sList' % name, (ListElement,), {
+            parent_cls = type('%sChoiceList' % name, (ChoiceListElement,), {
                 '_choice_classes': [],
                 'tagname': 'list__%s' % name,
                 '_required': required,
@@ -174,7 +175,7 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
     newcls = type(cls.__name__, (InListMixin, cls, ), {'_required': required})
 
     listcls = type('%sList' % cls.__name__, (ListElement, ), {
-        '_choice_classes': [newcls],
+        '_children_class': newcls,
         '_required': required,
         'tagname': 'list__%s' % name
     })

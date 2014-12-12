@@ -10,6 +10,7 @@ from xmltool.elements import (
     ListElement,
     TextElement,
     ChoiceElement,
+    ChoiceListElement,
     get_obj_from_str_id,
     update_eol,
     InListMixin,
@@ -466,7 +467,7 @@ class TestElement(BaseTest):
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
                          'children_classes': [],
-                         '_choice_classes': [sub_cls]})
+                         '_children_class': sub_cls})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
@@ -549,7 +550,7 @@ class TestElement(BaseTest):
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
-                         '_choice_classes': [sub_cls]})
+                         '_children_class': sub_cls})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
@@ -761,7 +762,7 @@ class TestElement(BaseTest):
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
-                         '_choice_classes': [sub_cls]})
+                         '_children_class': sub_cls})
         cls = type('Cls', (Element, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
@@ -1203,7 +1204,7 @@ class TestListElement(BaseTest):
             'Cls', (ListElement,),
             {
                 'tagname': 'tag',
-                '_choice_classes': [self.sub_cls]
+                '_children_class': self.sub_cls
             }
         )
         self.root_cls = type(
@@ -1240,19 +1241,6 @@ class TestListElement(BaseTest):
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
         list_obj = self.cls(self.root_obj)
         obj = list_obj.add(self.sub_cls.tagname)
-        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), [obj])
-
-    def test__get_value_from_parent_multiple(self):
-        sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
-        self.cls._choice_classes += [sub_cls]
-        root_obj = self.root_cls()
-        list_obj = self.cls(root_obj)
-        obj = self.sub_cls(list_obj, parent=root_obj)
-        list_obj.append(obj)
-        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
-        self.root_obj['subtag'] = list_obj
-        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
-        self.root_obj['tag'] = list_obj
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), [obj])
 
     def test_is_addable(self):
@@ -1342,15 +1330,6 @@ class TestListElement(BaseTest):
         self.assertEqual(len(lis), 1)
         self.assertEqual(lis[0].tag, 'subtag')
 
-        # Manu choice element, even if the list is required, we don't know
-        # which choice to add so we do noting.
-        sub_cls = type('SubCls', (Element, ), {'tagname': 'tag1'})
-        self.cls._choice_classes += [sub_cls]
-        obj = self.root_cls().add(self.cls.tagname)
-        obj._required = True
-        lis = obj.to_xml()
-        self.assertEqual(lis, [])
-
     def test__get_html_add_button(self):
         html = self.cls._get_html_add_button(None)
         expected = ('<a class="btn-add btn-list" '
@@ -1365,17 +1344,6 @@ class TestListElement(BaseTest):
         html = self.cls._get_html_add_button(['prefix'], 10, 'css_class')
         expected = ('<a class="btn-add btn-list css_class" '
                     'data-elt-id="prefix:tag:10:subtag">New subtag</a>')
-        self.assertEqual(html, expected)
-
-    def test__get_html_add_button_multiple(self):
-        sub_cls = type('SubCls', (Element, ), {'tagname': 'subtag1'})
-        self.cls._choice_classes += [sub_cls]
-        html = self.cls._get_html_add_button(None)
-        expected = ('<select class="btn-add btn-list">'
-                    '<option>New subtag/subtag1</option>'
-                    '<option value="tag:0:subtag">subtag</option>'
-                    '<option value="tag:0:subtag1">subtag1</option>'
-                    '</select>')
         self.assertEqual(html, expected)
 
     def test_to_html(self):
@@ -1464,30 +1432,6 @@ class TestListElement(BaseTest):
             'data': 'subtag'}]
         self.assertEqual(result, expected)
 
-    def test_walk(self):
-        sub_cls = type('SubCls', (Element, ),
-                       {'tagname': 'tag1',
-                        'children_classes': []})
-        self.cls._choice_classes += [sub_cls]
-
-        root_obj = self.root_cls()
-        parent_obj = self.cls()
-        obj1 = self.sub_cls(parent_obj=parent_obj, parent=root_obj)
-        obj2 = sub_cls(parent_obj=parent_obj, parent=root_obj)
-
-        parent_obj.extend([obj1, obj2])
-        lis = [e for e in parent_obj.walk()]
-        self.assertEqual(lis, [obj1, obj2])
-
-        sub_sub_cls = type('SubSubCls', (TextElement, ),
-                       {'tagname': 'subsub',
-                        'children_classes': []})
-        self.sub_cls.children_classes = [sub_sub_cls]
-        subsub1 = sub_sub_cls()
-        obj1['subsub'] = subsub1
-        lis = [e for e in parent_obj.walk()]
-        self.assertEqual(lis, [obj1, subsub1, obj2])
-
     def test_walk_list(self):
         sub_sub_cls = type(
             'SubSubCls', (TextElement, ),
@@ -1516,6 +1460,91 @@ class TestListElement(BaseTest):
             assert 0
         except NotImplementedError:
             pass
+
+
+class TestChoiceListElement(BaseTest):
+
+    def setUp(self):
+        self.sub_cls1 = type(
+            'SubCls1', (InListMixin, Element, ),
+            {
+                'tagname': 'subtag1',
+                '_attribute_names': ['attr'],
+                'children_classes': []
+            }
+        )
+        self.sub_cls2 = type(
+            'SubCls2', (InListMixin, Element, ),
+            {
+                'tagname': 'subtag2',
+                '_attribute_names': ['attr'],
+                'children_classes': []
+            }
+        )
+        self.cls = type(
+            'Cls', (ChoiceListElement,),
+            {
+                'tagname': 'tag',
+                '_choice_classes': [self.sub_cls1, self.sub_cls2]
+            }
+        )
+        self.root_cls = type(
+            'Cls', (Element,),
+            {
+                'tagname': 'parent_tag',
+                'children_classes': [self.cls]
+            }
+        )
+        self.root_obj = self.root_cls()
+        self.cls._parent_cls = self.root_cls
+        self.sub_cls1._parent_cls = self.cls
+        self.sub_cls2._parent_cls = self.cls
+
+    def test__get_value_from_parent_multiple(self):
+        root_obj = self.root_cls()
+        list_obj = self.cls(root_obj)
+        obj = self.sub_cls1(list_obj, parent=root_obj)
+        list_obj.append(obj)
+        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
+        self.root_obj['subtag'] = list_obj
+        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
+        self.root_obj['tag'] = list_obj
+        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), [obj])
+
+    def test_to_xml(self):
+        obj = self.root_cls().add(self.cls.tagname)
+        obj._required = True
+        lis = obj.to_xml()
+        self.assertEqual(lis, [])
+
+    def test__get_html_add_button_multiple(self):
+        html = self.cls._get_html_add_button(None)
+        expected = ('<select class="btn-add btn-list">'
+                    '<option>New subtag1/subtag2</option>'
+                    '<option value="tag:0:subtag1">subtag1</option>'
+                    '<option value="tag:0:subtag2">subtag2</option>'
+                    '</select>')
+        self.assertEqual(html, expected)
+
+    def test_walk(self):
+        root_obj = self.root_cls()
+        parent_obj = self.cls()
+        obj1 = self.sub_cls1(parent_obj=parent_obj, parent=root_obj)
+        obj2 = self.sub_cls2(parent_obj=parent_obj, parent=root_obj)
+
+        parent_obj.extend([obj1, obj2])
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [obj1, obj2])
+
+        sub_sub_cls = type('SubSubCls', (TextElement, ),
+                       {'tagname': 'subsub',
+                        'children_classes': []})
+        self.sub_cls1.children_classes = [sub_sub_cls]
+        subsub1 = sub_sub_cls()
+        obj1['subsub'] = subsub1
+        lis = [e for e in parent_obj.walk()]
+        self.assertEqual(lis, [obj1, subsub1, obj2])
+
 
 
 class TestChoiceElement(BaseTest):
@@ -2037,7 +2066,25 @@ class TestFunctions(BaseTest):
         }
         self.assertEqual(res, expected)
 
-        obj._parent_obj._choice_classes = ['Fake1', 'Fake2']
+    def test_get_display_data_from_obj_choice(self):
+        dtd_str = '''
+        <!ELEMENT texts (tag1, (text1|text2)*, tag2)>
+        <!ELEMENT text1 (#PCDATA)>
+        <!ELEMENT text2 (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__text1_text2:0:text1'
+        data = {
+            'texts': {
+                'list_text1_text2': [
+                    {
+                        'text1': {'_value': 'Hello world'},
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
         res = elements.get_display_data_from_obj(obj)
         self.assertEqual(res['is_choice'], True)
 
