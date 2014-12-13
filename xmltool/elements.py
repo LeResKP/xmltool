@@ -166,6 +166,21 @@ class Element(object):
                 else:
                     yield v
 
+    @property
+    def _all_children(self):
+        for cls in self.children_classes:
+            obj = cls._get_sub_value(self)
+            if obj is not None:
+                yield obj
+
+    @property
+    def _full_children(self):
+        for cls in self.children_classes:
+            obj = cls._get_sub_value(self)
+            if obj is None:
+                obj = cls(self)
+            yield obj
+
     @classmethod
     def _get_prefixes(cls, prefixes, index, name=None):
         tmp_prefixes = list(prefixes or [])
@@ -372,18 +387,17 @@ class Element(object):
         xml = etree.Element(self.tagname)
         self._comment_to_xml(xml)
         self._attributes_to_xml(xml)
-        for elt in self.children_classes:
-            v = elt._get_sub_value(self)
-
-            if v is not None:
-                e = v.to_xml()
-                if isinstance(e, list):
-                    xml.extend(e)
-                else:
-                    xml.append(e)
-                    # NOTE: the attributes are already set but we need to add
-                    # the comment here.
-                    v._comment_to_xml(e)
+        for v in self._all_children:
+            e = v.to_xml()
+            if e is None:
+                continue
+            if isinstance(e, list):
+                xml.extend(e)
+            else:
+                xml.append(e)
+                # NOTE: the attributes are already set but we need to add
+                # the comment here.
+                v._comment_to_xml(e)
         return xml
 
     @classmethod
@@ -403,14 +417,6 @@ class Element(object):
     def _get_html_delete_button(self, ident):
         return ('<a class="btn-delete" '
                 'data-target="#%s" title="Delete"></a>') % ident
-
-    @classmethod
-    def _to_html(cls, parent_obj, prefixes=None, index=None):
-        v = cls._get_value_from_parent(parent_obj)
-        if not v:
-            # We always want an object since we need at least a add button.
-            v = cls(parent_obj)
-        return v.to_html(prefixes, index)
 
     def get_html_render(self):
         """Render uses to make the textarea as HTML and a first decision about
@@ -453,8 +459,8 @@ class Element(object):
         tmp_prefixes = self._get_prefixes(prefixes, index)
         sub_html = [self._attributes_to_html(prefixes, index)]
 
-        for elt in self.children_classes:
-            tmp = elt._to_html(self, tmp_prefixes)
+        for obj in self._full_children:
+            tmp = obj.to_html(tmp_prefixes)
             if tmp:
                 sub_html += [tmp]
 
@@ -694,14 +700,14 @@ class TextElement(Element):
         # The comment can't be added here since we don't always have the parent
         # defined.
         self._attributes_to_xml(xml)
-        # We never set self.text to None to make sure when we export as string
-        # we get a HTML format (no autoclose tag)
         if self._is_empty:
             if self.text:
                 raise Exception(
                     'It\'s forbidden to have a value to an EMPTY tag')
             xml.text = None
         else:
+            # We never set self.text to None to make sure when we export as string
+            # we get a HTML format (no autoclose tag)
             xml.text = update_eol(self.text or '')
         return xml
 
@@ -811,6 +817,9 @@ class InChoiceMixin(object):
         """Check if the given tagname is addable to the given obj
         """
         cls._parent_cls._check_addable(obj, tagname)
+
+    def to_html(self, *args, **kw):
+        return self.to_html2(*args, **kw)
 
 
 class InListMixin(object):
@@ -1079,6 +1088,9 @@ class ChoiceListElement(MultipleMixin, BaseListElement):
 
 class ChoiceElement(MultipleMixin, Element):
 
+    # TODO: we should have an init to define this attribute
+    _value = None
+
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
         if tagname != cls.tagname:
@@ -1140,22 +1152,18 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
-        for elt in cls._choice_classes:
-            v = parent_obj.xml_elements.get(elt.tagname)
-            if v:
-                return v
+        obj = parent_obj.xml_elements.get(cls.tagname)
+        if obj:
+            return obj._value
 
-    @classmethod
-    def _to_html(cls, parent_obj, prefixes=None, index=None):
-        v = cls._get_value_from_parent(parent_obj)
-        if not v:
-            return cls._get_html_add_button(prefixes, index)
-        return v.to_html(prefixes, index)
+    def to_html(self, prefixes=None, index=None):
+        if self._value:
+            return self._value.to_html(prefixes, index)
+        return self._get_html_add_button(prefixes, index)
 
-    @classmethod
-    def _get_sub_value(cls, parent_obj):
-        # We don't know which object to insert, so do nothing if None
-        return cls._get_value_from_parent(parent_obj)
+    def to_xml(self):
+        if self._value:
+            return self._value.to_xml()
 
     def to_jstree_dict(self, prefixes, index=None):
         # Nothing to add in for this object

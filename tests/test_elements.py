@@ -600,17 +600,6 @@ class TestElement(BaseTest):
                     '</select>')
         self.assertEqual(html, expected)
 
-    def test__to_html(self):
-        expected = ('<a class="btn-add" '
-                    'data-elt-id="subtag">Add subtag</a>')
-        parent_obj = self.cls()
-        html = self.sub_cls._to_html(parent_obj)
-        self.assertTrue(html, expected)
-
-        parent_obj['subtag'] = self.sub_cls(parent_obj)
-        html = self.sub_cls._to_html(parent_obj)
-        self.assertTrue(html, expected)
-
     def test_to_html(self):
         obj = self.cls()
         html = obj.to_html()
@@ -1610,14 +1599,8 @@ class TestChoiceElement(BaseTest):
         obj2 = self.sub_cls2()
         self.assertTrue(obj1 != obj2)
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
-        self.root_obj['subtag1'] = obj1
+        obj1 = self.root_obj.add('subtag1')
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), obj1)
-        self.root_obj['subtag2'] = obj2
-        # Since both possible tag names are defined, it gets the first
-        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), obj1)
-        del self.root_obj.xml_elements['subtag1']
-        self.root_obj['subtag2'] = obj2
-        self.assertEqual(self.cls._get_value_from_parent(self.root_obj), obj2)
 
     def test__get_sub_value(self):
         obj = self.sub_cls1()
@@ -1625,8 +1608,10 @@ class TestChoiceElement(BaseTest):
         self.assertFalse(result)
         self.cls._required = True
         result = self.cls._get_sub_value(self.root_obj)
-        self.assertFalse(result)
-        self.root_obj['subtag1'] = obj
+        self.assertTrue(result)
+        # The created object is a ChoiceElement
+        self.assertTrue(isinstance(result, self.cls))
+        obj = self.root_obj.add('subtag1')
         self.assertEqual(self.cls._get_sub_value(self.root_obj), obj)
 
     def test_is_addable(self):
@@ -1716,28 +1701,6 @@ class TestChoiceElement(BaseTest):
                     '<option value="prefix:10:subtag1">subtag1</option>'
                     '<option value="prefix:10:subtag2">subtag2</option>'
                     '</select>')
-        self.assertEqual(html, expected)
-
-    def test__to_html(self):
-        html = self.cls._to_html(self.root_obj)
-        expected = (
-            '<select class="btn-add">'
-            '<option>New subtag1/subtag2</option>'
-            '<option value="subtag1">subtag1</option>'
-            '<option value="subtag2">subtag2</option>'
-            '</select>')
-        self.assertEqual(html, expected)
-
-        obj = self.cls()
-        self.root_obj['subtag1'] = obj
-        html = self.cls._to_html(self.root_obj)
-        expected = (
-            '<div class="panel panel-default tag" id="tag">'
-            '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-tag">tag'
-            '<a data-comment-name="tag:_comment" '
-            'class="btn-comment" title="Add comment"></a>'
-            '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-tag">'
-            '</div></div>')
         self.assertEqual(html, expected)
 
     def test_to_jstree_dict(self):
