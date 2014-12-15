@@ -142,26 +142,6 @@ class TestElement(BaseTest):
         obj['subtag'] = self.sub_cls()
         self.assertTrue(obj._has_value())
 
-    def test__get_prefixes(self):
-        result = self.cls._get_prefixes([], None)
-        self.assertEqual(result, ['tag'])
-        result = self.cls._get_prefixes(['prefix'], None)
-        self.assertEqual(result, ['prefix', 'tag'])
-        result = self.cls._get_prefixes(['prefix'], 1)
-        self.assertEqual(result, ['prefix', '1', 'tag'])
-        result = self.cls._get_prefixes(['prefix'], 1, 'name')
-        self.assertEqual(result, ['prefix', '1', 'tag', 'name'])
-
-    def test__get_str_prefix(self):
-        result = self.cls._get_str_prefix([], None)
-        self.assertEqual(result, 'tag')
-        result = self.cls._get_str_prefix(['prefix'], None)
-        self.assertEqual(result, 'prefix:tag')
-        result = self.cls._get_str_prefix(['prefix'], 1)
-        self.assertEqual(result, 'prefix:1:tag')
-        result = self.cls._get_str_prefix(['prefix'], 1, 'name')
-        self.assertEqual(result, 'prefix:1:tag:name')
-
     def test_root(self):
         self.assertEqual(self.root_obj.root, self.root_obj)
         obj = self.cls._create('subtag', self.root_obj)
@@ -276,7 +256,7 @@ class TestElement(BaseTest):
         obj = self.cls(self.root_obj)
         obj._attribute_names = ['attr']
         dic = {'attr': 'value'}
-        html = obj._attributes_to_html(['root_tag'], 1)
+        html = obj._attributes_to_html()
         self.assertEqual(html, '')
 
         cls = type(
@@ -304,7 +284,7 @@ class TestElement(BaseTest):
         obj = list_obj.add(cls.tagname)
         obj._attributes = dic
         list_obj.insert(0, EmptyElement(parent_obj=list_obj))
-        html = obj._attributes_to_html(['root_tag', 'list_tag'], 1)
+        html = obj._attributes_to_html()
         expected = ('<input value="value" name="root_tag:list_tag:1:tag:_attrs:attr" '
                     'id="root_tag:list_tag:1:tag:_attrs:attr" class="_attrs" />')
         self.assertEqual(html, expected)
@@ -368,13 +348,13 @@ class TestElement(BaseTest):
 
     def test__comment_to_html(self):
         obj = self.cls(self.root_obj)
-        html = obj._comment_to_html(['root_tag'], None)
+        html = obj._comment_to_html()
         expected = ('<a data-comment-name="root_tag:tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>')
         self.assertEqual(html, expected)
 
         obj._comment = 'my comment'
-        html = obj._comment_to_html(['root_tag'], None)
+        html = obj._comment_to_html()
         expected = ('<a data-comment-name="root_tag:tag:_comment" '
                     'class="btn-comment has-comment" title="my comment"></a>'
                     '<textarea class="_comment" name="root_tag:tag:_comment">'
@@ -604,26 +584,64 @@ class TestElement(BaseTest):
         self.assertEqual(element2.attrib, {})
 
     def test__get_html_add_button(self):
-        html = self.cls._get_html_add_button(['prefix'])
-        expected = ('<a class="btn-add" data-elt-id="prefix:tag">'
+        obj = self.cls(self.root_obj)
+        html = obj._get_html_add_button()
+        expected = ('<a class="btn-add" data-elt-id="root_tag:tag">'
                     'Add tag</a>')
         self.assertEqual(html, expected)
 
-        html = self.cls._get_html_add_button(['prefix'], 1, 'css_class')
+        cls = type(
+            'Cls', (InListMixin, TextElement, ),
+            {
+                'tagname': 'tag',
+                'children_classes': [self.sub_cls],
+                '_attribute_names': ['attr'],
+            }
+        )
+
+        list_cls = type(
+            'ListCls', (ListElement,),
+            {
+                'tagname': 'list_tag',
+                '_children_class': cls,
+                '_parent_cls': self.root_cls
+            }
+        )
+
+        cls._parent_cls = list_cls
+        self.root_cls.children_classes = [list_cls]
+
+        list_obj = self.root_obj.add(list_cls.tagname)
+        obj = list_obj.add(cls.tagname)
+        list_obj.insert(0, EmptyElement(parent_obj=list_obj))
+
+        html = obj._get_html_add_button(1, 'css_class')
         expected = ('<a class="btn-add css_class" '
-                    'data-elt-id="prefix:1:tag">'
+                    'data-elt-id="root_tag:list_tag:1:tag">'
                     'Add tag</a>')
         self.assertEqual(html, expected)
 
-        sub_cls = type('SubCls', (Element,), {'tagname': 'tag'})
-        cls = type('MultipleCls', (ChoiceElement,), {'_choice_classes': [sub_cls]})
-        self.cls._parent_cls = cls
-        self.cls._is_choice = True
-        html = self.cls._get_html_add_button(['prefix'])
+        sub_cls = type('SubCls', (InChoiceMixin, Element,), {
+            'tagname': 'tag'
+        })
+        cls = type('MultipleCls', (ChoiceElement,), {
+            '_choice_classes': [sub_cls],
+            'tagname': 'choice_tagname',
+            '_parent_cls': self.root_cls,
+        })
+        sub_cls._parent_cls = cls
+        self.root_cls.children_classes = [cls]
+        obj = cls(self.root_cls())
+        html = obj._get_html_add_button()
         expected = ('<select class="btn-add">'
                     '<option>New tag</option>'
-                    '<option value="prefix:tag">tag</option>'
+                    '<option value="root_tag:tag">tag</option>'
                     '</select>')
+        self.assertEqual(html, expected)
+
+        # Test element in a choice
+        obj = obj.add('tag')
+        html = obj._get_html_add_button()
         self.assertEqual(html, expected)
 
     def test_to_html(self):
@@ -640,14 +658,14 @@ class TestElement(BaseTest):
         obj = self.cls()
         obj._parent_obj = self.root_obj
         html = obj.to_html()
-        expected_button = ('<a class="btn-add" data-elt-id="tag">'
+        expected_button = ('<a class="btn-add" data-elt-id="root_tag:tag">'
                            'Add tag</a>')
         self.assertEqual_(html, expected_button)
 
         obj = self.cls()
         obj._parent_obj = self.root_obj
         obj._required = True
-        html = obj.to_html(prefixes=['root_tag'])
+        html = obj.to_html()
         expected1 = (
             '<div class="panel panel-default tag" id="root_tag:tag"><div class="panel-heading"><span data-toggle="collapse" href="#collapse-root_tag\:tag">tag'
             '<a data-comment-name="root_tag:tag:_comment" class="btn-comment" '
@@ -675,7 +693,7 @@ class TestElement(BaseTest):
         obj._parent_obj = self.root_obj
         obj._required = False
         obj['subtag'] = self.sub_cls(obj)
-        html = obj.to_html(prefixes=['root_tag'])
+        html = obj.to_html()
         self.assertEqual_(html, expected2)
 
     def test_to_html_readonly(self):
@@ -722,7 +740,7 @@ class TestElement(BaseTest):
         self.assertEqual(result, None)
 
         self.sub_cls._required = True
-        result = self.sub_cls._to_jstree_dict(parent_obj, prefixes=['tag'])
+        result = self.sub_cls._to_jstree_dict(parent_obj)
         expected = {
             'data': 'subtag',
             'attr': {
@@ -733,7 +751,7 @@ class TestElement(BaseTest):
 
         self.sub_cls._required = False
         parent_obj['subtag'] = self.sub_cls(parent_obj)
-        result = self.sub_cls._to_jstree_dict(parent_obj, prefixes=['tag'])
+        result = self.sub_cls._to_jstree_dict(parent_obj)
         expected = {
             'data': 'subtag',
             'attr': {
@@ -744,7 +762,7 @@ class TestElement(BaseTest):
 
     def test_to_jstree_dict(self):
         obj = self.cls()
-        result = obj.to_jstree_dict([])
+        result = obj.to_jstree_dict()
         expected = {
             'data': 'tag',
             'attr': {
@@ -780,7 +798,7 @@ class TestElement(BaseTest):
         for i in range(10):
             list_obj.insert(0, EmptyElement(parent_obj=list_obj))
 
-        result = obj.to_jstree_dict(['root_tag', 'list_tag'], index=10)
+        result = obj.to_jstree_dict(index=10)
         expected = {
             'data': u'tag <span class="_tree_text">(my value)</span>',
             'attr': {
@@ -790,7 +808,7 @@ class TestElement(BaseTest):
         self.assertEqual(result, expected)
 
         obj.add(self.sub_cls.tagname)
-        result = obj.to_jstree_dict(['root_tag', 'list_tag'], index=10)
+        result = obj.to_jstree_dict(index=10)
         expected = {
             'data': u'tag <span class="_tree_text">(my value)</span>',
             'attr': {
@@ -819,7 +837,7 @@ class TestElement(BaseTest):
         list_cls._parent_cls = cls
         sub_cls._parent_cls = list_cls
         obj = cls()
-        result = obj.to_jstree_dict([])
+        result = obj.to_jstree_dict()
         expected = {
             'data': 'tag',
             'attr': {
@@ -829,7 +847,7 @@ class TestElement(BaseTest):
         self.assertEqual(result, expected)
 
         list_cls._required = True
-        result = obj.to_jstree_dict([])
+        result = obj.to_jstree_dict()
         expected = {
             'data': 'tag',
             'attr': {
@@ -1100,7 +1118,7 @@ class TestTextElement(BaseTest):
 
     def test__get_html_attrs(self):
         obj = self.cls(self.root_obj)
-        result = obj._get_html_attrs(['parent_tag'], 1)
+        result = obj._get_html_attrs(rows=1)
         expected = [('name', "parent_tag:tag:_value"), ('rows', 1), ('class', 'tag')]
         self.assertEqual(result, expected)
 
@@ -1130,9 +1148,9 @@ class TestTextElement(BaseTest):
         obj = list_obj.add(cls.tagname)
         for i in range(10):
             list_obj.insert(0, EmptyElement(parent_obj=list_obj))
-        result = obj._get_html_attrs(['parent_tag', 'list_tag'], 1, 10)
+        result = obj._get_html_attrs(rows=3)
         expected = [('name', "parent_tag:list_tag:10:tag:_value"),
-                    ('rows', 1),
+                    ('rows', 3),
                     ('class', 'tag')]
         self.assertEqual(result, expected)
 
@@ -1400,19 +1418,20 @@ class TestListElement(BaseTest):
         self.assertEqual(lis[0].tag, 'subtag')
 
     def test__get_html_add_button(self):
-        html = self.cls._get_html_add_button(None)
+        obj = self.cls(self.root_obj)
+        html = obj._get_html_add_button()
         expected = ('<a class="btn-add btn-list" '
-                    'data-elt-id="tag:0:subtag">New subtag</a>')
+                    'data-elt-id="parent_tag:tag:0:subtag">New subtag</a>')
         self.assertEqual(html, expected)
 
-        html = self.cls._get_html_add_button(['prefix'], 10, 'css_class')
+        html = obj._get_html_add_button(10, 'css_class')
         expected = ('<a class="btn-add btn-list css_class" '
-                    'data-elt-id="prefix:tag:10:subtag">New subtag</a>')
+                    'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>')
         self.assertEqual(html, expected)
 
-        html = self.cls._get_html_add_button(['prefix'], 10, 'css_class')
+        html = obj._get_html_add_button(10, 'css_class')
         expected = ('<a class="btn-add btn-list css_class" '
-                    'data-elt-id="prefix:tag:10:subtag">New subtag</a>')
+                    'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>')
         self.assertEqual(html, expected)
 
     def test_to_html(self):
@@ -1420,12 +1439,12 @@ class TestListElement(BaseTest):
         html = obj.to_html()
         expected = ('<div class="list-container">'
                     '<a class="btn-add btn-list" '
-                    'data-elt-id="tag:0:subtag">New subtag</a>'
+                    'data-elt-id="parent_tag:tag:0:subtag">New subtag</a>'
                     '</div>')
         self.assertEqual_(html, expected)
 
         obj._required = True
-        html = obj.to_html(prefixes=['parent_tag'])
+        html = obj.to_html()
         expected = ('<div class="list-container">'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="parent_tag:tag:0:subtag">New subtag</a>'
@@ -1445,7 +1464,7 @@ class TestListElement(BaseTest):
 
         for i in range(10):
             obj.insert(0, EmptyElement(parent_obj=obj))
-        html = obj.to_html(prefixes=['parent_tag'], offset=10)
+        html = obj.to_html(offset=10)
         expected = ('<div class="list-container">'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>'
@@ -1470,7 +1489,7 @@ class TestListElement(BaseTest):
         self.assertEqual(html, expected)
 
         obj._required = True
-        html = obj.to_html(prefixes=['parent_tag'])
+        html = obj.to_html()
         expected = ('<div class="list-container">'
                     '<div class="panel panel-default subtag" '
                     'id="parent_tag:tag:0:subtag">'
@@ -1482,7 +1501,7 @@ class TestListElement(BaseTest):
 
         for i in range(10):
             obj.insert(0, EmptyElement(parent_obj=obj))
-        html = obj.to_html(prefixes=['parent_tag'], offset=10)
+        html = obj.to_html(offset=10)
         expected = ('<div class="list-container">'
                     '<div class="panel panel-default subtag" id="parent_tag:tag:10:subtag">'
                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-parent_tag\:tag\:10\:subtag">subtag'
@@ -1493,11 +1512,11 @@ class TestListElement(BaseTest):
 
     def test_to_jstree_dict(self):
         obj = self.root_obj.add(self.cls.tagname)
-        result = obj.to_jstree_dict([])
+        result = obj.to_jstree_dict()
         self.assertEqual(result, [])
 
         obj._required = True
-        result = obj.to_jstree_dict(['parent_tag'])
+        result = obj.to_jstree_dict()
         expected = [{
             'attr': {'class': 'tree_parent_tag:tag tree_parent_tag:tag:0 subtag',
                      'id': 'tree_parent_tag:tag:0:subtag'},
@@ -1591,7 +1610,8 @@ class TestChoiceListElement(BaseTest):
         self.assertEqual(lis, [])
 
     def test__get_html_add_button_multiple(self):
-        html = self.cls._get_html_add_button(None)
+        obj = self.cls()
+        html = obj._get_html_add_button()
         expected = ('<select class="btn-add btn-list">'
                     '<option>New subtag1/subtag2</option>'
                     '<option value="tag:0:subtag1">subtag1</option>'
@@ -1645,15 +1665,15 @@ class TestChoiceElement(BaseTest):
                 '_choice_classes': [self.sub_cls1, self.sub_cls2]
             }
         )
-        root_cls = type(
+        self.root_cls = type(
             'ParentCls', (Element, ),
             {
                 'tagname': 'root_tag',
                 'children_classes': [self.cls]
             }
         )
-        self.root_obj = root_cls()
-        self.cls._parent_cls = root_cls
+        self.root_obj = self.root_cls()
+        self.cls._parent_cls = self.root_cls
         self.sub_cls1._parent_cls = self.cls
         self.sub_cls2._parent_cls = self.cls
 
@@ -1771,26 +1791,19 @@ class TestChoiceElement(BaseTest):
         self.assertEqual(self.root_obj['tag'], obj1)
 
     def test__get_html_add_button(self):
-        html = self.cls._get_html_add_button(None)
+        obj = self.cls(self.root_obj)
+        html = obj._get_html_add_button()
         expected = ('<select class="btn-add">'
                     '<option>New subtag1/subtag2</option>'
-                    '<option value="subtag1">subtag1</option>'
-                    '<option value="subtag2">subtag2</option>'
-                    '</select>')
-        self.assertEqual(html, expected)
-
-        html = self.cls._get_html_add_button(['prefix'], 10, 'css_class')
-        expected = ('<select class="btn-add css_class">'
-                    '<option>New subtag1/subtag2</option>'
-                    '<option value="prefix:10:subtag1">subtag1</option>'
-                    '<option value="prefix:10:subtag2">subtag2</option>'
+                    '<option value="root_tag:subtag1">subtag1</option>'
+                    '<option value="root_tag:subtag2">subtag2</option>'
                     '</select>')
         self.assertEqual(html, expected)
 
     def test_to_jstree_dict(self):
         obj = self.cls()
         try:
-            obj.to_jstree_dict([])
+            obj.to_jstree_dict()
             assert(False)
         except NotImplementedError:
             pass
@@ -1886,41 +1899,41 @@ class TestFunctions(BaseTest):
         <!ELEMENT tag2 (#PCDATA)>
         '''
         str_id = 'texts'
-        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+        obj, index = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        lis = elements._get_previous_js_selectors(obj, index)
         self.assertEqual(lis, [])
 
-        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        lis = elements._get_previous_js_selectors(obj, index)
         self.assertEqual(lis, [])
 
         str_id = 'texts:list__list:0:list:text'
-        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+        obj, index = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        lis = elements._get_previous_js_selectors(obj, index)
         expected = [('inside', '#tree_texts:list__list:0:list')]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:list__list:0:list'
-        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+        obj, index = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        lis = elements._get_previous_js_selectors(obj, index)
         expected = [
             ('after', '.tree_texts:tag1'),
             ('inside', '#tree_texts')]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:list__list:1:list'
-        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+        obj, index = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        lis = elements._get_previous_js_selectors(obj, index)
         expected = [('after', '.tree_texts:list__list:0')]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:tag2'
-        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+        obj, index = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, prefixes, index)
+        lis = elements._get_previous_js_selectors(obj, index)
         expected = [('after', '.tree_texts:list__list'),
                     ('after', '.tree_texts:tag1'),
                     ('inside', '#tree_texts')]
@@ -1935,9 +1948,9 @@ class TestFunctions(BaseTest):
         <!ELEMENT tag2 (#PCDATA)>
         '''
         str_id = 'texts:tag2'
-        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+        obj, index = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        result = elements._get_html_from_obj(obj, prefixes, index)
+        result = elements._get_html_from_obj(obj, index)
         expected = (
             '<div id="texts:tag2">'
             '<label>tag2</label>'
@@ -1949,9 +1962,9 @@ class TestFunctions(BaseTest):
         self.assertEqual(result, expected)
 
         str_id = 'texts:list__list:1:list'
-        obj, prefixes, index = elements._get_obj_from_str_id(str_id,
+        obj, index = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        result = elements._get_html_from_obj(obj, prefixes, index)
+        result = elements._get_html_from_obj(obj, index)
         expected = (
             '<div class="panel panel-default list" '
             'id="texts:list__list:1:list"><div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__list\:1\:list">list'
@@ -2047,11 +2060,6 @@ class TestFunctions(BaseTest):
         }
         self.assertEqual(res, expected)
 
-        # Test with is_choice
-        obj._is_choice = True
-        res = elements.get_display_data_from_obj(obj)
-        self.assertEqual(res['is_choice'], True)
-
         # Test with list object
         str_id = 'texts:list__list:0:list'
         data = {
@@ -2110,6 +2118,60 @@ class TestFunctions(BaseTest):
                 'data': 'list'},
             'previous': [('after', '.tree_texts:tag1'),
                          ('inside', '#tree_texts')]
+        }
+        self.assertEqual(res, expected)
+
+        # Test with a choice
+        dtd_str = '''
+        <!ELEMENT texts (tag1, list*, tag2)>
+        <!ELEMENT list (text1|text2)>
+        <!ELEMENT text1 (#PCDATA)>
+        <!ELEMENT text2 (#PCDATA)>
+        <!ELEMENT tag1 (#PCDATA)>
+        <!ELEMENT tag2 (#PCDATA)>
+        '''
+        str_id = 'texts:list__list:0:list:text1'
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {
+                            'text1': {'_value': 'Hello world'},
+                        }
+                    }
+                ]
+            }
+        }
+        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        res = elements.get_display_data_from_obj(obj)
+        expected = {
+            'elt_id': 'texts:list__list:0:list:text1',
+            'html': (
+                '<div id="texts:list__list:0:list:text1">'
+                '<label>text1</label>'
+                '<select class="btn-add hidden">'
+                '<option>New text1/text2</option>'
+                '<option value="texts:list__list:0:list:text1">text1</option>'
+                '<option value="texts:list__list:0:list:text2">text2</option>'
+                '</select>'
+                '<a class="btn-delete" '
+                'data-target="#texts:list__list:0:list:text1" title="Delete">'
+                '</a>'
+                '<a data-comment-name="texts:list__list:0:list:text1:_comment" '
+                'class="btn-comment" title="Add comment"></a>'
+                '<textarea class="form-control text1" '
+                'name="texts:list__list:0:list:text1:_value" rows="1">'
+                'Hello world</textarea>'
+                '</div>'),
+            'is_choice': True,
+            'jstree_data': {
+                'attr': {
+                    'class': 'tree_texts:list__list:0:list:text1 text1',
+                    'id': 'tree_texts:list__list:0:list:text1'},
+                'children': [],
+                'data': u'text1 <span class="_tree_text">(Hello world)</span>'
+            },
+            'previous': [('inside', '#tree_texts:list__list:0:list')]
         }
         self.assertEqual(res, expected)
 
