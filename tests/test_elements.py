@@ -7,6 +7,7 @@ import os.path
 from xmltool import utils, dtd_parser
 from xmltool.elements import (
     Element,
+    ContainerElement,
     ListElement,
     TextElement,
     ChoiceElement,
@@ -44,21 +45,21 @@ class TestElement(BaseTest):
 
     def setUp(self):
         self.sub_cls = type(
-            'SubCls', (Element,),
+            'SubCls', (ContainerElement,),
             {
                 'tagname': 'subtag',
                 'children_classes': []
             }
         )
         self.cls = type(
-            'Cls', (Element, ),
+            'Cls', (ContainerElement, ),
             {
                 'tagname': 'tag',
                 'children_classes': [self.sub_cls]
             }
         )
         self.root_cls = type(
-            'Cls', (Element, ),
+            'Cls', (ContainerElement, ),
             {
                 'tagname': 'root_tag',
                 'children_classes': [self.cls]
@@ -98,7 +99,7 @@ class TestElement(BaseTest):
         self.assertEqual(res, expected)
 
         sub_cls1 = type(
-            'SubCls1', (Element,),
+            'SubCls1', (ContainerElement,),
             {
                 'tagname': 'subtag1',
                 'children_classes': [],
@@ -157,7 +158,7 @@ class TestElement(BaseTest):
         obj = self.cls._create('tag', self.root_obj)
         self.assertEqual(obj._parent_obj, self.root_obj)
         self.assertEqual(obj.root, self.root_obj)
-        self.assertTrue(isinstance(obj, Element))
+        self.assertTrue(isinstance(obj, ContainerElement))
         self.assertEqual(self.root_obj['tag'], obj)
 
     def test_is_addable(self):
@@ -174,7 +175,7 @@ class TestElement(BaseTest):
 
     def test_add(self):
         root_cls = type(
-            'RootElement', (Element,),
+            'RootElement', (ContainerElement,),
             {
                 'tagname': 'root_element',
                 'children_classes': [],
@@ -382,13 +383,13 @@ class TestElement(BaseTest):
         xml.append(elt)
         xml.append(etree.Comment('comment'))
 
-        sub_cls1 = type('SubClsPrev', (Element,), {'tagname': 'prev',
+        sub_cls1 = type('SubClsPrev', (ContainerElement,), {'tagname': 'prev',
                                                    'children_classes': []})
-        sub_cls2 = type('SubClsElement', (Element,),
+        sub_cls2 = type('SubClsElement', (ContainerElement,),
                         {'tagname': 'element',
                          'children_classes': [],
                          '_attribute_names': ['attr']})
-        cls = type('Cls', (Element, ),
+        cls = type('Cls', (ContainerElement, ),
                    {'tagname': 'tag',
                     'children_classes': [sub_cls1, sub_cls2]})
         obj = cls()
@@ -412,13 +413,13 @@ class TestElement(BaseTest):
         self.assertEqual(obj._attributes, {'attr': 'value'})
 
     def test_load_from_dict(self):
-        sub_cls1 = type('SubClsPrev', (Element,), {'tagname': 'prev',
+        sub_cls1 = type('SubClsPrev', (ContainerElement,), {'tagname': 'prev',
                                                    'children_classes': []})
-        sub_cls2 = type('SubClsElement', (Element,),
+        sub_cls2 = type('SubClsElement', (ContainerElement,),
                         {'tagname': 'element',
                          'children_classes': [],
                          '_attribute_names': ['attr']})
-        cls = type('Cls', (Element, ),
+        cls = type('Cls', (ContainerElement, ),
                    {'tagname': 'tag',
                     'children_classes': [sub_cls1, sub_cls2]})
         obj = cls()
@@ -466,7 +467,7 @@ class TestElement(BaseTest):
         self.assertEqual(obj['element']._attributes, None)
 
     def test_load_from_dict_sub_list(self):
-        sub_cls = type('Element', (InListMixin, Element,),
+        sub_cls = type('Element', (InListMixin, ContainerElement,),
                        {'tagname': 'sub',
                         'children_classes': [],
                         '_attribute_names': ['attr']})
@@ -474,7 +475,7 @@ class TestElement(BaseTest):
                         {'tagname': 'element',
                          'children_classes': [],
                          '_children_class': sub_cls})
-        cls = type('Cls', (Element, ),
+        cls = type('Cls', (ContainerElement, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
         list_cls._parent_cls = cls
@@ -528,11 +529,11 @@ class TestElement(BaseTest):
         self.assertEqual(obj['sub'][1]._attributes, {'attr': 'value'})
 
     def test_to_xml(self):
-        sub_cls = type('SubClsElement', (Element,),
+        sub_cls = type('SubClsElement', (ContainerElement,),
                             {'tagname': 'element',
                              'children_classes': [],
                              '_attribute_names': ['attr']})
-        cls = type('Cls', (Element, ),
+        cls = type('Cls', (ContainerElement, ),
                    {'tagname': 'tag',
                    'children_classes': [sub_cls]})
         obj = cls()
@@ -550,14 +551,14 @@ class TestElement(BaseTest):
         self.assertEqual(element.attrib, {'attr': 'value'})
 
     def test_to_xml_sub_list(self):
-        sub_cls = type('Element', (InListMixin, Element,),
+        sub_cls = type('Element', (InListMixin, ContainerElement,),
                        {'tagname': 'sub',
                         'children_classes': [],
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
                          '_children_class': sub_cls})
-        cls = type('Cls', (Element, ),
+        cls = type('Cls', (ContainerElement, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
         list_cls._parent_cls = cls
@@ -621,7 +622,7 @@ class TestElement(BaseTest):
                     'Add tag</a>')
         self.assertEqual(html, expected)
 
-        sub_cls = type('SubCls', (InChoiceMixin, Element,), {
+        sub_cls = type('SubCls', (InChoiceMixin, ContainerElement,), {
             'tagname': 'tag'
         })
         cls = type('MultipleCls', (ChoiceElement,), {
@@ -823,14 +824,14 @@ class TestElement(BaseTest):
         self.assertEqual(result, expected)
 
     def test_to_jstree_dict_with_ListElement(self):
-        sub_cls = type('Element', (InListMixin, Element,),
+        sub_cls = type('Element', (InListMixin, ContainerElement,),
                        {'tagname': 'sub',
                         'children_classes': [],
                         '_attribute_names': ['attr']})
         list_cls = type('ListElement', (ListElement,),
                         {'tagname': 'element',
                          '_children_class': sub_cls})
-        cls = type('Cls', (Element, ),
+        cls = type('Cls', (ContainerElement, ),
                    {'tagname': 'tag',
                     'children_classes': [list_cls]})
 
@@ -995,7 +996,7 @@ class TestTextElement(BaseTest):
 
     def setUp(self):
         self.sub_cls = type(
-            'SubCls', (Element,),
+            'SubCls', (ContainerElement,),
             {
                 'tagname': 'subtag',
                 'children_classes': []
@@ -1010,7 +1011,7 @@ class TestTextElement(BaseTest):
             }
         )
         self.root_cls = type(
-            'Cls', (Element, ),
+            'Cls', (ContainerElement, ),
             {
                 'tagname': 'parent_tag',
                 'children_classes': [self.cls]
@@ -1280,7 +1281,7 @@ class TestListElement(BaseTest):
 
     def setUp(self):
         self.sub_cls = type(
-            'SubCls', (InListMixin, Element, ),
+            'SubCls', (InListMixin, ContainerElement, ),
             {
                 'tagname': 'subtag',
                 '_attribute_names': ['attr'],
@@ -1295,7 +1296,7 @@ class TestListElement(BaseTest):
             }
         )
         self.root_cls = type(
-            'Cls', (Element,),
+            'Cls', (ContainerElement,),
             {
                 'tagname': 'parent_tag',
                 'children_classes': [self.cls]
@@ -1351,7 +1352,7 @@ class TestListElement(BaseTest):
         self.assertTrue(obj1.tagname, 'tag')
         self.assertEqual(obj1._parent_obj, self.root_obj)
         self.assertEqual(obj1.root, self.root_obj)
-        self.assertTrue(isinstance(obj1, Element))
+        self.assertTrue(isinstance(obj1, ListElement))
         self.assertEqual(self.root_obj['tag'].root, self.root_obj)
 
         # Since the object already exists it just return it!
@@ -1558,7 +1559,7 @@ class TestChoiceListElement(BaseTest):
 
     def setUp(self):
         self.sub_cls1 = type(
-            'SubCls1', (InListMixin, Element, ),
+            'SubCls1', (InListMixin, ContainerElement, ),
             {
                 'tagname': 'subtag1',
                 '_attribute_names': ['attr'],
@@ -1566,7 +1567,7 @@ class TestChoiceListElement(BaseTest):
             }
         )
         self.sub_cls2 = type(
-            'SubCls2', (InListMixin, Element, ),
+            'SubCls2', (InListMixin, ContainerElement, ),
             {
                 'tagname': 'subtag2',
                 '_attribute_names': ['attr'],
@@ -1581,7 +1582,7 @@ class TestChoiceListElement(BaseTest):
             }
         )
         self.root_cls = type(
-            'Cls', (Element,),
+            'Cls', (ContainerElement,),
             {
                 'tagname': 'parent_tag',
                 'children_classes': [self.cls]
@@ -1644,14 +1645,14 @@ class TestChoiceElement(BaseTest):
 
     def setUp(self):
         self.sub_cls1 = type(
-            'SubCls', (InChoiceMixin, Element, ),
+            'SubCls', (InChoiceMixin, ContainerElement, ),
             {
                 'tagname': 'subtag1',
                 'children_classes': []
             }
         )
         self.sub_cls2 = type(
-            'SubCls', (InChoiceMixin, Element, ),
+            'SubCls', (InChoiceMixin, ContainerElement, ),
             {
                 'tagname': 'subtag2',
                 'children_classes': []
@@ -1666,7 +1667,7 @@ class TestChoiceElement(BaseTest):
             }
         )
         self.root_cls = type(
-            'ParentCls', (Element, ),
+            'ParentCls', (ContainerElement, ),
             {
                 'tagname': 'root_tag',
                 'children_classes': [self.cls]
@@ -1723,7 +1724,7 @@ class TestChoiceElement(BaseTest):
         self.assertEqual(obj.is_addable('test'), False)
 
     def test_add(self):
-        root_cls = type('ParentCls', (Element, ),
+        root_cls = type('ParentCls', (ContainerElement, ),
                           {'tagname': 'parent',
                            'children_classes': [self.cls]})
         root_obj = root_cls()
@@ -1787,7 +1788,7 @@ class TestChoiceElement(BaseTest):
         obj1 = self.cls._create('tag', self.root_obj)
         self.assertEqual(obj1.tagname, 'tag')
         self.assertEqual(obj1._parent_obj, self.root_obj)
-        self.assertTrue(isinstance(obj1, Element))
+        self.assertTrue(isinstance(obj1, ChoiceElement))
         self.assertEqual(self.root_obj['tag'], obj1)
 
     def test__get_html_add_button(self):

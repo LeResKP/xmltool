@@ -1,7 +1,7 @@
 import re
 import utils
 from elements import (
-    Element,
+    ContainerElement,
     TextElement,
     ListElement,
     ChoiceListElement,
@@ -208,7 +208,7 @@ def _create_class_dict(dtd_dict):
             dic['elts'] = dic['elts'].replace('|', '?,')
             dic['elts'] = dic['elts'][1:-2] + '?' # Remove the '*' at the end
         else:
-            c = Element
+            c = ContainerElement
         cls = type(tagname, (c,), {
             'tagname': tagname,
             '_attribute_names': [tple[0] for tple in dic['attrs']],

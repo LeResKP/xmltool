@@ -440,55 +440,6 @@ class Element(object):
             return False
         return (not self._required) or self._is_choice
 
-    def to_html(self, index=None):
-
-        renderer = self.get_html_render()
-        if not self._has_value() and not self._required and self._parent_obj:
-            if not renderer.add_add_button():
-                return ''
-            # Add button!
-            return self._get_html_add_button(index)
-        return self.to_html2(index=index)
-
-    def to_html2(self, index=None):
-        renderer = self.get_html_render()
-        sub_html = [self._attributes_to_html()]
-
-        for obj in self._full_children:
-            tmp = obj.to_html()
-            if tmp:
-                sub_html += [tmp]
-
-        legend = self.tagname
-
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        if self._parent_obj:
-            if self._add_html_add_button():
-                legend += self._get_html_add_button(index, 'hidden')
-
-            if self._add_html_delete_button(index):
-                legend += self._get_html_delete_button(ident)
-
-        if renderer.add_comment():
-            legend += self._comment_to_html()
-
-        html = [(
-            u'<div class="panel panel-default {css_class}" id="{ident}">'
-            u'<div class="panel-heading">'
-            u'<span data-toggle="collapse" '
-            u'href="#collapse-{escaped_id}">{legend}</span>'
-            u'</div>'
-            u'<div class="panel-body panel-collapse collapse in" '
-            u'id="collapse-{ident}">').format(
-                css_class=self.tagname,
-                ident=ident,
-                legend=legend,
-                escaped_id=escape_attr(ident),
-            )]
-        html.extend(sub_html)
-        html += ['</div></div>']
-        return ''.join(html)
-
     @classmethod
     def _to_jstree_dict(cls, parent_obj, index=None):
         v = cls._get_value_from_parent(parent_obj)
@@ -633,6 +584,64 @@ class Element(object):
             else:
                 o += [res]
         return o
+
+    def to_html(self, *args, **kw):
+        raise NotImplementedError
+
+    def to_html2(self, *args, **kw):
+        raise NotImplementedError
+
+
+class ContainerElement(Element):
+
+    def to_html(self, index=None):
+        renderer = self.get_html_render()
+        if not self._has_value() and not self._required and self._parent_obj:
+            if not renderer.add_add_button():
+                return ''
+            # Add button!
+            return self._get_html_add_button(index)
+        return self.to_html2(index=index)
+
+    def to_html2(self, index=None):
+        renderer = self.get_html_render()
+        sub_html = [self._attributes_to_html()]
+
+        for obj in self._full_children:
+            tmp = obj.to_html()
+            if tmp:
+                sub_html += [tmp]
+
+        legend = self.tagname
+
+        ident = prefixes_to_str(self.prefixes_no_cache)
+        if self._parent_obj:
+            if self._add_html_add_button():
+                legend += self._get_html_add_button(index, 'hidden')
+
+            if self._add_html_delete_button(index):
+                legend += self._get_html_delete_button(ident)
+
+        if renderer.add_comment():
+            legend += self._comment_to_html()
+
+        html = [(
+            u'<div class="panel panel-default {css_class}" id="{ident}">'
+            u'<div class="panel-heading">'
+            u'<span data-toggle="collapse" '
+            u'href="#collapse-{escaped_id}">{legend}</span>'
+            u'</div>'
+            u'<div class="panel-body panel-collapse collapse in" '
+            u'id="collapse-{ident}">').format(
+                css_class=self.tagname,
+                ident=ident,
+                legend=legend,
+                escaped_id=escape_attr(ident),
+            )]
+        html.extend(sub_html)
+        html += ['</div></div>']
+        return ''.join(html)
+
 
 
 class TextElement(Element):
