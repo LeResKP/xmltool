@@ -588,27 +588,29 @@ class Element(object):
     def to_html(self, *args, **kw):
         raise NotImplementedError
 
-    def to_html2(self, *args, **kw):
+    def _to_html(self, *args, **kw):
         raise NotImplementedError
 
 
 class ContainerElement(Element):
 
-    def to_html(self, index=None):
+    def _to_html(self, index=None):
         renderer = self.get_html_render()
+        # TODO: remove self._parent_obj condition. When we want to render an
+        # HTML we should call to_html
         if not self._has_value() and not self._required and self._parent_obj:
             if not renderer.add_add_button():
                 return ''
             # Add button!
             return self._get_html_add_button(index)
-        return self.to_html2(index=index)
+        return self.to_html(index=index)
 
-    def to_html2(self, index=None):
+    def to_html(self, index=None):
         renderer = self.get_html_render()
         sub_html = [self._attributes_to_html()]
 
         for obj in self._full_children:
-            tmp = obj.to_html()
+            tmp = obj._to_html()
             if tmp:
                 sub_html += [tmp]
 
@@ -641,7 +643,6 @@ class ContainerElement(Element):
         html.extend(sub_html)
         html += ['</div></div>']
         return ''.join(html)
-
 
 
 class TextElement(Element):
@@ -724,16 +725,16 @@ class TextElement(Element):
         ]
         return attrs
 
-    def to_html(self, index=None):
+    def _to_html(self, index=None):
         renderer = self.get_html_render()
 
         if self.text is None and not self._required:
             if not renderer.add_add_button():
                 return ''
             return self._get_html_add_button(index)
-        return self.to_html2(index=index)
+        return self.to_html(index=index)
 
-    def to_html2(self, index=None):
+    def to_html(self, index=None):
         renderer = self.get_html_render()
         parent_is_list = isinstance(self._parent_obj, BaseListElement)
         add_button = ''
@@ -814,9 +815,6 @@ class InChoiceMixin(object):
     def _get_html_add_button(self, index=None, css_class=None):
         return self._parent_obj._get_html_add_button(index, css_class)
 
-    def to_html(self, *args, **kw):
-        return self.to_html2(*args, **kw)
-
 
 class InListMixin(object):
 
@@ -860,9 +858,6 @@ class InListMixin(object):
     def _get_html_delete_button(self, ident):
         return ('<a class="btn-delete btn-list" '
                 'data-target="#%s" title="Delete"></a>') % ident
-
-    def to_html(self, *args, **kw):
-        return self.to_html2(*args, **kw)
 
 
 class BaseListElement(list, Element):
@@ -958,6 +953,9 @@ class BaseListElement(list, Element):
             lis += [e.to_xml()]
         return lis
 
+    def _to_html(self, *args, **kw):
+        return self.to_html(*args, **kw)
+
     def to_html(self, index=None, offset=0):
         # We should not have the following parameter for this object
         assert self._attributes is None
@@ -970,6 +968,7 @@ class BaseListElement(list, Element):
         lis = []
         for e in self:
             if isinstance(e, EmptyElement):
+                # TODO: we shoud use this to calculate the offset
                 continue
             if renderer.add_add_button():
                 lis += [self._get_html_add_button((i+offset))]
@@ -1149,7 +1148,7 @@ class ChoiceElement(MultipleMixin, Element):
         if obj:
             return obj._value
 
-    def to_html(self, index=None):
+    def _to_html(self, index=None):
         if self._value:
             return self._value.to_html(index=index)
         return self._get_html_add_button(index)
@@ -1354,7 +1353,7 @@ def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
         tmp += obj._parent_obj._get_html_add_button(index+1)
         return tmp
 
-    return obj.to_html(index)
+    return obj._to_html(index)
 
 
 def _get_html_from_obj(obj, index):

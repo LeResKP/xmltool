@@ -94,7 +94,7 @@ def generate_form_from_obj(obj, form_action=None, form_filename=None,
     attrs_str = ' '.join(['%s="%s"' % tple for tple in attrs.items()])
     html = ['<form method="POST" %s>' % attrs_str]
     html += [hidden_inputs]
-    html += [obj.to_html()]
+    html += [obj._to_html()]
     html += ['</form>']
     return ''.join(html)
 
@@ -158,6 +158,6 @@ def new(dtd_url, root_tag, form_action=None, form_attrs=None):
     attrs_str = ' '.join(['%s="%s"' % tple for tple in attrs.items()])
     html = ['<form method="POST" %s>' % attrs_str]
     html += [hidden_inputs]
-    html += [obj.to_html()]
+    html += [obj._to_html()]
     html += ['</form>']
     return ''.join(html)

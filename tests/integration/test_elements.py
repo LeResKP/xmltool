@@ -66,7 +66,7 @@ class ElementTester(BaseTest):
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual_(obj.to_html(), self.expected_html)
+        self.assertEqual_(obj._to_html(), self.expected_html)
 
     def test_load_from_dict(self):
         if self.__class__ == ElementTester:
