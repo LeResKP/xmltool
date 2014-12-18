@@ -616,7 +616,7 @@ class TestElement(BaseTest):
         obj = list_obj.add(cls.tagname)
         list_obj.insert(0, EmptyElement(parent_obj=list_obj))
 
-        html = obj._get_html_add_button(1, 'css_class')
+        html = obj._get_html_add_button('css_class')
         expected = ('<a class="btn-add css_class" '
                     'data-elt-id="root_tag:list_tag:1:tag">'
                     'Add tag</a>')
@@ -1280,26 +1280,45 @@ class TestTextElement(BaseTest):
         self.assertEqual_(html, expected)
 
         # In list without value but required
-        obj.text = None
-        obj._parent_obj = type(
+        cls = type(
+            'Cls', (InListMixin, TextElement, ),
+            {
+                'tagname': 'tag',
+                'children_classes': [self.sub_cls],
+                '_attribute_names': ['attr']
+            }
+        )
+        parent_cls = type(
             'MyListElement', (ListElement, ),
             {
                 'tagname': 'mytag',
                 '_attribute_names': [],
-                '_choice_classes': [],
-                '_children_class': self.cls
+                '_children_class': cls,
+                '_parent_cls': self.root_cls
             }
-        )(self.root_obj)
+        )
+        self.root_cls.children_classes = [parent_cls]
+        cls._parent_cls = parent_cls
+
+        parent_obj = parent_cls(self.root_cls())
+        obj = parent_obj.add(cls.tagname)
+        obj.text = None
+        obj._required = True
+
         html = obj._to_html()
-        expected = ('<div id="tag">'
-                    '<label>tag</label>'
-                    '<a class="btn-delete btn-list" '
-                    'data-target="#tag" title="Delete"></a>'
-                    '<a data-comment-name="tag:_comment" class="btn-comment"'
-                    ' title="Add comment"></a>'
-                    '<textarea class="form-control tag" name="tag:_value" rows="1">'
-                    '</textarea>'
-                    '</div>')
+        expected = (
+            '<a class="btn-add btn-list" '
+            'data-elt-id="parent_tag:mytag:0:tag">New tag</a>'
+            '<div id="parent_tag:mytag:0:tag">'
+            '<label>tag</label>'
+            '<a class="btn-delete btn-list" '
+            'data-target="#parent_tag:mytag:0:tag" title="Delete"></a>'
+            '<a data-comment-name="parent_tag:mytag:0:tag:_comment" class="btn-comment"'
+            ' title="Add comment"></a>'
+            '<textarea class="form-control tag" name="parent_tag:mytag:0:tag:_value" rows="1">'
+            '</textarea>'
+            '</div>'
+        )
         self.assertEqual_(html, expected)
 
         html = obj.to_html()
@@ -1308,9 +1327,24 @@ class TestTextElement(BaseTest):
         # Not required in a list
         obj._required = False
         html = obj.to_html()
+        expected = (
+            '<a class="btn-add btn-list" '
+            'data-elt-id="parent_tag:mytag:0:tag">New tag</a>'
+            '<div id="parent_tag:mytag:0:tag">'
+            '<label>tag</label>'
+            '<a class="btn-delete btn-list" '
+            'data-target="#parent_tag:mytag:0:tag" title="Delete"></a>'
+            '<a data-comment-name="parent_tag:mytag:0:tag:_comment" class="btn-comment"'
+            ' title="Add comment"></a>'
+            '<textarea class="form-control tag" name="parent_tag:mytag:0:tag:_value" rows="1">'
+            '</textarea>'
+            '</div>'
+        )
         self.assertEqual_(html, expected)
 
-        expected = '<a class="btn-add" data-elt-id="tag">Add tag</a>'
+        expected = (
+            '<a class="btn-add" data-elt-id="parent_tag:mytag:0:tag">'
+            'Add tag</a>')
         html = obj._to_html()
         self.assertEqual_(html, expected)
 
@@ -1513,18 +1547,13 @@ class TestListElement(BaseTest):
 
     def test__get_html_add_button(self):
         obj = self.cls(self.root_obj)
-        html = obj._get_html_add_button()
+        html = obj._get_html_add_button(0)
         expected = ('<a class="btn-add btn-list" '
                     'data-elt-id="parent_tag:tag:0:subtag">New subtag</a>')
         self.assertEqual(html, expected)
 
-        html = obj._get_html_add_button(10, 'css_class')
-        expected = ('<a class="btn-add btn-list css_class" '
-                    'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>')
-        self.assertEqual(html, expected)
-
-        html = obj._get_html_add_button(10, 'css_class')
-        expected = ('<a class="btn-add btn-list css_class" '
+        html = obj._get_html_add_button(10)
+        expected = ('<a class="btn-add btn-list" '
                     'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>')
         self.assertEqual(html, expected)
 
@@ -1561,7 +1590,7 @@ class TestListElement(BaseTest):
 
         for i in range(10):
             obj.insert(0, EmptyElement(parent_obj=obj))
-        html = obj._to_html(offset=10)
+        html = obj._to_html()
         expected = ('<div class="list-container">'
                     '<a class="btn-add btn-list" '
                     'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>'
@@ -1578,7 +1607,7 @@ class TestListElement(BaseTest):
                     '</div>')
         self.assertEqual_(html, expected)
 
-        html = obj.to_html(offset=10)
+        html = obj.to_html()
         self.assertEqual_(html, expected)
 
     def test_to_html_readonly(self):
@@ -1601,7 +1630,7 @@ class TestListElement(BaseTest):
 
         for i in range(10):
             obj.insert(0, EmptyElement(parent_obj=obj))
-        html = obj._to_html(offset=10)
+        html = obj._to_html()
         expected = ('<div class="list-container">'
                     '<div class="panel panel-default subtag" id="parent_tag:tag:10:subtag">'
                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-parent_tag\:tag\:10\:subtag">subtag'
@@ -1711,7 +1740,7 @@ class TestChoiceListElement(BaseTest):
 
     def test__get_html_add_button_multiple(self):
         obj = self.cls()
-        html = obj._get_html_add_button()
+        html = obj._get_html_add_button(0)
         expected = ('<select class="btn-add btn-list">'
                     '<option>New subtag1/subtag2</option>'
                     '<option value="tag:0:subtag1">subtag1</option>'
@@ -1801,7 +1830,7 @@ class TestChoiceListElement(BaseTest):
 
         for i in range(10):
             obj.insert(0, EmptyElement(parent_obj=obj))
-        html = obj._to_html(offset=10)
+        html = obj._to_html()
         expected = (
             '<div class="list-container">'
             '<select class="btn-add btn-list">'
@@ -1831,7 +1860,7 @@ class TestChoiceListElement(BaseTest):
         )
         self.assertEqual_(html, expected)
 
-        html = obj.to_html(offset=10)
+        html = obj.to_html()
         self.assertEqual_(html, expected)
 
 
@@ -2099,18 +2128,22 @@ class TestFunctions(BaseTest):
         '''
         str_id = 'texts:list__text:0:text'
         html = get_obj_from_str_id(str_id, dtd_str=dtd_str)
-        expected = ('<div id="texts:list__text:0:text">'
-                    '<label>text</label>'
-                    '<a class="btn-delete btn-list" '
-                    'data-target="#texts:list__text:0:text" title="Delete"></a>'
-                    '<a data-comment-name="texts:list__text:0:text:_comment" '
-                    'class="btn-comment" title="Add comment"></a>'
-                    '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
-                    'rows="1">'
-                    '</textarea>'
-                    '</div>'
-                    '<a class="btn-add btn-list" '
-                    'data-elt-id="texts:list__text:1:text">New text</a>')
+        expected = (
+            '<a class="btn-add btn-list" '
+            'data-elt-id="texts:list__text:0:text">New text</a>'
+            '<div id="texts:list__text:0:text">'
+            '<label>text</label>'
+            '<a class="btn-delete btn-list" '
+            'data-target="#texts:list__text:0:text" title="Delete"></a>'
+            '<a data-comment-name="texts:list__text:0:text:_comment" '
+            'class="btn-comment" title="Add comment"></a>'
+            '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
+            'rows="1">'
+            '</textarea>'
+            '</div>'
+            '<a class="btn-add btn-list" '
+            'data-elt-id="texts:list__text:1:text">New text</a>'
+        )
         self.assertEqual_(html, expected)
 
         dtd_str = '''
@@ -2206,6 +2239,8 @@ class TestFunctions(BaseTest):
                                                dtd_str=dtd_str)
         result = elements._get_html_from_obj(obj, index)
         expected = (
+            '<a class="btn-add btn-list" '
+            'data-elt-id="texts:list__list:1:list">New list</a>'
             '<div class="panel panel-default list" '
             'id="texts:list__list:1:list"><div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__list\:1\:list">list'
             '<a class="btn-delete btn-list" '
@@ -2223,7 +2258,8 @@ class TestFunctions(BaseTest):
             '</div>'
             '</div></div>'
             '<a class="btn-add btn-list" '
-            'data-elt-id="texts:list__list:2:list">New list</a>')
+            'data-elt-id="texts:list__list:2:list">New list</a>'
+        )
         self.assertEqual(result, expected)
 
     def test_get_jstree_json_from_str_id(self):
@@ -2318,6 +2354,8 @@ class TestFunctions(BaseTest):
         expected = {
             'elt_id': 'texts:list__list:0:list',
             'html': (
+                '<a class="btn-add btn-list" '
+                'data-elt-id="texts:list__list:0:list">New list</a>'
                 '<div class="panel panel-default list" '
                 'id="texts:list__list:0:list">'
                 '<div class="panel-heading">'
@@ -2342,7 +2380,8 @@ class TestFunctions(BaseTest):
                 '</div>'
                 '</div>'
                 '<a class="btn-add btn-list" '
-                'data-elt-id="texts:list__list:1:list">New list</a>'),
+                'data-elt-id="texts:list__list:1:list">New list</a>'
+            ),
             'is_choice': False,
             'jstree_data': {
                 'attr': {

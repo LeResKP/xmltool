@@ -497,6 +497,8 @@ class TestListElement(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -510,6 +512,8 @@ class TestListElement(ElementTester):
          'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -622,6 +626,8 @@ class TestListElementEmpty(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -635,6 +641,8 @@ class TestListElementEmpty(ElementTester):
          'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -721,6 +729,8 @@ class TestListElementNotRequired(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -734,6 +744,8 @@ class TestListElementNotRequired(ElementTester):
          'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -790,6 +802,8 @@ class TestListElementEmptyNotRequired(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -803,6 +817,8 @@ class TestListElementEmptyNotRequired(ElementTester):
          'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -852,6 +868,8 @@ class TestListElementElementEmpty(ElementTester):
         '<div class="panel panel-default text" '
         'id="texts:list__text:0:text">'
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text'
+        '<a class="btn-delete btn-list" '
+        'data-target="#texts:list__text:0:text" title="Delete"/>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
@@ -884,6 +902,8 @@ class TestListElementElementEmpty(ElementTester):
          '<div class="panel panel-default text" '
          'id="texts:list__text:0:text">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text'
+         '<a class="btn-delete btn-list" '
+         'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
@@ -902,6 +922,9 @@ class TestListElementElementEmpty(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:1:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:1:text">'
+         'New text</a>'
          '<div class="panel panel-default text" id="texts:list__text:1:text">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text'
          '<a class="btn-delete btn-list" '
@@ -1154,6 +1177,11 @@ choicelist_str_to_html = [
      '</div></div>'
     ),
     ('texts:list__text1_text2:0:text1',
+     '<select class="btn-add btn-list">'
+     '<option>New text1/text2</option>'
+     '<option value="texts:list__text1_text2:0:text1">text1</option>'
+     '<option value="texts:list__text1_text2:0:text2">text2</option>'
+     '</select>'
      '<div id="texts:list__text1_text2:0:text1">'
      '<label>text1</label>'
      '<a class="btn-delete btn-list" '
@@ -1170,6 +1198,11 @@ choicelist_str_to_html = [
      '</select>'
     ),
     ('texts:list__text1_text2:10:text1',
+     '<select class="btn-add btn-list">'
+     '<option>New text1/text2</option>'
+     '<option value="texts:list__text1_text2:10:text1">text1</option>'
+     '<option value="texts:list__text1_text2:10:text2">text2</option>'
+     '</select>'
      '<div id="texts:list__text1_text2:10:text1">'
      '<label>text1</label>'
      '<a class="btn-delete btn-list" '
@@ -1546,6 +1579,8 @@ class TestListElementOfList(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text1:0:text1',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text1:0:text1">New text1</a>'
          '<div class="panel panel-default text1" id="texts:list__text1:0:text1">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text1\:0\:text1">'
          'text1'
@@ -1576,6 +1611,8 @@ class TestListElementOfList(ElementTester):
          'data-elt-id="texts:list__text1:1:text1">New text1</a>'
         ),
         ('texts:list__text1:0:text1:list__text2:3:text2',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text1:0:text1:list__text2:3:text2">New text2</a>'
          '<div id="texts:list__text1:0:text1:list__text2:3:text2">'
          '<label>text2</label>'
          '<a class="btn-delete btn-list" '

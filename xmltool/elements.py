@@ -400,7 +400,7 @@ class Element(object):
                 v._comment_to_xml(e)
         return xml
 
-    def _get_html_add_button(self, index=None, css_class=None):
+    def _get_html_add_button(self, css_class=None):
         ident = prefixes_to_str(self.prefixes_no_cache)
         css_classes = ['btn-add']
         if css_class:
@@ -410,7 +410,8 @@ class Element(object):
             ident,
             self.tagname)
 
-    def _get_html_delete_button(self, ident):
+    def _get_html_delete_button(self):
+        ident = prefixes_to_str(self.prefixes_no_cache)
         return ('<a class="btn-delete" '
                 'data-target="#%s" title="Delete"></a>') % ident
 
@@ -429,16 +430,15 @@ class Element(object):
         renderer = self.get_html_render()
         if not renderer.add_add_button():
             return False
-        return (not self._required) or self._is_choice
+        return not self._required
 
-    def _add_html_delete_button(self, index):
+    def _add_html_delete_button(self):
         """
         """
-        assert(index is None)
         renderer = self.get_html_render()
         if not renderer.add_delete_button():
             return False
-        return (not self._required) or self._is_choice
+        return not self._required
 
     @classmethod
     def _to_jstree_dict(cls, parent_obj, index=None):
@@ -602,7 +602,7 @@ class ContainerElement(Element):
             if not renderer.add_add_button():
                 return ''
             # Add button!
-            return self._get_html_add_button(index)
+            return self._get_html_add_button()
         return self.to_html(index=index)
 
     def to_html(self, index=None):
@@ -618,11 +618,12 @@ class ContainerElement(Element):
 
         ident = prefixes_to_str(self.prefixes_no_cache)
         if self._parent_obj:
+            # The root element is not deletable
             if self._add_html_add_button():
-                legend += self._get_html_add_button(index, 'hidden')
+                legend += self._get_html_add_button(css_class='hidden')
 
-            if self._add_html_delete_button(index):
-                legend += self._get_html_delete_button(ident)
+            if self._add_html_delete_button():
+                legend += self._get_html_delete_button()
 
         if renderer.add_comment():
             legend += self._comment_to_html()
@@ -731,30 +732,21 @@ class TextElement(Element):
         if self.text is None and not self._required:
             if not renderer.add_add_button():
                 return ''
-            return self._get_html_add_button(index)
+            return self._get_html_add_button()
         return self.to_html(index=index)
 
     def to_html(self, index=None):
         renderer = self.get_html_render()
         parent_is_list = isinstance(self._parent_obj, BaseListElement)
         add_button = ''
-        if renderer.add_add_button():
-            if (not parent_is_list and not self._required) or self._is_choice:
-                add_button = self._get_html_add_button(index, 'hidden')
+        if self._add_html_add_button():
+            add_button = self._get_html_add_button(css_class='hidden')
 
         delete_button = ''
         ident = prefixes_to_str(self.prefixes_no_cache)
-        if renderer.add_delete_button():
-            if (not self._required
-               or self._is_choice or parent_is_list):
-                if parent_is_list:
-                    delete_button = (
-                        '<a class="btn-delete btn-list" '
-                        'data-target="#%s" title="Delete"></a>') % ident
-                else:
-                    delete_button = (
-                        '<a class="btn-delete" '
-                        'data-target="#%s" title="Delete"></a>') % ident
+
+        if self._add_html_delete_button():
+            delete_button = self._get_html_delete_button()
 
         value = self.text or ''
         cnt = value.count('\n')
@@ -812,8 +804,24 @@ class InChoiceMixin(object):
         """
         cls._parent_cls._check_addable(obj, tagname)
 
-    def _get_html_add_button(self, index=None, css_class=None):
-        return self._parent_obj._get_html_add_button(index, css_class)
+    def _add_html_add_button(self):
+        """
+        """
+        renderer = self.get_html_render()
+        if not renderer.add_add_button():
+            return False
+        return True
+
+    def _get_html_add_button(self, css_class=None):
+        return self._parent_obj._get_html_add_button(css_class=css_class)
+
+    def _add_html_delete_button(self):
+        """
+        """
+        renderer = self.get_html_render()
+        if not renderer.add_delete_button():
+            return False
+        return True
 
 
 class InListMixin(object):
@@ -844,20 +852,27 @@ class InListMixin(object):
         """
         return False
 
-    def _add_html_delete_button(self, index):
+    def _add_html_delete_button(self):
         """
         """
         renderer = self.get_html_render()
         if not renderer.add_delete_button():
             return False
-        if index is not None and index > 0:
-            # if list, only the first can be required
-            return True
-        return (not self._required) or self._is_choice
+        return True
 
-    def _get_html_delete_button(self, ident):
+    def _get_html_delete_button(self):
+        ident = prefixes_to_str(self.prefixes_no_cache)
         return ('<a class="btn-delete btn-list" '
                 'data-target="#%s" title="Delete"></a>') % ident
+
+    def to_html(self, index=None):
+        renderer = self.get_html_render()
+        lis = []
+        if renderer.add_add_button():
+            index = self._parent_obj.index(self)
+            lis += [self._parent_obj._get_html_add_button(index)]
+        lis += [super(InListMixin, self).to_html(index)]
+        return ''.join(lis)
 
 
 class BaseListElement(list, Element):
@@ -956,27 +971,22 @@ class BaseListElement(list, Element):
     def _to_html(self, *args, **kw):
         return self.to_html(*args, **kw)
 
-    def to_html(self, index=None, offset=0):
+    def to_html(self):
         # We should not have the following parameter for this object
         assert self._attributes is None
-        assert index is None
 
         self._before_render()
-
         renderer = self.get_html_render()
         i = 0
         lis = []
         for e in self:
-            if isinstance(e, EmptyElement):
-                # TODO: we shoud use this to calculate the offset
-                continue
-            if renderer.add_add_button():
-                lis += [self._get_html_add_button((i+offset))]
-            lis += [e.to_html(index=(i+offset))]
             i += 1
+            if isinstance(e, EmptyElement):
+                continue
+            lis += [e.to_html(index=(i-1))]
 
         if renderer.add_add_button():
-            lis += [self._get_html_add_button(i+offset)]
+            lis += [self._get_html_add_button(i)]
 
         return '<div class="list-container">%s</div>' % ''.join(lis)
 
@@ -997,14 +1007,9 @@ class ListElement(BaseListElement):
         # Create a shortcut
         self._parent_obj[self._children_class.tagname] = self
 
-    def _get_html_add_button(self, index=None, css_class=None):
-        if index is None:
-            # This element is a list, we should always have an index.
-            index = 0
-
+    def _get_html_add_button(self, index):
+        assert(index is not None)
         css_classes = ['btn-add btn-list']
-        if css_class:
-            css_classes += [css_class]
 
         ident = prefixes_to_str(self.prefixes_no_cache + [
             str(index), self._children_class.tagname])
@@ -1055,12 +1060,8 @@ class MultipleMixin(object):
 
 class ChoiceListElement(MultipleMixin, BaseListElement):
 
-    def _get_html_add_button(self, index=None, css_class=None):
-        if index is None:
-            # This element is a list, we should always have an index.
-            index = 0
-
-        assert not css_class
+    def _get_html_add_button(self, index):
+        assert(index is not None)
         button = '<select class="btn-add btn-list">'
         options = '/'.join([e.tagname for e in self._choice_classes])
         button += '<option>New %s</option>' % options
@@ -1122,7 +1123,7 @@ class ChoiceElement(MultipleMixin, Element):
                                                                   tagname)
                 raise Exception(err)
 
-    def _get_html_add_button(self, index=None, css_class=None):
+    def _get_html_add_button(self, css_class=None):
         """
         ..note:: index is not used here since we never have list of this
         element.
@@ -1151,7 +1152,7 @@ class ChoiceElement(MultipleMixin, Element):
     def _to_html(self, index=None):
         if self._value:
             return self._value.to_html(index=index)
-        return self._get_html_add_button(index)
+        return self._get_html_add_button()
 
     def to_xml(self):
         if self._value:
