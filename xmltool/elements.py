@@ -493,11 +493,11 @@ class Element(object):
             raise KeyError(tagname)
         return v
 
-    def get(self, tagname):
-        return self.xml_elements.get(tagname)
-
     def __contains__(self, tagname):
         return tagname in self.xml_elements
+
+    def get(self, tagname):
+        return self.xml_elements.get(tagname)
 
     def get_or_add(self, tagname):
         v = self.xml_elements.get(tagname)
@@ -737,13 +737,11 @@ class TextElement(Element):
 
     def to_html(self, index=None):
         renderer = self.get_html_render()
-        parent_is_list = isinstance(self._parent_obj, BaseListElement)
         add_button = ''
         if self._add_html_add_button():
             add_button = self._get_html_add_button(css_class='hidden')
 
         delete_button = ''
-        ident = prefixes_to_str(self.prefixes_no_cache)
 
         if self._add_html_delete_button():
             delete_button = self._get_html_delete_button()
@@ -760,6 +758,7 @@ class TextElement(Element):
         comment = ''
         if renderer.add_comment():
             comment = self._comment_to_html()
+        ident = prefixes_to_str(self.prefixes_no_cache)
         return (
             u'<div id="{ident}"><label>{label}</label>'
             u'{add_button}'
@@ -785,8 +784,6 @@ class InChoiceMixin(object):
         choice_parent_obj = parent_obj.get_or_add(cls._parent_cls.tagname)
         obj = cls(parent_obj=choice_parent_obj, parent=parent_obj)
         choice_parent_obj._value = obj
-        # TODO: when we will have ChoiceElement in ListElement we shouldn't
-        # create shortcut
         # Remove the existing shortcut
         for c in choice_parent_obj._choice_classes:
             if c.tagname in parent_obj:
@@ -935,17 +932,6 @@ class BaseListElement(list, Element):
         # The logic to add Element to a list is on the parent
         return self._parent_obj.add(*args, **kw)
 
-    def remove_empty_element(self):
-        """Remove the empty elements from this list since it should not be
-        in the XML nor HTML.
-        """
-        to_remove = []
-        for e in self:
-            if isinstance(e, EmptyElement):
-                to_remove += [e]
-        # for e in to_remove:
-        #     self.remove(e)
-
     def get_or_add(self, tagname):
         raise NotImplementedError
 
@@ -956,12 +942,15 @@ class BaseListElement(list, Element):
                 yield e
 
     def _before_render(self):
-        self.remove_empty_element()
+        # Nothing to do by default, it's just used in ListElement
+        pass
 
     def to_xml(self):
         self._before_render()
         lis = []
         for e in self:
+            if isinstance(e, EmptyElement):
+                continue
             if e._comment:
                 elt = etree.Comment(e._comment)
                 lis += [elt]
@@ -1161,7 +1150,6 @@ class ChoiceElement(MultipleMixin, Element):
     def to_jstree_dict(self, index=None):
         # Nothing to add in for this object
         raise NotImplementedError
-        return {}
 
 
 def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
@@ -1351,7 +1339,6 @@ def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     if isinstance(obj._parent_obj, BaseListElement):
         index = int(index or 0)
         tmp = obj.to_html(index)
-        tmp += obj._parent_obj._get_html_add_button(index+1)
         return tmp
 
     return obj._to_html(index)
@@ -1361,7 +1348,6 @@ def _get_html_from_obj(obj, index):
     if isinstance(obj._parent_obj, BaseListElement):
         index = int(index or 0)
         tmp = obj.to_html(index)
-        tmp += obj._parent_obj._get_html_add_button(index+1)
         return tmp
 
     return obj.to_html(index)

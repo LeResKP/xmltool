@@ -1514,15 +1514,6 @@ class TestListElement(BaseTest):
         l = list_obj.add(text._parent_cls.tagname)
         self.assertEqual(list_obj, l)
 
-    def test_remove_empty_element(self):
-        obj = self.cls(self.root_obj)
-        obj.append(None)
-        obj.append(elements.EmptyElement(parent_obj=obj))
-        self.assertEqual(len(obj), 2)
-        obj.remove_empty_element()
-        self.assertEqual(len(obj), 1)
-        self.assertEqual(obj, [None])
-
     def test_to_xml(self):
         obj = self.root_cls().add(self.cls.tagname)
         lis = obj.to_xml()
@@ -2141,8 +2132,6 @@ class TestFunctions(BaseTest):
             'rows="1">'
             '</textarea>'
             '</div>'
-            '<a class="btn-add btn-list" '
-            'data-elt-id="texts:list__text:1:text">New text</a>'
         )
         self.assertEqual_(html, expected)
 
@@ -2257,8 +2246,6 @@ class TestFunctions(BaseTest):
             'rows="1"></textarea>'
             '</div>'
             '</div></div>'
-            '<a class="btn-add btn-list" '
-            'data-elt-id="texts:list__list:2:list">New list</a>'
         )
         self.assertEqual(result, expected)
 
@@ -2379,8 +2366,6 @@ class TestFunctions(BaseTest):
                 '</div>'
                 '</div>'
                 '</div>'
-                '<a class="btn-add btn-list" '
-                'data-elt-id="texts:list__list:1:list">New list</a>'
             ),
             'is_choice': False,
             'jstree_data': {

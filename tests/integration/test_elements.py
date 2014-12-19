@@ -508,8 +508,6 @@ class TestListElement(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
          '<a class="btn-add btn-list" '
@@ -523,8 +521,6 @@ class TestListElement(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
 
@@ -637,8 +633,6 @@ class TestListElementEmpty(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
          '<a class="btn-add btn-list" '
@@ -652,8 +646,6 @@ class TestListElementEmpty(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
 
@@ -740,8 +732,6 @@ class TestListElementNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
          '<a class="btn-add btn-list" '
@@ -755,8 +745,6 @@ class TestListElementNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
     js_selector = [
@@ -813,8 +801,6 @@ class TestListElementEmptyNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
          '<a class="btn-add btn-list" '
@@ -828,8 +814,6 @@ class TestListElementEmptyNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
 
@@ -940,9 +924,6 @@ class TestListElementElementEmpty(ElementTester):
          'rows="1"></textarea>'
          '</div>'
          '</div></div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:2:text">'
-         'New text</a>'
         )
     ]
 
@@ -1191,11 +1172,6 @@ choicelist_str_to_html = [
      '<textarea class="form-control text1" name="texts:list__text1_text2:0:text1:_value" '
      'rows="1"></textarea>'
      '</div>'
-     '<select class="btn-add btn-list">'
-     '<option>New text1/text2</option>'
-     '<option value="texts:list__text1_text2:1:text1">text1</option>'
-     '<option value="texts:list__text1_text2:1:text2">text2</option>'
-     '</select>'
     ),
     ('texts:list__text1_text2:10:text1',
      '<select class="btn-add btn-list">'
@@ -1212,11 +1188,6 @@ choicelist_str_to_html = [
      '<textarea class="form-control text1" name="texts:list__text1_text2:10:text1:_value" '
      'rows="1"></textarea>'
      '</div>'
-     '<select class="btn-add btn-list">'
-     '<option>New text1/text2</option>'
-     '<option value="texts:list__text1_text2:11:text1">text1</option>'
-     '<option value="texts:list__text1_text2:11:text2">text2</option>'
-     '</select>'
     )
 ]
 
@@ -1607,8 +1578,6 @@ class TestListElementOfList(ElementTester):
          'New text2</a>'
          '</div>'
          '</div></div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text1:1:text1">New text1</a>'
         ),
         ('texts:list__text1:0:text1:list__text2:3:text2',
          '<a class="btn-add btn-list" '
@@ -1624,8 +1593,6 @@ class TestListElementOfList(ElementTester):
          'rows="1">'
          '</textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text1:0:text1:list__text2:4:text2">New text2</a>'
         )
     ]
 
