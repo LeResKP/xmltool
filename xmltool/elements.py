@@ -594,7 +594,7 @@ class Element(object):
 
 class ContainerElement(Element):
 
-    def _to_html(self, index=None):
+    def _to_html(self):
         renderer = self.get_html_render()
         # TODO: remove self._parent_obj condition. When we want to render an
         # HTML we should call to_html
@@ -603,9 +603,9 @@ class ContainerElement(Element):
                 return ''
             # Add button!
             return self._get_html_add_button()
-        return self.to_html(index=index)
+        return self.to_html()
 
-    def to_html(self, index=None):
+    def to_html(self):
         renderer = self.get_html_render()
         sub_html = [self._attributes_to_html()]
 
@@ -726,16 +726,16 @@ class TextElement(Element):
         ]
         return attrs
 
-    def _to_html(self, index=None):
+    def _to_html(self):
         renderer = self.get_html_render()
 
         if self.text is None and not self._required:
             if not renderer.add_add_button():
                 return ''
             return self._get_html_add_button()
-        return self.to_html(index=index)
+        return self.to_html()
 
-    def to_html(self, index=None):
+    def to_html(self):
         renderer = self.get_html_render()
         add_button = ''
         if self._add_html_add_button():
@@ -862,13 +862,13 @@ class InListMixin(object):
         return ('<a class="btn-delete btn-list" '
                 'data-target="#%s" title="Delete"></a>') % ident
 
-    def to_html(self, index=None):
+    def to_html(self):
         renderer = self.get_html_render()
         lis = []
         if renderer.add_add_button():
             index = self._parent_obj.index(self)
             lis += [self._parent_obj._get_html_add_button(index)]
-        lis += [super(InListMixin, self).to_html(index)]
+        lis += [super(InListMixin, self).to_html()]
         return ''.join(lis)
 
 
@@ -972,7 +972,7 @@ class BaseListElement(list, Element):
             i += 1
             if isinstance(e, EmptyElement):
                 continue
-            lis += [e.to_html(index=(i-1))]
+            lis += [e.to_html()]
 
         if renderer.add_add_button():
             lis += [self._get_html_add_button(i)]
@@ -1140,7 +1140,7 @@ class ChoiceElement(MultipleMixin, Element):
 
     def _to_html(self, index=None):
         if self._value:
-            return self._value.to_html(index=index)
+            return self._value.to_html()
         return self._get_html_add_button()
 
     def to_xml(self):
@@ -1336,21 +1336,11 @@ def _get_previous_js_selectors(obj, index):
 
 def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     obj, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    if isinstance(obj._parent_obj, BaseListElement):
-        index = int(index or 0)
-        tmp = obj.to_html(index)
-        return tmp
-
-    return obj._to_html(index)
+    return obj.to_html()
 
 
 def _get_html_from_obj(obj, index):
-    if isinstance(obj._parent_obj, BaseListElement):
-        index = int(index or 0)
-        tmp = obj.to_html(index)
-        return tmp
-
-    return obj.to_html(index)
+    return obj.to_html()
 
 
 def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
