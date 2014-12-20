@@ -645,32 +645,6 @@ class TestElement(BaseTest):
         html = obj._get_html_add_button()
         self.assertEqual(html, expected)
 
-    def test__to_jstree_dict(self):
-        parent_obj = self.cls()
-        result = self.sub_cls._to_jstree_dict(parent_obj)
-        self.assertEqual(result, None)
-
-        self.sub_cls._required = True
-        result = self.sub_cls._to_jstree_dict(parent_obj)
-        expected = {
-            'data': 'subtag',
-            'attr': {
-                'id': 'tree_tag:subtag',
-                'class': 'tree_tag:subtag subtag'},
-            'children': []}
-        self.assertEqual(result, expected)
-
-        self.sub_cls._required = False
-        parent_obj['subtag'] = self.sub_cls(parent_obj)
-        result = self.sub_cls._to_jstree_dict(parent_obj)
-        expected = {
-            'data': 'subtag',
-            'attr': {
-                'id': 'tree_tag:subtag',
-                'class': 'tree_tag:subtag subtag'},
-            'children': []}
-        self.assertEqual(result, expected)
-
     def test_to_jstree_dict(self):
         obj = self.cls()
         result = obj.to_jstree_dict()
@@ -709,7 +683,7 @@ class TestElement(BaseTest):
         for i in range(10):
             list_obj.insert(0, EmptyElement(parent_obj=list_obj))
 
-        result = obj.to_jstree_dict(index=10)
+        result = obj.to_jstree_dict()
         expected = {
             'data': u'tag <span class="_tree_text">(my value)</span>',
             'attr': {
@@ -719,7 +693,7 @@ class TestElement(BaseTest):
         self.assertEqual(result, expected)
 
         obj.add(self.sub_cls.tagname)
-        result = obj.to_jstree_dict(index=10)
+        result = obj.to_jstree_dict()
         expected = {
             'data': u'tag <span class="_tree_text">(my value)</span>',
             'attr': {
@@ -2161,41 +2135,41 @@ class TestFunctions(BaseTest):
         <!ELEMENT tag2 (#PCDATA)>
         '''
         str_id = 'texts'
-        obj, index = elements._get_obj_from_str_id(str_id,
+        obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, index)
+        lis = elements._get_previous_js_selectors(obj)
         self.assertEqual(lis, [])
 
-        lis = elements._get_previous_js_selectors(obj, index)
+        lis = elements._get_previous_js_selectors(obj)
         self.assertEqual(lis, [])
 
         str_id = 'texts:list__list:0:list:text'
-        obj, index = elements._get_obj_from_str_id(str_id,
+        obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, index)
+        lis = elements._get_previous_js_selectors(obj)
         expected = [('inside', '#tree_texts:list__list:0:list')]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:list__list:0:list'
-        obj, index = elements._get_obj_from_str_id(str_id,
+        obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, index)
+        lis = elements._get_previous_js_selectors(obj)
         expected = [
             ('after', '.tree_texts:tag1'),
             ('inside', '#tree_texts')]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:list__list:1:list'
-        obj, index = elements._get_obj_from_str_id(str_id,
+        obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, index)
+        lis = elements._get_previous_js_selectors(obj)
         expected = [('after', '.tree_texts:list__list:0')]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:tag2'
-        obj, index = elements._get_obj_from_str_id(str_id,
+        obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj, index)
+        lis = elements._get_previous_js_selectors(obj)
         expected = [('after', '.tree_texts:list__list'),
                     ('after', '.tree_texts:tag1'),
                     ('inside', '#tree_texts')]
@@ -2210,9 +2184,9 @@ class TestFunctions(BaseTest):
         <!ELEMENT tag2 (#PCDATA)>
         '''
         str_id = 'texts:tag2'
-        obj, index = elements._get_obj_from_str_id(str_id,
+        obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        result = elements._get_html_from_obj(obj, index)
+        result = elements._get_html_from_obj(obj)
         expected = (
             '<div id="texts:tag2">'
             '<label>tag2</label>'
@@ -2224,9 +2198,9 @@ class TestFunctions(BaseTest):
         self.assertEqual(result, expected)
 
         str_id = 'texts:list__list:1:list'
-        obj, index = elements._get_obj_from_str_id(str_id,
+        obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
-        result = elements._get_html_from_obj(obj, index)
+        result = elements._get_html_from_obj(obj)
         expected = (
             '<a class="btn-add btn-list" '
             'data-elt-id="texts:list__list:1:list">New list</a>'

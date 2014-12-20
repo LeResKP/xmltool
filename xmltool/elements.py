@@ -440,47 +440,33 @@ class Element(object):
             return False
         return not self._required
 
-    @classmethod
-    def _to_jstree_dict(cls, parent_obj, index=None):
-        v = cls._get_value_from_parent(parent_obj)
-        if not v and cls._required:
-            # We always want an object since we need at least a add button.
-            v = cls(parent_obj)
-        if v is not None:
-            return v.to_jstree_dict(index=index)
+    def _get_jstree_data(self):
+        return self.tagname
 
-    def to_jstree_dict(self, index=None):
-        data = self.tagname
-        value = getattr(self, 'text', None)
-        if value:
-            data += u' <span class="_tree_text">(%s)</span>' % (
-                utils.truncate(value))
-
+    def _get_jstree_attrs(self):
         ident = prefixes_to_str(self.prefixes_no_cache)
-        if index is not None:
-            parent_ident = prefixes_to_str(self._parent_obj.prefixes_no_cache)
-            css_class = TREE_PREFIX + parent_ident
-            css_class += ' ' + TREE_PREFIX + parent_ident + ':%s' % index
-        else:
-            css_class = TREE_PREFIX + ident
-
-        dic = {
-            'data': data,
-            'attr': {
-                'id': TREE_PREFIX + ident,
-                'class': '%s %s' % (css_class, self.tagname),
-            },
+        return {
+            'id': TREE_PREFIX + ident,
+            'class': '%s %s' % (TREE_PREFIX + ident, self.tagname),
         }
+
+    def to_jstree_dict(self):
+        data = self._get_jstree_data()
         children = []
-        for elt in self.children_classes:
-            v = elt._to_jstree_dict(self)
+
+        for o in self._all_children:
+            v = o.to_jstree_dict()
             if v:
                 if isinstance(v, list):
                     children += v
                 else:
                     children += [v]
-        dic['children'] = children
-        return dic
+
+        return {
+            'data': data,
+            'attr': self._get_jstree_attrs(),
+            'children': children,
+        }
 
     def __setitem__(self, tagname, value):
         # TODO: Perhaps we should check the value type and if the tagname is
@@ -776,6 +762,13 @@ class TextElement(Element):
             xmlattrs=self._attributes_to_html(),
         )
 
+    def _get_jstree_data(self):
+        data = self.tagname
+        if self.text:
+            data += u' <span class="_tree_text">(%s)</span>' % (
+                utils.truncate(self.text))
+        return data
+
 
 class InChoiceMixin(object):
 
@@ -870,6 +863,17 @@ class InListMixin(object):
             lis += [self._parent_obj._get_html_add_button(index)]
         lis += [super(InListMixin, self).to_html()]
         return ''.join(lis)
+
+    def _get_jstree_attrs(self):
+        ident = prefixes_to_str(self.prefixes_no_cache)
+        parent_ident = prefixes_to_str(self._parent_obj.prefixes_no_cache)
+        css_class = TREE_PREFIX + parent_ident
+        index = self._parent_obj.index(self)
+        css_class += ' ' + TREE_PREFIX + parent_ident + ':%s' % index
+        return {
+            'id': TREE_PREFIX + ident,
+            'class': '%s %s' % (css_class, self.tagname),
+        }
 
 
 class BaseListElement(list, Element):
@@ -983,7 +987,9 @@ class BaseListElement(list, Element):
         self._before_render()
         lis = []
         for i, e in enumerate(self):
-            v = e.to_jstree_dict(index=i+offset)
+            if isinstance(e, EmptyElement):
+                continue
+            v = e.to_jstree_dict()
             if v:
                 lis += [v]
         return lis
@@ -1175,7 +1181,7 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
 
     if isinstance(obj, TextElement):
         obj.set_text('')
-    return obj, index
+    return obj
 
 
 def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
@@ -1283,7 +1289,7 @@ def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=Non
     return obj
 
 
-def _get_previous_js_selectors(obj, index):
+def _get_previous_js_selectors(obj):
     lis = []
 
     parent = obj._parent_obj
@@ -1293,6 +1299,7 @@ def _get_previous_js_selectors(obj, index):
 
     parent_is_list = isinstance(parent, BaseListElement)
     if parent_is_list:
+        index = parent.index(obj)
         if int(index) > 0:
             index = int(index) - 1
             parent_ident = prefixes_to_str(parent.prefixes_no_cache +
@@ -1335,22 +1342,22 @@ def _get_previous_js_selectors(obj, index):
 
 
 def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
-    obj, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
+    obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     return obj.to_html()
 
 
-def _get_html_from_obj(obj, index):
+def _get_html_from_obj(obj):
     return obj.to_html()
 
 
 def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
-    obj, index = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
+    obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     return {
         # Since we are calling to_jstree_dict from the object we need to remove
         # its prefix because it will be added in this method.
-        'jstree_data': obj.to_jstree_dict(index=index),
-        'previous': _get_previous_js_selectors(obj, index),
-        'html': _get_html_from_obj(obj, index),
+        'jstree_data': obj.to_jstree_dict(),
+        'previous': _get_previous_js_selectors(obj),
+        'html': _get_html_from_obj(obj),
     }
 
 
@@ -1358,19 +1365,16 @@ def get_display_data_from_obj(obj):
     # TODO: refactor this function with get_jstree_json_from_str_id
     # We should not have to pass the prefixes and index, each Element should be
     # able to calculate it! Currently it sucks!
-    index = None
     prefixes = obj.prefixes
     if obj._parent_obj and isinstance(obj._parent_obj, BaseListElement):
-        index = int(obj.prefixes[-2])
         prefixes = prefixes[:-1]
 
-    html = _get_html_from_obj(obj, index)
+    html = _get_html_from_obj(obj)
 
     prefixes = obj.prefixes[:-1]
     if isinstance(obj._parent_obj, BaseListElement):
-        index = prefixes[-1]
         prefixes = prefixes[:-1]
-        jstree_data = obj.to_jstree_dict(index=index)
+        jstree_data = obj.to_jstree_dict()
     else:
         jstree_data = obj.to_jstree_dict()
 
@@ -1385,7 +1389,7 @@ def get_display_data_from_obj(obj):
 
     return {
         'jstree_data': jstree_data,
-        'previous': _get_previous_js_selectors(obj, index),
+        'previous': _get_previous_js_selectors(obj),
         'html': html,
         'elt_id': ':'.join(obj.prefixes),
         'is_choice': is_choice,

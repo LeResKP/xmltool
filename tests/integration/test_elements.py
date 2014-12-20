@@ -113,9 +113,9 @@ class ElementTester(BaseTest):
             return
         for (elt_str, expected_html), selectors in zip(self.str_to_html,
                                                        self.js_selector):
-            obj, index = elements._get_obj_from_str_id(elt_str,
+            obj = elements._get_obj_from_str_id(elt_str,
                                                dtd_str=self.dtd_str)
-            lis = elements._get_previous_js_selectors(obj, index)
+            lis = elements._get_previous_js_selectors(obj)
             self.assertEqual(lis, selectors)
 
 
