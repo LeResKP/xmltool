@@ -2175,54 +2175,6 @@ class TestFunctions(BaseTest):
                     ('inside', '#tree_texts')]
         self.assertEqual(lis, expected)
 
-    def test__get_html_from_obj(self):
-        dtd_str = '''
-        <!ELEMENT texts (tag1, list*, tag2)>
-        <!ELEMENT list (text)>
-        <!ELEMENT text (#PCDATA)>
-        <!ELEMENT tag1 (#PCDATA)>
-        <!ELEMENT tag2 (#PCDATA)>
-        '''
-        str_id = 'texts:tag2'
-        obj = elements._get_obj_from_str_id(str_id,
-                                               dtd_str=dtd_str)
-        result = elements._get_html_from_obj(obj)
-        expected = (
-            '<div id="texts:tag2">'
-            '<label>tag2</label>'
-            '<a data-comment-name="texts:tag2:_comment" class="btn-comment" '
-            'title="Add comment"></a>'
-            '<textarea class="form-control tag2" name="texts:tag2:_value" '
-            'rows="1"></textarea>'
-            '</div>')
-        self.assertEqual(result, expected)
-
-        str_id = 'texts:list__list:1:list'
-        obj = elements._get_obj_from_str_id(str_id,
-                                               dtd_str=dtd_str)
-        result = elements._get_html_from_obj(obj)
-        expected = (
-            '<a class="btn-add btn-list" '
-            'data-elt-id="texts:list__list:1:list">New list</a>'
-            '<div class="panel panel-default list" '
-            'id="texts:list__list:1:list"><div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__list\:1\:list">list'
-            '<a class="btn-delete btn-list" '
-            'data-target="#texts:list__list:1:list" '
-            'title="Delete"></a>'
-            '<a data-comment-name="texts:list__list:1:list:_comment" '
-            'class="btn-comment" title="Add comment"></a>'
-            '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__list:1:list">'
-            '<div id="texts:list__list:1:list:text">'
-            '<label>text</label>'
-            '<a data-comment-name="texts:list__list:1:list:text:_comment" '
-            'class="btn-comment" title="Add comment"></a>'
-            '<textarea class="form-control text" name="texts:list__list:1:list:text:_value" '
-            'rows="1"></textarea>'
-            '</div>'
-            '</div></div>'
-        )
-        self.assertEqual(result, expected)
-
     def test_get_jstree_json_from_str_id(self):
         dtd_str = '''
         <!ELEMENT texts (tag1, list*, tag2)>
@@ -2249,7 +2201,10 @@ class TestFunctions(BaseTest):
                 'attr': {
                     'id': 'tree_texts:tag2',
                     'class': 'tree_texts:tag2 tag2'},
-                'children': []}}
+                'children': []},
+            'elt_id': str_id,
+            'is_choice': False,
+        }
         self.assertEqual(result, expected)
 
     def test_get_display_data_from_obj(self):

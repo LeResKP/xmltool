@@ -1342,55 +1342,29 @@ def _get_previous_js_selectors(obj):
 
 
 def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
+    """TODO: rename this function
+    """
     obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
     return obj.to_html()
-
-
-def _get_html_from_obj(obj):
-    return obj.to_html()
-
-
-def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
-    obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    return {
-        # Since we are calling to_jstree_dict from the object we need to remove
-        # its prefix because it will be added in this method.
-        'jstree_data': obj.to_jstree_dict(),
-        'previous': _get_previous_js_selectors(obj),
-        'html': _get_html_from_obj(obj),
-    }
 
 
 def get_display_data_from_obj(obj):
-    # TODO: refactor this function with get_jstree_json_from_str_id
-    # We should not have to pass the prefixes and index, each Element should be
-    # able to calculate it! Currently it sucks!
-    prefixes = obj.prefixes
-    if obj._parent_obj and isinstance(obj._parent_obj, BaseListElement):
-        prefixes = prefixes[:-1]
-
-    html = _get_html_from_obj(obj)
-
-    prefixes = obj.prefixes[:-1]
-    if isinstance(obj._parent_obj, BaseListElement):
-        prefixes = prefixes[:-1]
-        jstree_data = obj.to_jstree_dict()
-    else:
-        jstree_data = obj.to_jstree_dict()
-
-    prefixes = obj.prefixes
-    if obj._parent_obj and isinstance(obj._parent_obj, BaseListElement):
-        prefixes = prefixes[:-1]
-
+    # TODO: why do we need is_choice when we paste in js, perhaps we can
+    # implement a better logic
     is_choice = obj._is_choice
     if not is_choice and isinstance(obj._parent_obj, ChoiceListElement):
         # Check if there is multiple possible element in the list
         is_choice = True
 
     return {
-        'jstree_data': jstree_data,
+        'jstree_data': obj.to_jstree_dict(),
         'previous': _get_previous_js_selectors(obj),
-        'html': html,
+        'html': obj.to_html(),
         'elt_id': ':'.join(obj.prefixes),
         'is_choice': is_choice,
     }
+
+
+def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
+    obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
+    return get_display_data_from_obj(obj)
