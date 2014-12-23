@@ -157,6 +157,10 @@ class Element(object):
     def _get_sub_value(cls, parent_obj):
         v = cls._get_value_from_parent(parent_obj)
         if not v and cls._required:
+            # TODO: Add flag on this object to know it's autoadded and delete
+            # it when we finish to use it.
+            # We have some side effect after we generate the HTML since we
+            # create all object to at least have a add button
             v = cls(parent_obj)
         return v
 
@@ -577,6 +581,37 @@ class Element(object):
     def _to_html(self, *args, **kw):
         raise NotImplementedError
 
+    def get_previous_js_selectors(self):
+        lis = []
+
+        parent = self._parent_obj
+        if not parent:
+            # No parent it's the root tag.
+            return lis
+
+        cobj = self
+        if isinstance(self, ChoiceElement):
+            # Special case for ChoiceElement to get the good object
+            cobj = self._value
+
+        for child in parent._full_children:
+            if child == cobj:
+                break
+            parent_ident = prefixes_to_str(parent.prefixes_no_cache +
+                                           [child.tagname])
+            lis += [('after', '.%s%s' % (
+                TREE_PREFIX,
+                parent_ident
+                ))]
+
+        lis.reverse()
+        parent_ident = prefixes_to_str(parent.prefixes_no_cache)
+        lis += [('inside', '#%s%s' % (
+            TREE_PREFIX,
+            parent_ident
+        ))]
+        return lis
+
 
 class ContainerElement(Element):
 
@@ -813,6 +848,9 @@ class InChoiceMixin(object):
             return False
         return True
 
+    def get_previous_js_selectors(self):
+        return self._parent_obj.get_previous_js_selectors()
+
 
 class InListMixin(object):
 
@@ -874,6 +912,22 @@ class InListMixin(object):
             'id': TREE_PREFIX + ident,
             'class': '%s %s' % (css_class, self.tagname),
         }
+
+    def get_previous_js_selectors(self):
+        lis = []
+        index = self._parent_obj.index(self)
+        if index > 0:
+            index -= 1
+            parent_ident = prefixes_to_str(self._parent_obj.prefixes_no_cache +
+                                           [str(index)])
+            lis += [
+                ('after', '.%s%s' % (
+                    TREE_PREFIX,
+                    parent_ident
+                ))]
+            return lis
+
+        return self._parent_obj.get_previous_js_selectors()
 
 
 class BaseListElement(list, Element):
@@ -1290,55 +1344,7 @@ def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=Non
 
 
 def _get_previous_js_selectors(obj):
-    lis = []
-
-    parent = obj._parent_obj
-    if not parent:
-        # No parent it's the root tag.
-        return lis
-
-    parent_is_list = isinstance(parent, BaseListElement)
-    if parent_is_list:
-        index = parent.index(obj)
-        if int(index) > 0:
-            index = int(index) - 1
-            parent_ident = prefixes_to_str(parent.prefixes_no_cache +
-                                           [str(index)])
-            lis += [
-                ('after', '.%s%s' % (
-                    TREE_PREFIX,
-                    parent_ident
-                ))]
-            return lis
-        parent = parent._parent_obj
-
-    sub = parent.get_child_class(obj.tagname)
-    assert(sub)
-
-    # TODO: hack: remove this
-    if isinstance(parent, ChoiceElement):
-        parent = parent._parent_obj
-
-    for child in parent.children_classes:
-        if issubclass(child, ChoiceElement):
-            # TODO: hack: remove this
-            continue
-        if child == sub:
-            break
-        parent_ident = prefixes_to_str(parent.prefixes_no_cache +
-                                       [child.tagname])
-        lis += [('after', '.%s%s' % (
-            TREE_PREFIX,
-            parent_ident
-            ))]
-
-    lis.reverse()
-    parent_ident = prefixes_to_str(parent.prefixes_no_cache)
-    lis += [('inside', '#%s%s' % (
-        TREE_PREFIX,
-        parent_ident
-    ))]
-    return lis
+    return obj.get_previous_js_selectors()
 
 
 def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
@@ -1358,7 +1364,7 @@ def get_display_data_from_obj(obj):
 
     return {
         'jstree_data': obj.to_jstree_dict(),
-        'previous': _get_previous_js_selectors(obj),
+        'previous': obj.get_previous_js_selectors(),
         'html': obj.to_html(),
         'elt_id': ':'.join(obj.prefixes),
         'is_choice': is_choice,
