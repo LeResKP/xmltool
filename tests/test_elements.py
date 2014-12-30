@@ -1579,6 +1579,7 @@ class TestListElement(BaseTest):
         html = obj.to_html()
         self.assertEqual_(html, expected)
 
+        obj.add('subtag')
         for i in range(10):
             obj.insert(0, EmptyElement(parent_obj=obj))
         html = obj._to_html()
@@ -1619,8 +1620,10 @@ class TestListElement(BaseTest):
                     '</div>')
         self.assertEqual_(html, expected)
 
+        obj.add('subtag')
         for i in range(10):
             obj.insert(0, EmptyElement(parent_obj=obj))
+
         html = obj._to_html()
         expected = ('<div class="list-container">'
                     '<div class="panel panel-default subtag" id="parent_tag:tag:10:subtag">'
@@ -1628,7 +1631,7 @@ class TestListElement(BaseTest):
                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-parent_tag:tag:10:subtag">'
                     '</div></div>'
                     '</div>')
-        self.assertEqual(html, expected)
+        self.assertEqual_(html, expected)
 
     def test_to_jstree_dict(self):
         obj = self.root_obj.add(self.cls.tagname)

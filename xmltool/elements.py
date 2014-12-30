@@ -37,6 +37,7 @@ class EmptyElement(object):
     """
     def __init__(self, parent_obj):
         self._parent_obj = parent_obj
+        self._auto_added = False
 
 
 class Element(object):
@@ -62,7 +63,7 @@ class Element(object):
     # See render.py for more details
     html_render = None
 
-    def __init__(self, parent_obj=None, parent=None, *args, **kw):
+    def __init__(self, parent_obj=None, parent=None, auto_added=False, *args, **kw):
         super(Element, self).__init__(*args, **kw)
         # parent and parent_obj are differents where the element is in a list:
         # the parent_obj of the element is the list but the parent is the
@@ -87,6 +88,10 @@ class Element(object):
         self.xml_elements = {}
         # Cache
         self._cache_prefixes = None
+        # Will be set to True when we add tag to render the object.  This flag
+        # is used to know the object has been added by the code so we should
+        # remove it in the code.
+        self._auto_added = auto_added
 
     @property
     def prefixes_no_cache(self):
@@ -161,7 +166,7 @@ class Element(object):
             # it when we finish to use it.
             # We have some side effect after we generate the HTML since we
             # create all object to at least have a add button
-            v = cls(parent_obj)
+            v = cls(parent_obj, auto_added=True)
         return v
 
     def _has_value(self):
@@ -194,7 +199,7 @@ class Element(object):
         for cls in self.children_classes:
             obj = cls._get_sub_value(self)
             if obj is None:
-                obj = cls(self)
+                obj = cls(self, auto_added=True)
             yield obj
 
     @classmethod
@@ -238,6 +243,10 @@ class Element(object):
         if self._parent_obj is None:
             raise Exception('Can\'t delete the root Element')
         del self._parent_obj[self.tagname]
+
+    def _delete_auto_added(self):
+        if self._auto_added:
+            self.delete()
 
     def set_text(self, value):
         raise Exception("Can't set value to non TextElement")
@@ -398,6 +407,7 @@ class Element(object):
         self._attributes_to_xml(xml)
         for v in self._all_children:
             e = v.to_xml()
+            v._delete_auto_added()
             if e is None:
                 continue
             if isinstance(e, list):
@@ -465,6 +475,7 @@ class Element(object):
 
         for o in self._all_children:
             v = o.to_jstree_dict()
+            o._delete_auto_added()
             if v:
                 if isinstance(v, list):
                     children += v
@@ -603,6 +614,8 @@ class Element(object):
             cobj = self._value
 
         for child in parent._full_children:
+            # We can delete the child it will continue to exist, it's detached
+            child._delete_auto_added()
             if child == cobj:
                 break
             parent_ident = prefixes_to_str(parent.prefixes_no_cache +
@@ -640,6 +653,7 @@ class ContainerElement(Element):
 
         for obj in self._full_children:
             tmp = obj._to_html()
+            obj._delete_auto_added()
             if tmp:
                 sub_html += [tmp]
 
@@ -1016,6 +1030,10 @@ class BaseListElement(list, Element):
         # Nothing to do by default, it's just used in ListElement
         pass
 
+    def _after_render(self):
+        # Nothing to do by default, it's just used in ListElement
+        pass
+
     def to_xml(self):
         self._before_render()
         lis = []
@@ -1026,6 +1044,7 @@ class BaseListElement(list, Element):
                 elt = etree.Comment(e._comment)
                 lis += [elt]
             lis += [e.to_xml()]
+        self._after_render()
         return lis
 
     def _to_html(self, *args, **kw):
@@ -1048,6 +1067,7 @@ class BaseListElement(list, Element):
         if renderer.add_add_button():
             lis += [self._get_html_add_button(i)]
 
+        self._after_render()
         return '<div class="list-container">%s</div>' % ''.join(lis)
 
     def to_jstree_dict(self, index=None, offset=0):
@@ -1059,6 +1079,7 @@ class BaseListElement(list, Element):
             v = e.to_jstree_dict()
             if v:
                 lis += [v]
+        self._after_render()
         return lis
 
 
@@ -1091,7 +1112,14 @@ class ListElement(BaseListElement):
         super(ListElement, self)._before_render()
 
         if not len(self) and self._required:
-            self.add(self._children_class.tagname)
+            obj = self.add(self._children_class.tagname)
+            obj._auto_added = True
+
+    def _after_render(self):
+        super(ListElement, self)._before_render()
+        for o in self:
+            if o._auto_added:
+                o.delete()
 
 
 class MultipleMixin(object):
