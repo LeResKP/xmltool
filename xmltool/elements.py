@@ -234,6 +234,11 @@ class Element(object):
         obj = cls._create(tagname, self, value, index)
         return obj
 
+    def delete(self):
+        if self._parent_obj is None:
+            raise Exception('Can\'t delete the root Element')
+        del self._parent_obj[self.tagname]
+
     def set_text(self, value):
         raise Exception("Can't set value to non TextElement")
 
@@ -482,6 +487,9 @@ class Element(object):
         if v is None:
             raise KeyError(tagname)
         return v
+
+    def __delitem__(self, tagname):
+        del self.xml_elements[tagname]
 
     def __contains__(self, tagname):
         return tagname in self.xml_elements
@@ -815,8 +823,7 @@ class InChoiceMixin(object):
         # Remove the existing shortcut
         for c in choice_parent_obj._choice_classes:
             if c.tagname in parent_obj:
-                # TODO: Instead of using xml_elements, support __delitem__
-                del parent_obj.xml_elements[c.tagname]
+                del parent_obj[c.tagname]
         # Create the new shortcut
         parent_obj[obj.tagname] = obj
         if value:
@@ -828,6 +835,9 @@ class InChoiceMixin(object):
         """Check if the given tagname is addable to the given obj
         """
         cls._parent_cls._check_addable(obj, tagname)
+
+    def delete(self):
+        self._parent_obj.delete()
 
     def _add_html_add_button(self):
         """
@@ -874,6 +884,9 @@ class InListMixin(object):
         # TODO: perhaps we have some check to do here
         # We can always add an element to a list.
         pass
+
+    def delete(self):
+        self._parent_obj.remove(self)
 
     def _add_html_add_button(self):
         """The add button is added in ListElement.to_html
@@ -1056,6 +1069,11 @@ class ListElement(BaseListElement):
         # Create a shortcut
         self._parent_obj[self._children_class.tagname] = self
 
+    def delete(self):
+        super(ListElement, self).delete()
+        # delete the shortcut
+        del self._parent_obj[self._children_class.tagname]
+
     def _get_html_add_button(self, index):
         assert(index is not None)
         css_classes = ['btn-add btn-list']
@@ -1148,6 +1166,15 @@ class ChoiceElement(MultipleMixin, Element):
     def add(self, *args, **kw):
         # The logic to add Element to a choice is on the parent
         return self._parent_obj.add(*args, **kw)
+
+    def delete(self):
+        super(ChoiceElement, self).delete()
+        # Delete the shortcut
+        parent_obj = self._parent_obj
+        for c in self._choice_classes:
+            if c.tagname in parent_obj:
+                del parent_obj[c.tagname]
+                return
 
     def is_addable(self, tagname):
         # Nothing is addable to ChoiceElement

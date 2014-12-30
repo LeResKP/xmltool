@@ -198,6 +198,18 @@ class TestElement(BaseTest):
         except Exception, e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
+    def test_delete(self):
+        try:
+            self.root_obj.delete()
+            assert(False)
+        except Exception, e:
+            self.assertEqual(str(e), 'Can\'t delete the root Element')
+
+        obj = self.cls(self.root_obj)
+        self.assertEqual(self.root_obj[self.cls.tagname], obj)
+        obj.delete()
+        self.assertEqual(self.root_obj.get(self.cls.tagname), None)
+
     def test_add_attribute(self):
         obj = self.cls()
         obj._attribute_names = ['attr1', 'attr2']
@@ -1488,6 +1500,20 @@ class TestListElement(BaseTest):
         l = list_obj.add(text._parent_cls.tagname)
         self.assertEqual(list_obj, l)
 
+    def test_delete(self):
+        list_obj = self.root_obj.add(self.cls.tagname)
+        obj = list_obj.add('subtag')
+        self.assertEqual(len(list_obj), 1)
+
+        obj.delete()
+        self.assertEqual(len(list_obj), 0)
+
+        self.assertEqual(self.root_obj['tag'], list_obj)
+        self.assertEqual(self.root_obj['subtag'], list_obj)
+        list_obj.delete()
+        self.assertEqual(self.root_obj.get('tag'), None)
+        self.assertEqual(self.root_obj.get('subtag'), None)
+
     def test_to_xml(self):
         obj = self.root_cls().add(self.cls.tagname)
         lis = obj.to_xml()
@@ -1685,6 +1711,22 @@ class TestChoiceListElement(BaseTest):
         self.cls._parent_cls = self.root_cls
         self.sub_cls1._parent_cls = self.cls
         self.sub_cls2._parent_cls = self.cls
+
+    def test_delete(self):
+        root_obj = self.root_cls()
+        list_obj = self.cls(root_obj)
+        obj = self.sub_cls1(list_obj, parent=root_obj)
+        list_obj.append(obj)
+
+        self.assertEqual(len(list_obj), 1)
+        self.assertEqual(root_obj['tag'], list_obj)
+
+        obj.delete()
+        self.assertEqual(len(list_obj), 0)
+        self.assertEqual(root_obj['tag'], list_obj)
+
+        list_obj.delete()
+        self.assertEqual(root_obj.get('tag'), None)
 
     def test__get_value_from_parent_multiple(self):
         root_obj = self.root_cls()
@@ -1978,6 +2020,27 @@ class TestChoiceElement(BaseTest):
         self.assertEqual(obj1._parent_obj, self.root_obj)
         self.assertTrue(isinstance(obj1, ChoiceElement))
         self.assertEqual(self.root_obj['tag'], obj1)
+
+    def test_delete(self):
+        obj = self.cls(self.root_obj)
+        obj1 = obj.add('subtag1')
+        self.assertEqual(self.root_obj[self.cls.tagname], obj)
+        self.assertEqual(self.root_obj.get(self.sub_cls1.tagname), obj1)
+        self.assertEqual(obj._value, obj1)
+
+        obj1.delete()
+        self.assertEqual(self.root_obj.get(self.cls.tagname), None)
+        self.assertEqual(self.root_obj.get(self.sub_cls1.tagname), None)
+
+        obj = self.cls(self.root_obj)
+        obj1 = obj.add('subtag1')
+        self.assertEqual(self.root_obj[self.cls.tagname], obj)
+        self.assertEqual(self.root_obj.get(self.sub_cls1.tagname), obj1)
+        self.assertEqual(obj._value, obj1)
+
+        obj.delete()
+        self.assertFalse(self.cls.tagname in self.root_obj)
+        self.assertFalse('subtag1' in self.root_obj)
 
     def test__get_html_add_button(self):
         obj = self.cls(self.root_obj)
