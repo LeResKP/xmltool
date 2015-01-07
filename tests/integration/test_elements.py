@@ -16,6 +16,7 @@ from xmltool.elements import (
     EmptyElement,
     get_jstree_json_from_str_id,
     escape_attr,
+    get_display_data_from_obj,
 )
 import xmltool.elements as elements
 from ..test_dtd_parser import (
@@ -2099,6 +2100,18 @@ class TestJavascript(TestCase):
         js = json.dumps(obj.to_jstree_dict())
         filename = 'webmedia/js/test/fixtures/jstree_utils.json'
         open(filename, 'w').write(js)
+
+        text = obj.add('text')
+        subtext = text.add('subtext')
+        subtext.text = 'Hello'
+        dic = get_display_data_from_obj(text)
+
+        filename = 'webmedia/js/test/fixtures/paste.json'
+        open(filename, 'w').write(json.dumps(dic))
+
+        filename = 'webmedia/js/test/fixtures/paste_expected.json'
+        dic = get_display_data_from_obj(obj)
+        open(filename, 'w').write(json.dumps(dic))
 
     def test_add_element(self):
         dtd_str = '''

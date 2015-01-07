@@ -142,4 +142,26 @@ xmltool.utils = {};
         };
     };
 
+    /**
+     * Get the button according to the given eltId
+     *
+     * @param {string} eltId - the element id corresponding to the button
+     * @return {jQuery} the button
+     * @memberof xmltool.utils
+     * @method findAddButton
+     */
+    this.getAddButton = function(eltId) {
+        // If it's a choice the button should be an option of a select
+        var $btn = $('.btn-add').find('[value="'+ eltId+'"]');
+
+        if ($btn.length === 1) {
+            $btn = $btn.parent('select');
+        }
+        else {
+            // the button should be a HTML a
+            $btn = $('[data-elt-id="'+ eltId +'"]');
+        }
+        return $btn;
+    };
+
 }).call(xmltool.utils, jQuery);

@@ -161,3 +161,20 @@ def new(dtd_url, root_tag, form_action=None, form_attrs=None):
     html += [obj._to_html()]
     html += ['</form>']
     return ''.join(html)
+
+
+def getElementData(elt_id, data):
+    """Get the dic from data to load last element of elt_id
+    """
+    data = utils.unflatten_params(data)
+    lis = elt_id.split(':')
+    tagname = lis[-1]
+    for v in lis:
+        try:
+            if isinstance(data, list):
+                v = int(v)
+            data = data[v]
+        except (KeyError, IndexError):
+            data = {}
+            break
+    return {tagname: data}

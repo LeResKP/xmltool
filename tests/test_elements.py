@@ -1710,9 +1710,22 @@ class TestListElement(BaseTest):
         obj = self.cls(self.root_obj)
         try:
             obj.get_or_add('unexisting')
-            assert 0
-        except NotImplementedError:
-            pass
+            assert(False)
+        except Exception, e:
+            self.assertEqual(str(e), 'Parameter index is required')
+
+        subobj = obj.get_or_add('subtag', index=1)
+        self.assertEqual(len(obj), 2)
+
+        subobj1 = obj.get_or_add('subtag', index=1)
+        self.assertEqual(subobj, subobj1)
+
+        obj = self.cls(self.root_obj)
+        subobj = obj.get_or_add('subtag', index=0)
+        self.assertEqual(len(obj), 1)
+
+        subobj1 = obj.get_or_add('subtag', index=0)
+        self.assertEqual(subobj, subobj1)
 
 
 class TestChoiceListElement(BaseTest):
@@ -2344,7 +2357,9 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         res = elements.get_display_data_from_obj(obj)
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
@@ -2388,7 +2403,9 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         res = elements.get_display_data_from_obj(obj)
         expected = {
             'elt_id': 'texts:list__list:0:list',
@@ -2470,7 +2487,9 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         res = elements.get_display_data_from_obj(obj)
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
@@ -2527,7 +2546,9 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         res = elements.get_display_data_from_obj(obj)
         self.assertEqual(res['is_choice'], True)
 
@@ -2541,7 +2562,9 @@ class TestFunctions(BaseTest):
         '''
         str_id = 'texts'
         data = {}
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'texts')
 
         str_id = 'texts:tag2'
@@ -2552,7 +2575,9 @@ class TestFunctions(BaseTest):
                 }
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'tag2')
         self.assertEqual(obj.text, 'Hello world')
         self.assertEqual(obj._parent_obj.tagname, 'texts')
@@ -2569,7 +2594,9 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'text')
         self.assertEqual(obj.text, 'Hello world')
         self.assertEqual(obj._parent_obj.tagname, 'list')
@@ -2591,7 +2618,9 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'text')
         self.assertEqual(obj.text, 'Hello world')
         self.assertEqual(obj._parent_obj.tagname, 'list')
@@ -2613,9 +2642,11 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'text')
-        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.text, '')
         self.assertEqual(obj._parent_obj.tagname, 'list')
         list_obj = obj._parent_obj._parent_obj
         self.assertEqual(len(list_obj), 3)
@@ -2643,9 +2674,11 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'text')
-        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.text, '')
         self.assertEqual(obj._parent_obj.tagname, 'list')
         list_obj = obj._parent_obj._parent_obj
         self.assertEqual(len(list_obj), 3)
@@ -2663,7 +2696,9 @@ class TestFunctions(BaseTest):
         '''
         str_id = 'texts'
         data = {}
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'texts')
 
         str_id = 'texts:list__tag1_tag2:0:tag1'
@@ -2676,7 +2711,9 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, 'Hello world')
         self.assertEqual(obj._parent_obj.tagname, 'list__tag1_tag2')
@@ -2688,7 +2725,9 @@ class TestFunctions(BaseTest):
         '''
         str_id = 'texts'
         data = {}
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'texts')
 
         str_id = 'texts:tag1'
@@ -2697,7 +2736,9 @@ class TestFunctions(BaseTest):
                 'tag1': {'_value': 'Hello world'}
             }
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'tag1')
         self.assertEqual(obj.text, 'Hello world')
         self.assertEqual(obj._parent_obj.tagname, 'choice__tag1_tag2')
@@ -2706,13 +2747,15 @@ class TestFunctions(BaseTest):
         data = {
             'texts': {}
         }
-        obj = elements.load_obj_from_id(str_id, data, dtd_str=dtd_str)
+        obj = elements._get_obj_from_str_id(str_id,
+                                            dtd_str=dtd_str,
+                                            data=data)
         self.assertEqual(obj.tagname, 'tag1')
-        self.assertEqual(obj.text, None)
+        self.assertEqual(obj.text, '')
         self.assertEqual(obj._parent_obj.tagname, 'choice__tag1_tag2')
         self.assertEqual(obj.parent.tagname, 'texts')
 
-    def test_get_parent_to_add_obj(self):
+    def test__get_parent_to_add_obj(self):
         dtd_str = '''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
@@ -2732,15 +2775,13 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        source_id = 'texts:list__list:0:list:text'
-        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+        parentobj = elements._get_parent_to_add_obj(str_id, 'text', data,
                                                    dtd_str=dtd_str)
         # The 'text' element can be pasted here.
         self.assertEqual(parentobj, None)
 
         str_id = 'texts:list__list:0:list'
-        source_id = 'texts:list__list:0:list'
-        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+        parentobj = elements._get_parent_to_add_obj(str_id, 'list', data,
                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
 
@@ -2755,8 +2796,7 @@ class TestFunctions(BaseTest):
             }
         }
         str_id = 'texts:list__list:0:list'
-        source_id = 'texts:list__list:0:list:text'
-        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+        parentobj = elements._get_parent_to_add_obj(str_id, 'text', data,
                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
 
@@ -2767,8 +2807,7 @@ class TestFunctions(BaseTest):
             }
         }
         str_id = 'texts:list__list:10:list'
-        source_id = 'texts:list__list:5:list'
-        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
+        parentobj = elements._get_parent_to_add_obj(str_id, 'list', data,
                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
 
@@ -2785,22 +2824,43 @@ class TestFunctions(BaseTest):
         data = {
             'texts': {
                 'list__list': [
-                    None,
+                    {
+                        'list': {'text': {'tag2': {'_value': 'Hello1'}}}
+                    },
                     None,
                     {
-                        'list': {'text': {'tag2': {'_value': 'Hello'}}}
+                        'list': {'text': {'tag2': {'_value': 'Hello3'}}}
                     }
                 ]
             }
         }
         str_id = 'texts:list__list:1:list'
-        source_id = 'texts:list__list:2:list:text'
-        parentobj = elements.get_parent_to_add_obj(str_id, source_id, data,
-                                                   dtd_str=dtd_str)
+        parentobj = elements._get_parent_to_add_obj(str_id, 'text', data,
+                                                    dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
         lis = parentobj._parent_obj
-        self.assertTrue(isinstance(lis[0], elements.EmptyElement))
         self.assertEqual(lis[1], parentobj)
+
+        data = {
+            'texts': {
+                'list__list': [
+                    {
+                        'list': {'text': {'tag2': {'_value': 'Hello1'}}}
+                    },
+                    {
+                        'list': {'text': {'tag2': {'_value': 'Hello2'}}}
+                    },
+                    {
+                        'list': {'text': {'tag2': {'_value': 'Hello3'}}}
+                    }
+                ]
+            }
+        }
+        str_id = 'texts:list__list:1:list'
+        parentobj = elements._get_parent_to_add_obj(str_id, 'text', data,
+                                                   dtd_str=dtd_str)
+        # text already exists, can't add it
+        self.assertEqual(parentobj, None)
 
     def test_add_new_element_from_id(self):
         dtd_str = '''
@@ -2822,27 +2882,19 @@ class TestFunctions(BaseTest):
                 ]
             }
         }
-        source_id = 'texts:list__list:0:list:text'
         clipboard_data = {
-            'texts': {
-                'list__list': [
-                    {
-                        'list': {
-                            'text': {'_value': 'Text to copy'},
-                        }
-                    }
-                ]
+            'list': {
+                'text': {'_value': 'Text to copy'},
             }
         }
         # 'text' element can't be added
-        obj = elements.add_new_element_from_id(str_id, source_id, data,
+        obj = elements.add_new_element_from_id(str_id, data,
                                                clipboard_data,
                                                dtd_str=dtd_str)
         self.assertEqual(obj, None)
 
         str_id = 'texts:list__list:0:list'
-        source_id = 'texts:list__list:0:list'
-        obj = elements.add_new_element_from_id(str_id, source_id, data,
+        obj = elements.add_new_element_from_id(str_id, data,
                                                clipboard_data,
                                                dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'list')

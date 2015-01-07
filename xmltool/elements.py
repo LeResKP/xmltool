@@ -557,11 +557,11 @@ class Element(object):
     def get(self, tagname):
         return self.xml_elements.get(tagname)
 
-    def get_or_add(self, tagname):
+    def get_or_add(self, tagname, value=None, index=None):
         v = self.xml_elements.get(tagname)
         if v:
             return v
-        return self.add(tagname)
+        return self.add(tagname, value=value, index=index)
 
     def walk(self):
         for elt in self.children_classes:
@@ -1075,8 +1075,25 @@ class BaseListElement(list, Element):
         # The logic to add Element to a list is on the parent
         return self._parent_obj.add(*args, **kw)
 
-    def get_or_add(self, tagname):
-        raise NotImplementedError
+    def get_or_add(self, tagname, value=None, index=None):
+        if index is None:
+            raise Exception('Parameter index is required')
+
+        if index < len(self):
+            obj = self[index]
+            if not isinstance(obj, EmptyElement):
+                return obj
+            # We shouldn't return an EmptyElement, we remove it and create the
+            # good object.
+            self.remove(obj)
+
+        if len(self) < index:
+            for i in range(index):
+                if i < len(self):
+                    continue
+                elt = EmptyElement(parent_obj=self)
+                self.append(elt)
+        return self.add(tagname, value=value, index=index)
 
     def walk(self):
         for elt in self:
@@ -1325,134 +1342,60 @@ class ChoiceElement(MultipleMixin, Element):
             return self._value.to_jstree_dict()
 
 
-def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
+def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None, data=None):
     # Will raise an exception if both dtd_url or dtd_str are None or set
     dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
     splitted = str_id.split(':')
     s = splitted.pop(0)
     cls = dic[s]
     obj = cls()
+    if data:
+        obj.load_from_dict(data)
     index = None
-    # print
     while splitted:
         s = splitted.pop(0)
-        if index:
-            for i in range(index):
-                elt = EmptyElement(parent_obj=obj)
-                obj.append(elt)
-
-        obj = obj.add(s, index=index)
+        obj = obj.get_or_add(s, index=index)
         if len(splitted) > 0:
             index = None
         if isinstance(obj, list):
             index = int(splitted.pop(0))
 
-    if isinstance(obj, TextElement):
+    if isinstance(obj, TextElement) and obj.text is None:
         obj.set_text('')
     return obj
 
 
-def load_obj_from_id(str_id, data, dtd_url=None, dtd_str=None):
-    """Create a root object with the given data.
-    We return the sub object found according to the given str_id.
-    """
-    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
-    splitted = str_id.split(':')
-    s = splitted.pop(0)
-
-    # Get the root object
-    obj = dic[s]()
-    obj.load_from_dict(data)
-
-    # Find the good object according to the given id
-    subobj = obj
-    while splitted:
-        s = splitted.pop(0)
-        try:
-            # import pdb; pdb.set_trace()
-            s = int(s)
-            # The sub id just after an integer is for the type object, we don't
-            # need it here.
-            subelt = splitted.pop(0)
-            while len(subobj) < s:
-                # We don't have enough element, add some empty one
-                elt = EmptyElement(parent_obj=subobj)
-                subobj.append(elt)
-            # If the last element is missing we should add the right element
-            # type
-            while len(subobj) < (s+1):
-                subobj.add(subelt)
-            subobj = subobj[s]
-
-            if isinstance(subobj, EmptyElement):
-                # The element is empty, we remove it and create the good one!
-                subobj._parent_obj.remove(subobj)
-                subobj = subobj._parent_obj.add(subelt, index=s)
-        except ValueError:
-            if s not in subobj:
-                subobj.add(s)
-            subobj = subobj[s]
-
-    return subobj
-
-
-def get_parent_to_add_obj(elt_id, source_id, data, dtd_url=None, dtd_str=None):
-    """Create element from data and elt_id and determine if source_id can be
+def _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=None, dtd_str=None):
+    """Create element from data and elt_id and determine if tagname can be
     added to it or its parent.
     """
-    target_obj = load_obj_from_id(elt_id, data, dtd_url=dtd_url,
-                                  dtd_str=dtd_str)
-    if isinstance(target_obj, EmptyElement):
-        # The target is an empty object, we remove it and replace it by the
-        # right object.
-        parent_obj = target_obj._parent_obj
-        assert(isinstance(parent_obj, BaseListElement))
-        index = parent_obj.index(target_obj)
-        parent_obj.pop(index)
-        # Should always been the -2:
-        # -1 is the object we want to copy
-        # -2 is the container, should also be a list
-        # normally a ListElement is at least 3 elements
-        tagname = source_id.split(':')[-2]
-        if not parent_obj.is_addable(tagname):
-            return None
-        target_obj = parent_obj.add(tagname, index=index)
+    target_obj = _get_obj_from_str_id(elt_id, dtd_url=dtd_url, dtd_str=dtd_str,
+                                      data=data)
 
-    tagname = source_id.split(':')[-1]
-    parent_obj = None
     if target_obj.is_addable(tagname):
         return target_obj
-
-    parent_obj = target_obj._parent_obj
-    if parent_obj and parent_obj.is_addable(tagname):
-        return parent_obj
-
+    if target_obj._parent_obj.is_addable(tagname):
+        return target_obj._parent_obj
     return None
 
 
-def add_new_element_from_id(elt_id, source_id, data, clipboard_data, dtd_url=None,
+def add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
                             dtd_str=None, skip_extra=False):
-    """Create an element from data and elt_id. We get the parent to add
-    source_id with the clipboard_data. This function should be used to make
-    some copy/paste.
+    """Create an element from data and elt_id. This function should be used to
+    make some copy/paste.
 
     :param skip_extra: If True we don't load the attributes nor the comments
     :type skip_extra: bool
     """
-    parentobj = get_parent_to_add_obj(elt_id, source_id, data, dtd_url=dtd_url,
-                                      dtd_str=dtd_str)
+    keys = clipboard_data.keys()
+    assert(len(keys), 1)
+    tagname = keys[0]
+    parentobj = _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=dtd_url,
+                                       dtd_str=dtd_str)
     if not parentobj:
         return None
 
-    tagname = source_id.split(':')[-1]
     obj = parentobj.add(tagname)
-
-    for s in source_id.split(':')[:-1]:
-        try:
-            s = int(s)
-        except:
-            pass
-        clipboard_data = clipboard_data[s]
     obj.load_from_dict(clipboard_data, skip_extra=skip_extra)
     return obj
 

@@ -82,20 +82,18 @@
         ).done(function(data) {
             $data = $(data);
         });
-
         $data.find('.dom-test').each(function(index){
             if (index !== -1) {
             var $this = $(this),
                 btn_selector = $this.attr('data-btn-selector'),
-                url = $this.attr('data-url'),
-                eltId = $this.attr('data-id');
+                url = $this.attr('data-url');
 
             var $input = $(this).find('.dom-input');
             var $jstree = $(this).find('.dom-jstree');
             var $expected = $(this).find('.dom-expected');
             var jstreeInput = $.parseJSON($jstree.text());
             var jstreeExpected = $.parseJSON($expected.text());
-            $fixture.append($input);
+            $fixture.html($input);
             var $btn = $input.find(btn_selector);
             if ($btn.is('option')) {
                 // The btn is the select
@@ -107,7 +105,8 @@
             ).done(function(d) {
                 data = d;
             });
-            var $tree = $('<div/>');
+            // TODO: tree id is hardcoded fix this
+            var $tree = $('<div/>').attr('id', 'tree');
             var $form = $('#xmltool-form');
             var $formContainer = $form.parent();
             $fixture.append($tree);
@@ -245,5 +244,93 @@
         $tree.jstree('redraw', $treeElt);
         equal(text, ' (Hello world)');
     });
+
+    test("xmltool.jstree.copy", function() {
+        expect(1);
+
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/jstree_utils.html',
+              {async: false}
+        ).done(function(data) {
+            $fixture.append(data);
+        });
+        var tree_data;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/jstree_utils.json',
+              {async: false, json: true}
+        ).done(function(data) {
+            tree_data = data;
+        });
+
+        var $form = $('#xmltool-form');
+        var $formContainer = $form.parent();
+        var $tree = $('#tree');
+        ns.load($tree, tree_data, $form, $formContainer);
+        var jstreeObj = $tree.data('jstree');
+
+        var $node = $('#tree_texts\\:list__text\\:0\\:text');
+        var node = jstreeObj.get_node($node);
+        var oldAjax = $.ajax;
+        var ajaxOptions;
+        $.ajax = function(options) {
+            ajaxOptions = options;
+        };
+        xmltool.jstree.copy(node);
+        var expectedData = [
+            'texts%3Alist__text%3A0%3Atext%3Asubtext%3A_value=Hello',
+            '&elt_id=texts:list__text:0:text'].join('');
+        equal(ajaxOptions.data, expectedData);
+        $.ajax = oldAjax;
+    });
+
+    test("xmltool.jstree.paste", function() {
+        expect(2);
+
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/jstree_utils.html',
+              {async: false}
+        ).done(function(data) {
+            $fixture.append(data);
+        });
+        var tree_data;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/jstree_utils.json',
+              {async: false, json: true}
+        ).done(function(data) {
+            tree_data = data;
+        });
+
+        var $form = $('#xmltool-form');
+        var $formContainer = $form.parent();
+        var $tree = $('#tree');
+        ns.load($tree, tree_data, $form, $formContainer);
+        var jstreeObj = $tree.data('jstree');
+
+        $form.data('paste-href', 'http://127.0.0.1:9999/js/test/fixtures/paste.json');
+        $form.data('xmltool', {message: function(){}});
+
+        var $node = $('#tree_texts\\:list__text\\:0\\:text');
+        var node = jstreeObj.get_node($node);
+
+        var oldAjax = $.ajax;
+        // Since POST method is not allowed and I don't want to waste some time
+        // here, just overwrite the type on the fly.
+        $.ajax = function(options) {
+            options.type = 'GET';
+            oldAjax(options);
+        };
+        xmltool.jstree.paste(node);
+        $.ajax = oldAjax;
+
+        var expected;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/paste_expected.json',
+              {async: false}
+        ).done(function(data) {
+            expected = data;
+        });
+        equal($form.html(), expected.html);
+        var tree_html = $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, '');
+        $.jstree.destroy();
+        $tree.html('');
+        xmltool.jstree.load($tree, expected.jstree_data, $form, $formContainer);
+        equal(tree_html, $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, ''));
+    });
+
 
 })(jQuery);

@@ -350,6 +350,28 @@ xmltool.jstree = {};
                     return false;
                 }
 
+            },
+            contextmenu: {
+                items: function(o, cb){
+                    // TODO: support to not display this menu when we don't
+                    // have the url to copy/paste.
+                    return {
+                        copyItem: {
+                            label: 'Copy',
+                            action: function(data) {
+                                var node = $tree.jstree("get_node", data.reference);
+                                xmltool.jstree.copy(node);
+                            },
+                        },
+                        pasteItem: {
+                            label: 'Paste',
+                            action: function(data) {
+                                var node = $tree.jstree("get_node", data.reference);
+                                xmltool.jstree.paste(node);
+                            }
+                        }
+                    };
+                }
             }
         })
 
@@ -492,4 +514,67 @@ xmltool.jstree = {};
         }));
     };
 
+    this.copy = function(node) {
+        var id = xmltool.jstree.utils.getFormId(node),
+            $elt = xmltool.jstree.utils.getFormElement(node),
+            $form = $elt.parents('form'),
+            params = $form.serialize();
+
+        var url = $form.data('copy-href');
+        var xmltoolObj = $form.data('xmltool');
+        params += '&elt_id=' + id;
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: params,
+            dataType: 'json',
+            async: false,
+            success: function(data, textStatus, jqXHR){
+                if (data.error_msg){
+                    xmltoolObj.message('error', data.error_msg);
+                }
+                else if (data.info_msg){
+                    xmltoolObj.message('info', data.info_msg);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown){
+                var msg = jqXHR.status + ' ' + jqXHR.statusText;
+                xmltoolObj.message('error', msg);
+            }
+        });
+    };
+
+    this.paste = function(node) {
+        var id = xmltool.jstree.utils.getFormId(node),
+            $elt = xmltool.jstree.utils.getFormElement(node),
+            $form = $elt.parents('form'),
+            params = $form.serialize();
+
+        var url = $form.data('paste-href');
+        var xmltoolObj = $form.data('xmltool');
+
+        params += '&elt_id=' + id;
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: params,
+            dataType: 'json',
+            async: false,
+            success: function(data, textStatus, jqXHR){
+                if (data.error_msg){
+                    xmltoolObj.message('error', data.error_msg);
+                    return false;
+                }
+                var $btn = xmltool.utils.getAddButton(data.elt_id);
+                xmltool.form._addElement(data.elt_id, $btn, data.html);
+                // TODO: add constant to get the tree
+                xmltool.jstree.utils.addNode($btn, $('#tree'), data);
+                xmltoolObj.message('info', 'Pasted!');
+            },
+            error: function(jqXHR, textStatus, errorThrown){
+                var msg = jqXHR.status + ' ' + jqXHR.statusText;
+                xmltoolObj.message('error', msg);
+            }
+        });
+    };
 }).call(xmltool.jstree, jQuery, xmltool);

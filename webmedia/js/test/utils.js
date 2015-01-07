@@ -86,4 +86,23 @@
         deepEqual(ns.getPrefixIndexFromListEltId('root:list_tag:0:tag'), expected);
     });
 
+    test('getAddButton', function(){
+        expect(5);
+        var $btn = ns.getAddButton('test:elt');
+        equal($btn.length, 0);
+
+        var $a = $('<a/>').attr('data-elt-id', 'test:elt');
+        $fixture.append($a);
+
+        $btn = ns.getAddButton('test:elt');
+        equal($btn.length, 1);
+        equal($btn.is('a'), true);
+
+        var $select = $('<select>').append($('<option/>').attr('value', 'test:elt')).addClass('btn-add');
+        $fixture.append($select);
+        $btn = ns.getAddButton('test:elt');
+        equal($btn.length, 1);
+        equal($btn.is('select'), true);
+    });
+
 }(jQuery));

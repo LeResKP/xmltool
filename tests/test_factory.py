@@ -198,3 +198,30 @@ class TestFactory(TestCase):
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
+
+    def test_getElementData(self):
+        data = {}
+        elt_id = 'texts:list__list:1:list:text'
+        res = factory.getElementData(elt_id, data)
+        self.assertEqual(res, {'text': {}})
+
+        data = {
+            'texts': {
+                'list__list': [
+                    {'list': {'text': {'_value': 'Hello'}}},
+                ]
+            }
+        }
+        res = factory.getElementData(elt_id, data)
+        self.assertEqual(res, {'text': {}})
+
+        data = {
+            'texts': {
+                'list__list': [
+                    {'list': {'text': {'_value': 'Hello'}}},
+                    {'list': {'text': {'_value': 'world'}}}
+                ]
+            }
+        }
+        res = factory.getElementData(elt_id, data)
+        self.assertEqual(res, {'text': {'_value': 'world'}})
