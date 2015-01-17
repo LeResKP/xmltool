@@ -20,6 +20,7 @@
         },
         teardown: function() {
             $fixture.html('');
+            $.jstree.destroy();
         }
     });
 
@@ -134,10 +135,168 @@
         equal(res, 1);
     });
 
+    test("getNodeSiblingsAndSelf", function() {
+        var tree_data;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/nodes.json',
+              {async: false, json: true}
+        ).done(function(data) {
+            tree_data = data;
+        });
+
+        var $formContainer = $('<div />');
+        var $form = $('<form />').attr('id', 'xmltool-form');
+        $formContainer.append($form);
+        var $tree = $('<div />').attr('id', 'tree');
+        $fixture.append($tree).append($formContainer);
+        ns.load($tree, tree_data, $form, $formContainer);
+        var jstreeObj = $tree.data('jstree');
+
+        var $node = $('#tree_texts\\:list__text\\:0\\:text');
+        var node = jstreeObj.get_node($node);
+
+        var res = ns.utils.getNodeSiblingsAndSelf(node);
+        equal(res.length, 3);
+        equal(res[0].id, node.id);
+
+        var siblingNode1 = res[1];
+        res = ns.utils.getNodeSiblingsAndSelf(siblingNode1);
+        equal(res.length, 3);
+        equal(res[0].id, node.id);
+        equal(res[1].id, siblingNode1.id);
+
+    });
+
+    test("updateNodePrefix", function() {
+        var tree_data;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/nodes.json',
+              {async: false, json: true}
+        ).done(function(data) {
+            tree_data = data;
+        });
+
+        var $formContainer = $('<div />');
+        var $form = $('<form />').attr('id', 'xmltool-form');
+        $formContainer.append($form);
+        var $tree = $('<div />').attr('id', 'tree');
+        $fixture.append($tree).append($formContainer);
+        ns.load($tree, tree_data, $form, $formContainer);
+        var jstreeObj = $tree.data('jstree');
+
+        var $node = $('#tree_texts\\:list__text\\:0\\:text');
+        var node = jstreeObj.get_node($node);
+
+        equal(node.li_attr['class'], 'tree_texts:list__text text');
+        equal(node.a_attr['id'], 'tree_texts:list__text:0:text');
+
+        var childNode = jstreeObj.get_node(node.children[0]);
+        equal(childNode.li_attr['class'], 'tree_texts:list__text:0:text:subtext subtext');
+        equal(childNode.a_attr['id'], 'tree_texts:list__text:0:text:subtext');
+
+        ns.utils.updateNodePrefix($tree, node, 'tree_texts:list__text:0:', 'tree_texts:list__text:1:');
+        equal(node.li_attr['class'], 'tree_texts:list__text text');
+        equal(node.a_attr['id'], 'tree_texts:list__text:1:text');
+
+        equal(childNode.li_attr['class'], 'tree_texts:list__text:1:text:subtext subtext');
+        equal(childNode.a_attr['id'], 'tree_texts:list__text:1:text:subtext');
+    });
+
+    test("updateNodesPrefix", function() {
+        var tree_data;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/nodes.json',
+              {async: false, json: true}
+        ).done(function(data) {
+            tree_data = data;
+        });
+
+        var $formContainer = $('<div />');
+        var $form = $('<form />').attr('id', 'xmltool-form');
+        $formContainer.append($form);
+        var $tree = $('<div />').attr('id', 'tree');
+        $fixture.append($tree).append($formContainer);
+        ns.load($tree, tree_data, $form, $formContainer);
+        var jstreeObj = $tree.data('jstree');
+
+        var node0, node1, node2, childNode0, childNode1, childNode2;
+
+        node0 = jstreeObj.get_node('#tree_texts\\:list__text\\:0\\:text');
+        equal(node0.li_attr['class'], 'tree_texts:list__text text');
+        equal(node0.a_attr['id'], 'tree_texts:list__text:0:text');
+
+        childNode0 = jstreeObj.get_node(node0.children[0]);
+        equal(childNode0.li_attr['class'], 'tree_texts:list__text:0:text:subtext subtext');
+        equal(childNode0.a_attr['id'], 'tree_texts:list__text:0:text:subtext');
+
+        node1 = jstreeObj.get_node('#tree_texts\\:list__text\\:1\\:text');
+        equal(node1.li_attr['class'], 'tree_texts:list__text text');
+        equal(node1.a_attr['id'], 'tree_texts:list__text:1:text');
+
+        childNode1 = jstreeObj.get_node(node1.children[0]);
+        equal(childNode1.li_attr['class'], 'tree_texts:list__text:1:text:subtext subtext');
+        equal(childNode1.a_attr['id'], 'tree_texts:list__text:1:text:subtext');
+
+        node2 = jstreeObj.get_node('#tree_texts\\:list__text\\:2\\:text');
+        equal(node2.li_attr['class'], 'tree_texts:list__text text');
+        equal(node2.a_attr['id'], 'tree_texts:list__text:2:text');
+
+        childNode2 = jstreeObj.get_node(node2.children[0]);
+        equal(childNode2.li_attr['class'], 'tree_texts:list__text:2:text:subtext subtext');
+        equal(childNode2.a_attr['id'], 'tree_texts:list__text:2:text:subtext');
+
+        var newNodeData = {
+            text: '>',
+            li_attr: {
+                class: 'tree_texts:list__text text',
+            },
+            a_attr: {
+                id: 'tree_texts:list__text:0:text'
+            }
+        };
+        jstreeObj.create_node(node0, newNodeData, 'before');
+        ns.utils.updateNodesPrefix($tree, node0);
+
+        equal(node0.li_attr['class'], 'tree_texts:list__text text');
+        equal(node0.a_attr['id'], 'tree_texts:list__text:0:text');
+
+        equal(childNode0.li_attr['class'], 'tree_texts:list__text:0:text:subtext subtext');
+        equal(childNode0.a_attr['id'], 'tree_texts:list__text:0:text:subtext');
+
+        equal(node1.li_attr['class'], 'tree_texts:list__text text');
+        equal(node1.a_attr['id'], 'tree_texts:list__text:2:text');
+
+        equal(childNode1.li_attr['class'], 'tree_texts:list__text:2:text:subtext subtext');
+        equal(childNode1.a_attr['id'], 'tree_texts:list__text:2:text:subtext');
+
+        equal(node2.li_attr['class'], 'tree_texts:list__text text');
+        equal(node2.a_attr['id'], 'tree_texts:list__text:3:text');
+
+        equal(childNode2.li_attr['class'], 'tree_texts:list__text:3:text:subtext subtext');
+        equal(childNode2.a_attr['id'], 'tree_texts:list__text:3:text:subtext');
+
+        ns.utils.updateNodesPrefix($tree, node0, true);
+
+        equal(node0.li_attr['class'], 'tree_texts:list__text text');
+        equal(node0.a_attr['id'], 'tree_texts:list__text:1:text');
+
+        equal(childNode0.li_attr['class'], 'tree_texts:list__text:1:text:subtext subtext');
+        equal(childNode0.a_attr['id'], 'tree_texts:list__text:1:text:subtext');
+
+        equal(node1.li_attr['class'], 'tree_texts:list__text text');
+        equal(node1.a_attr['id'], 'tree_texts:list__text:2:text');
+
+        equal(childNode1.li_attr['class'], 'tree_texts:list__text:2:text:subtext subtext');
+        equal(childNode1.a_attr['id'], 'tree_texts:list__text:2:text:subtext');
+
+        equal(node2.li_attr['class'], 'tree_texts:list__text text');
+        equal(node2.a_attr['id'], 'tree_texts:list__text:3:text');
+
+        equal(childNode2.li_attr['class'], 'tree_texts:list__text:3:text:subtext subtext');
+        equal(childNode2.a_attr['id'], 'tree_texts:list__text:3:text:subtext');
+    });
+
     test("addNode", function() {
         expect(16);
         var $data;
-        $.ajax('http://127.0.0.1:9999/js/test/fixtures/add_element/test-jstree.html',
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/add_element/test.html',
             {async: false}
         ).done(function(data) {
             $data = $(data);
@@ -148,9 +307,9 @@
                 btn_selector = $this.attr('data-btn-selector'),
                 url = $this.attr('data-url');
 
-            var $input = $(this).find('.dom-input');
-            var $jstree = $(this).find('.dom-jstree');
-            var $expected = $(this).find('.dom-expected');
+            var $input = $(this).find('.dom-input-html');
+            var $jstree = $(this).find('.dom-input-jstree');
+            var $expected = $(this).find('.dom-expected-jstree');
             var jstreeInput = $.parseJSON($jstree.text());
             var jstreeExpected = $.parseJSON($expected.text());
             $fixture.html($input);

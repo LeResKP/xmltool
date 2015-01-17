@@ -2103,7 +2103,7 @@ class TestJavascript(TestCase):
 
         text = obj.add('text')
         subtext = text.add('subtext')
-        subtext.text = 'Hello'
+        subtext.text = 'World'
         dic = get_display_data_from_obj(text)
 
         filename = 'webmedia/js/test/fixtures/paste.json'
@@ -2112,6 +2112,14 @@ class TestJavascript(TestCase):
         filename = 'webmedia/js/test/fixtures/paste_expected.json'
         dic = get_display_data_from_obj(obj)
         open(filename, 'w').write(json.dumps(dic))
+
+        text = obj.add('text')
+        subtext = text.add('subtext')
+        subtext.text = '!'
+
+        js = json.dumps(obj.to_jstree_dict())
+        filename = 'webmedia/js/test/fixtures/nodes.json'
+        open(filename, 'w').write(js)
 
     def test_add_element(self):
         dtd_str = '''
@@ -2130,11 +2138,11 @@ class TestJavascript(TestCase):
 
         input_html = generate_html_block(
             obj.to_html(),
-            'dom-input'
+            'dom-input-html'
         )
         input_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-jstree'
+            'dom-input-jstree'
         )
 
         o = obj.add('text', '')
@@ -2149,29 +2157,21 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
+
         test_html = generate_html_block(
-            input_html + expected_html,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        jstree_list += [test_jstree]
 
         dtd_str = '''
         <!ELEMENT texts (text1|text2)?>
@@ -2188,11 +2188,11 @@ class TestJavascript(TestCase):
 
         input_html = generate_html_block(
             obj.to_html(),
-            'dom-input'
+            'dom-input-html'
         )
         input_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-jstree'
+            'dom-input-jstree'
         )
 
         o = obj.add('text1')
@@ -2207,30 +2207,21 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
 
         test_html = generate_html_block(
-            input_html + expected_html,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        jstree_list += [test_jstree]
 
         dtd_str = '''
         <!ELEMENT texts ((text1|text2)+)>
@@ -2255,11 +2246,11 @@ class TestJavascript(TestCase):
 
         input_html = generate_html_block(
             obj.to_html(),
-            'dom-input'
+            'dom-input-html'
         )
         input_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-jstree'
+            'dom-input-jstree'
         )
 
         o = obj['list__text1_text2'].add('text1', index=0)
@@ -2274,28 +2265,21 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
+
         test_html = generate_html_block(
-            input_html + expected_html,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-        jstree_list += [test_jstree]
 
         o._parent_obj.remove(o)
         o = obj['list__text1_text2'].add('text1', index=1)
@@ -2310,28 +2294,21 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
+
         test_html = generate_html_block(
-            input_html + expected_html,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-        jstree_list += [test_jstree]
 
         o._parent_obj.remove(o)
         o = obj['list__text1_text2'].add('text1', index=2)
@@ -2346,28 +2323,21 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
+
         test_html = generate_html_block(
-            input_html + expected_html,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-        jstree_list += [test_jstree]
 
         dtd_str = '''
             <!ELEMENT texts (text+)>
@@ -2391,11 +2361,11 @@ class TestJavascript(TestCase):
 
         input_html = generate_html_block(
             obj.to_html(),
-            'dom-input'
+            'dom-input-html'
         )
         input_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-jstree'
+            'dom-input-jstree'
         )
 
         o = obj['list__text'].add('text', index=0)
@@ -2410,28 +2380,21 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
+
         test_html = generate_html_block(
-            input_html + expected_html,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-        jstree_list += [test_jstree]
 
         o._parent_obj.remove(o)
         o = obj['list__text'].add('text', index=1)
@@ -2446,28 +2409,21 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
+
         test_html = generate_html_block(
-            input_html + expected_html,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-        jstree_list += [test_jstree]
 
         o._parent_obj.remove(o)
         o = obj['list__text'].add('text', index=2)
@@ -2482,34 +2438,24 @@ class TestJavascript(TestCase):
 
         expected_html = generate_html_block(
             obj.to_html(),
-            'dom-expected'
+            'dom-expected-html'
         )
         expected_jstree = generate_html_block(
             json.dumps(obj.to_jstree_dict()),
-            'dom-expected'
+            'dom-expected-jstree'
         )
+
         test_html = generate_html_block(
-            input_html + expected_html,
-            'dom-test',
-            'data-url="%s"'
-            ' data-btn-selector="%s"'
-            ' data-id="%s"' % (filename, btn_selector, ident),
-        )
-        test_jstree = generate_html_block(
-            input_jstree + input_html + expected_jstree,
+            input_jstree + input_html + expected_jstree + expected_html,
             'dom-test',
             'data-url="%s"'
             ' data-btn-selector="%s"'
             ' data-id="%s"' % (filename, btn_selector, ident),
         )
         lis += [test_html]
-        jstree_list += [test_jstree]
 
         filename = 'webmedia/js/test/fixtures/add_element/test.html'
         open(filename, 'w').write('<div>%s</div>' % ''.join(lis))
-
-        filename = 'webmedia/js/test/fixtures/add_element/test-jstree.html'
-        open(filename, 'w').write('<div>%s</div>' % ''.join(jstree_list))
 
         document_root = html.fromstring(''.join(lis))
         h = etree.tostring(document_root, encoding='unicode',

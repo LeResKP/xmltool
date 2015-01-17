@@ -1,6 +1,7 @@
 <div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/1.json" data-btn-selector="[data-elt-id='texts\:text']" data-id="texts:text">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -10,7 +11,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:text"}, "children": [], "li_attr": {"class": "tree_texts:text text"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -28,7 +30,8 @@
     </div>
   </div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/2.json" data-btn-selector="option[value='texts\:text1']" data-id="texts:text1">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -42,7 +45,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:text1"}, "children": [{"text": "subtext", "state": {"opened": true}, "a_attr": {"id": "tree_texts:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:text1 text1"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -65,7 +69,8 @@
     </div>
   </div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/3.json" data-btn-selector="option[value='texts\:list__text1_text2\:0\:text1']" data-id="texts:list__text1_text2:0:text1">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 1)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:0:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text2", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 2)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:1:text2:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text2"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -115,7 +120,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1"}, "children": [{"text": "subtext", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:0:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text1"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 1)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:1:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text2", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:2:text2"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 2)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:2:text2:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:2:text2:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text2"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -184,7 +190,8 @@
     </div>
   </div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/4.json" data-btn-selector="option[value='texts\:list__text1_text2\:1\:text1']" data-id="texts:list__text1_text2:1:text1">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 1)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:0:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text2", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 2)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:1:text2:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text2"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -234,7 +241,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 1)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:0:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text1"}, "children": [{"text": "subtext", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:1:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text2", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:2:text2"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 2)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:2:text2:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:2:text2:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text2"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -303,7 +311,8 @@
     </div>
   </div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/5.json" data-btn-selector="option[value='texts\:list__text1_text2\:2\:text1']" data-id="texts:list__text1_text2:2:text1">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 1)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:0:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text2", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 2)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:1:text2:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text2"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -353,7 +362,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 1)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:0:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:0:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}, {"text": "text2", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Tag 2)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:1:text2:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:1:text2:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text2"}}, {"text": "text1", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:2:text1"}, "children": [{"text": "subtext", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text1_text2:2:text1:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text1_text2:2:text1:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text1_text2 text1"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -422,7 +432,8 @@
     </div>
   </div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/6.json" data-btn-selector="[data-elt-id='texts\:list__text\:0\:text']" data-id="texts:list__text:0:text">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Hello)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:0:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(World)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:1:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -460,7 +471,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text"}, "children": [{"text": "subtext", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:0:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Hello)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:1:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:2:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(World)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:2:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:2:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -513,7 +525,8 @@
     </div>
   </div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/7.json" data-btn-selector="[data-elt-id='texts\:list__text\:1\:text']" data-id="texts:list__text:1:text">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Hello)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:0:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(World)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:1:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -551,7 +564,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Hello)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:0:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text"}, "children": [{"text": "subtext", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:1:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:2:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(World)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:2:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:2:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -604,7 +618,8 @@
     </div>
   </div>
   <div class="dom-test" data-url="js/test/fixtures/add_element/8.json" data-btn-selector="[data-elt-id='texts\:list__text\:2\:text']" data-id="texts:list__text:2:text">
-    <div class="dom-input">
+    <div class="dom-input-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Hello)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:0:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(World)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:1:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-input-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
@@ -642,7 +657,8 @@
         </div>
       </div>
     </div>
-    <div class="dom-expected">
+    <div class="dom-expected-jstree">{"text": "texts", "state": {"opened": true}, "a_attr": {"id": "tree_texts"}, "children": [{"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(Hello)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:0:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:0:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text"}, "children": [{"text": "subtext <span class="\&quot;_tree_text\&quot;">(World)</span>", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:1:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:1:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}, {"text": "text", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:2:text"}, "children": [{"text": "subtext", "state": {"opened": true}, "a_attr": {"id": "tree_texts:list__text:2:text:subtext"}, "children": [], "li_attr": {"class": "tree_texts:list__text:2:text:subtext subtext"}}], "li_attr": {"class": "tree_texts:list__text text"}}], "li_attr": {"class": "tree_texts texts"}}</div>
+    <div class="dom-expected-html">
       <div class="panel panel-default texts" id="texts">
         <div class="panel-heading">
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>

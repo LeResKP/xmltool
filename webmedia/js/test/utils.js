@@ -49,20 +49,21 @@
 
     test('updatePrefixAttrs', function() {
         expect(8);
+        var $data;
         $.ajax('http://127.0.0.1:9999/js/test/fixtures/updatePrefixAttrs.html',
               {async: false}
         ).done(function(data) {
-            var $data = $(data);
-            $data.find('.dom-test').each(function(){
-                var $this = $(this),
-                    prefix = $this.attr('prefix'),
-                    newprefix = $this.attr('newprefix');
-                var $input = $(this).find('.dom-input');
-                var $obj = $input.children(':first');
-                var $expected = $(this).find('.dom-expected');
-                ns.updatePrefixAttrs($obj, prefix, newprefix);
-                equal($input.html(), $expected.html());
-            });
+            $data = $(data);
+        });
+        $data.find('.dom-test').each(function(){
+            var $this = $(this),
+                prefix = $this.attr('prefix'),
+                newprefix = $this.attr('newprefix');
+            var $input = $(this).find('.dom-input');
+            var $obj = $input.children(':first');
+            var $expected = $(this).find('.dom-expected');
+            ns.updatePrefixAttrs($obj, prefix, newprefix);
+            equal($input.html(), $expected.html());
         });
     });
 

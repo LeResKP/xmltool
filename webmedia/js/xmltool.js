@@ -70,7 +70,8 @@ xmltool.form = {};
      * @memberof xmltool.form
      * @method addElement
      */
-    this.addElement = function($btn, url, dtdUrl, msgFunc, $tree) {
+    this.addElement = function($btn, url, dtdUrl, msgFunc, $tree, async) {
+        async = (typeof async === 'undefined')? true: async;
         var eltId;
         if ($btn.is('select')) {
             eltId = $btn.val();
@@ -83,10 +84,12 @@ xmltool.form = {};
             elt_id: eltId,
             dtd_url: dtdUrl
         };
+
         $.ajax({
             type: 'GET',
             url: url,
             data: params,
+            async: async,
             dataType: 'json',
             success: function(data){
                 that._addElement(eltId, $btn, data.html);
@@ -95,7 +98,7 @@ xmltool.form = {};
             error: function(jqXHR){
                 var msg = jqXHR.status + ' ' + jqXHR.statusText;
                 msgFunc('error' + msg);
-            }
+            },
         });
     };
 

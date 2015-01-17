@@ -13,6 +13,7 @@ xmltool.jstree = {};
 
     /**
      * Some functions use to find node from form and vice versa.
+     * Also functions to manage the node, updating class, id, adding new node, ...
      *
      * @namespace xmltool.jstree.utils
      * */
@@ -163,6 +164,15 @@ xmltool.jstree = {};
         return -1;
     };
 
+    /**
+     * Get the node sibling of the same list.
+     *
+     * @param {object} node - a jstree node
+     * @return {Array} List of nodes
+     *
+     * @memberof xmltool.jstree.utils
+     * @method getNodeSiblingsAndSelf
+     */
     this.getNodeSiblingsAndSelf = function(node) {
         // TODO: remove hardcoded tree id
         var parentNode = $('#tree').jstree('get_node', node.parent),
@@ -178,6 +188,18 @@ xmltool.jstree = {};
         return children;
     };
 
+    /**
+     * Update the node classes and id. When we insert or mode node we have to
+     * update the classes and id which correspond with the position
+     *
+     * @param {jQuery} $tree - the tree object
+     * @param {object} node - a jstree node
+     * @param {string} prefix - The current prefix to replace
+     * @param {string} newPrefix - The new prefix
+     *
+     * @memberof xmltool.jstree.utils
+     * @method updateNodePrefix
+     */
     this.updateNodePrefix = function($tree, node, prefix, newPrefix) {
         var re = new RegExp('^' + prefix);
         node.a_attr['id'] = node.a_attr['id'].replace(re, newPrefix);
@@ -195,6 +217,16 @@ xmltool.jstree = {};
         $tree.jstree("_node_changed", node.id);
     };
 
+    /**
+     * Update the nodes classes and id.
+     *
+     * @param {jQuery} $tree - the tree object
+     * @param {object} node - a jstree node
+     * @param {boolean} includeSelf - If true also replace the id of the given node
+     *
+     * @memberof xmltool.jstree.utils
+     * @method updateNodesPrefix
+     */
     this.updateNodesPrefix = function($tree, node, includeSelf) {
         includeSelf = includeSelf || false;
         var children = this.getNodeSiblingsAndSelf(node),
@@ -212,7 +244,16 @@ xmltool.jstree = {};
         $tree.jstree("redraw");
     };
 
-
+    /**
+     * Add a new node to the tree
+     *
+     * @param {jQuery} $btn - the button clicked to add a node
+     * @param {jQuery} $tree - the tree object
+     * @param {object} data - The node data to create
+     *
+     * @memberof xmltool.jstree.utils
+     * @method addNode
+     */
     this.addNode = function($btn, $tree, data) {
         var isList = $btn.hasClass('btn-list'),
             jstree_data = $(data.jstree_data),
@@ -514,6 +555,16 @@ xmltool.jstree = {};
         }));
     };
 
+    /**
+     * Copy a node. Get the form data corresponding to the node and call an
+     * ajax request to send this data to the server. The data are sent to the
+     * server because we can copy/paste data from different forms/pages.
+     *
+     * @param {object} node - a jstree node
+     *
+     * @memberof xmltool.jstree
+     * @method copy
+     */
     this.copy = function(node) {
         var id = xmltool.jstree.utils.getFormId(node),
             $elt = xmltool.jstree.utils.getFormElement(node),
@@ -544,6 +595,15 @@ xmltool.jstree = {};
         });
     };
 
+    /**
+     * Paste a node. Send the data to the server which should return the node
+     * data to insert in the tree.
+     *
+     * @param {object} node - a jstree node
+     *
+     * @memberof xmltool.jstree
+     * @method copy
+     */
     this.paste = function(node) {
         var id = xmltool.jstree.utils.getFormId(node),
             $elt = xmltool.jstree.utils.getFormElement(node),
