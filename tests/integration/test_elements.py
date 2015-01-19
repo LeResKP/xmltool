@@ -2463,6 +2463,159 @@ class TestJavascript(TestCase):
         filename = 'webmedia/js/test/fixtures/add_element/test-debug.html'
         open(filename, 'w').write(h)
 
+    def test_remove_element(self):
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext?)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>
+    <subtext>Tag 1</subtext>
+  </text1>
+  <text2>
+    <subtext>Tag 2</subtext>
+  </text2>
+  <text2>
+    <subtext>Tag 3</subtext>
+  </text2>
+  <text2>
+    <subtext>Tag 4</subtext>
+  </text2>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        lis = []
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+        self.assertEqual(len(obj['list__text1_text2']), 4)
+        o = obj['list__text1_text2'][0]
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        self.assertEqual(len(obj['list__text1_text2']), 3)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text1_text2'][1]
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        self.assertEqual(len(obj['list__text1_text2']), 2)
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text1_text2'][1]['subtext']
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text1_text2'][-1]
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        self.assertEqual(len(obj['list__text1_text2']), 1)
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        filename = 'webmedia/js/test/fixtures/remove_element.html'
+        open(filename, 'w').write('<div>%s</div>' % ''.join(lis))
+
     def test_move_element(self):
         lis = []
         dtd_str = '''

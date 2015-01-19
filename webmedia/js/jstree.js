@@ -65,15 +65,28 @@ xmltool.jstree = {};
     };
 
     /**
+     * Get the tree element corresponding to the given form id.
+     *
+     * @param {String} id - form id we want to get the tree element corresponding
+     *
+     * @memberof xmltool.jstree.utils
+     * @method getTreeElementFromId
+     */
+    this.getTreeElementFromId = function(id) {
+        var treeId = TREE_PREFIX + id;
+        return xmltool.utils.getElementById(treeId);
+    };
+
+    /**
      * Get the tree element corresponding to a textarea.
      *
      * @param {jQuery} $textarea - a jQuery textarea object
      * @return {jQuery} The tree element corresponding to the textarea
      *
      * @memberof xmltool.jstree.utils
-     * @method getTreeElement
+     * @method getTreeElementFromTextarea
      */
-    this.getTreeElement = function($textarea) {
+    this.getTreeElementFromTextarea = function($textarea) {
         var id = TREE_PREFIX + $textarea.parent().attr('id');
         return xmltool.utils.getElementById(id);
     };
@@ -276,6 +289,36 @@ xmltool.jstree = {};
         return newNodeId;
     };
 
+    /**
+     * Remove a node from the tree
+     *
+     * @param {jQuery} $btn - the button clicked to add a node
+     * @param {String} eltId - The form id corresponding to the node to delete
+     * @param {jQuery} $tree - The tree element
+     *
+     * @memberof xmltool.jstree.utils
+     * @method addNode
+     */
+    this.removeNode = function($btn, eltId, $tree) {
+        var $node = this.getTreeElementFromId(eltId);
+        var node = $tree.jstree('get_node', $node);
+
+        var res;
+        if($btn.hasClass('btn-list')) {
+            var children = this.getNodeSiblingsAndSelf(node),
+                pos = this.getNodePositionInChildren(node, children);
+            res = $tree.jstree('delete_node', $node);
+            if ((pos+1) < children.length) {
+                var nextNode = $tree.jstree('get_node', children[pos+1]);
+                this.updateNodesPrefix($tree, nextNode, true);
+            }
+        }
+        else {
+            res = $tree.jstree('delete_node', $node);
+        }
+        return res;
+    };
+
 
 }).call(xmltool.jstree.utils={}, jQuery, xmltool);
 
@@ -334,6 +377,10 @@ xmltool.jstree = {};
                 html_titles: true,
                 check_callback: function (operation, node, node_parent, node_position, more) {
                     if (operation === 'create_node') {
+                        return true;
+                    }
+
+                    if (operation === 'delete_node') {
                         return true;
                     }
 
@@ -492,7 +539,7 @@ xmltool.jstree = {};
                 $elt = that.utils.getFormElement(oldNode);
                 $btn = $elt.prev();
             }
-            xmltool.form._updateElementsPrefix($btn, positionInList - 1, prefix);
+            xmltool.form._updateElementsPrefix($btn, positionInList, prefix);
 
             var firstNodeToUpdate = $tree.jstree('get_node', children[positionInList]);
             that.utils.updateNodesPrefix($tree, firstNodeToUpdate, true);
@@ -503,7 +550,7 @@ xmltool.jstree = {};
          * tree and make sure it is visible.
          */
         $form.on('focus', 'textarea.form-control', transitionDecorator(function(){
-            var $elt = that.utils.getTreeElement($(this));
+            var $elt = that.utils.getTreeElementFromTextarea($(this));
             $tree.jstree('deselect_all').jstree('select_node', $elt);
             xmltool.utils.scrollToElement($elt, $tree);
         }))
@@ -513,7 +560,7 @@ xmltool.jstree = {};
          */
         .on('blur', 'textarea', function() {
             var $this = $(this);
-            var $elt = that.utils.getTreeElement($this);
+            var $elt = that.utils.getTreeElementFromTextarea($this);
             var text = $tree.jstree('get_text', $elt);
             var $text = $elt.find('._tree_text');
             if ($text.length === 0){

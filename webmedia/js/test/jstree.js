@@ -20,7 +20,6 @@
         },
         teardown: function() {
             $fixture.html('');
-            $.jstree.destroy();
         }
     });
 
@@ -53,19 +52,29 @@
         equal($elt.get(0), $col.get(0), 'Found element in the dom');
     });
 
-    test("getTreeElement", function() {
+    test("getTreeElementFromId", function() {
+        expect(1);
+        var $div = $('<div>').attr('id', 'myid');
+        $fixture.append($div);
+        var $node = $('<div>').attr('id', 'tree_myid');
+        $fixture.append($node);
+        var $elt = ns.utils.getTreeElementFromId('myid');
+        equal($elt.get(0), $node.get(0));
+    });
+
+    test("getTreeElementFromTextarea", function() {
         expect(2);
         var $textarea = $('<textarea>');
         $fixture.append($textarea);
         var $node = $('<div>').attr('id', 'tree_myid');
         $fixture.append($node);
 
-        var $elt = ns.utils.getTreeElement($textarea);
+        var $elt = ns.utils.getTreeElementFromTextarea($textarea);
         equal($elt.length, 0, 'Found nothing');
 
         var $div = $('<div>').attr('id', 'myid').append($textarea);
         $fixture.append($div);
-        $elt = ns.utils.getTreeElement($textarea);
+        $elt = ns.utils.getTreeElementFromTextarea($textarea);
         equal($elt.get(0), $node.get(0));
     });
 
@@ -333,13 +342,12 @@
             var res = xmltool.jstree.utils.addNode($btn, $tree, data);
             ok(typeof res !== 'undefined');
             var inputHtml = $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, '');
-            $.jstree.destroy();
-            $tree.html('');
+
+            $tree.removeClass('jstree').html('');
             xmltool.jstree.load($tree, jstreeExpected, $form, $formContainer);
             // Just replaces the generated ids
             var expectedHtml = $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, '');
             equal(inputHtml, expectedHtml);
-            $.jstree.destroy();
             }
         });
     });
@@ -367,7 +375,7 @@
 
         var $textarea = $('textarea');
         equal($textarea.attr('name'), 'texts:list__text:0:text:subtext:_value');
-        var $elt = ns.utils.getTreeElement($textarea);
+        var $elt = ns.utils.getTreeElementFromTextarea($textarea);
         equal($elt.attr('id'), 'tree_texts:list__text:0:text:subtext');
 
         var node = jstreeObj.get_node($elt);
@@ -512,8 +520,7 @@
             res = treeObj.move_node(node, parentNode.children[childrenIndex], position);
             equal(res, true);
             var treeHtml = cleanTreeHtml($tree.html());
-            $.jstree.destroy();
-            $tree.html('');
+            $tree.removeClass('jstree').html('');
             xmltool.jstree.load($tree, jstreeExpected, $form, $formContainer);
             equal($container.html(), $expectedHtml);
             equal(treeHtml, cleanTreeHtml($tree.html()));
@@ -602,8 +609,7 @@
         });
         equal($form.html(), expected.html);
         var tree_html = $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, '');
-        $.jstree.destroy();
-        $tree.html('');
+        $tree.removeClass('jstree').html('');
         xmltool.jstree.load($tree, expected.jstree_data, $form, $formContainer);
         equal(tree_html, $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, ''));
     });

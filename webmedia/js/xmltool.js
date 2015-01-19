@@ -24,7 +24,7 @@ xmltool.form = {};
             for (var i=0, len=$nexts.length; i < len; i++) {
                 var $elt = $nexts.eq(i);
                 var prefix = prefixId + ':[0-9]+:';
-                var newPrefix = prefixId + ':' + (position + 1) + ':';
+                var newPrefix = prefixId + ':' + position + ':';
                 xmltool.utils.updatePrefixAttrs($elt, prefix, newPrefix);
 
                 if (i % 2 !== 0) {
@@ -47,7 +47,7 @@ xmltool.form = {};
             // We have to increment the attributes' index of the next elements
             var d = xmltool.utils.getPrefixIndexFromListEltId(eltId);
             var index = d.index;
-            this._updateElementsPrefix($btn, index, d.prefixId);
+            this._updateElementsPrefix($btn, (index + 1), d.prefixId);
             $btn.before(objs);
         }
         else {
@@ -102,6 +102,31 @@ xmltool.form = {};
         });
     };
 
+    /**
+     * Remove an element from the form and the tree after clicking on a button.
+     * @param {jQuery} $btn - The button clicked
+     * @param {jQuery} $tree - The tree element
+     * @memberof xmltool.form
+     * @method removeElement
+     */
+    this.removeElement = function($btn, $tree) {
+        var $target = $(xmltool.utils.escapeAttr($btn.data('target')));
+        var targetId = $target.attr('id');
+        if($btn.hasClass('btn-list')) {
+            // We have to decrement the attributes' index of the next elements
+            var d = xmltool.utils.getPrefixIndexFromListEltId($target.attr('id'));
+            var index = d.index;
+            this._updateElementsPrefix($target.next(), index, d.prefixId);
+            $target.prev('.btn-add').remove();
+            $target.remove();
+        }
+        else {
+            var $addBtn = $btn.prev('.btn-add').removeClass('hidden');
+            $target.replaceWith($addBtn);
+        }
+        xmltool.jstree.utils.removeNode($btn, targetId, $tree);
+    };
+
 }).call(xmltool.form, jQuery);
 
 
@@ -129,6 +154,12 @@ xmltool.form = {};
         this.$form.on('click', '.btn-add', function(e){
           e.preventDefault();
           xmltool.form.addElement($(this), that.options.add_element_url, that.dtdUrl, that.message, that.$tree);
+          return false;
+        });
+
+        this.$form.on('click', '.btn-delete', function(e){
+          e.preventDefault();
+          xmltool.form.removeElement($(this), that.$tree);
           return false;
         });
 

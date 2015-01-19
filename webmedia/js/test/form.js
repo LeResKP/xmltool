@@ -14,7 +14,6 @@
         },
         teardown: function() {
             $fixture.html('');
-            $.jstree.destroy();
         }
     });
 
@@ -27,7 +26,7 @@
         $div.append($('<div id="prefix:2:child" />'));
         $fixture.append($div);
 
-        xmltool.form._updateElementsPrefix($div.children().eq(0), 10, 'prefix');
+        xmltool.form._updateElementsPrefix($div.children().eq(0), 11, 'prefix');
         equal($div.children().eq(0).attr('id'), 'prefix:11:child');
         equal($div.children().eq(1).attr('id'), 'prefix:11:child');
         equal($div.children().eq(2).attr('id'), 'prefix:12:child');
@@ -84,14 +83,16 @@
                 url = 'http://127.0.0.1:9999/' + $this.attr('data-url'),
                 eltId = $this.attr('data-id');
 
-            var $input = $(this).find('.dom-input-html');
-            var $jstree = $(this).find('.dom-input-jstree');
-            var $expected = $(this).find('.dom-expected-html');
+            var $input = $this.find('.dom-input-html');
+            var $jstree = $this.find('.dom-input-jstree');
+            var $expected = $this.find('.dom-expected-html');
+            var $jstreeExpected = $this.find('.dom-input-jstree');
             var jstreeInput = $.parseJSON($jstree.text());
+            var jstreeExpected = $.parseJSON($jstreeExpected.text());
 
             // TODO: tree id is hardcoded fix this
             var $tree = $('<div/>').attr('id', 'tree');
-            var $form = $('<form id="xmltool-form">').append($input.html());
+            var $form = $('<form id="xmltool-form">').append($input);
             var $formContainer = $('<div>').append($form);
             $fixture.html($formContainer);
             $fixture.append($tree);
@@ -106,7 +107,46 @@
             var treeHtml = cleanTreeHtml($tree.html());
             xmltool.form.addElement($btn, url, null, null, $tree, false);
             equal($input.html(), $expected.html());
-            notEqual(treeHtml, cleanTreeHtml($tree.html()));
+            $tree.removeClass('jstree').html('');
+            xmltool.jstree.load($tree, jstreeExpected, $form, $formContainer);
+            equal(treeHtml, cleanTreeHtml($tree.html()));
+        });
+    });
+
+    test('remove_element', function() {
+        expect(8);
+        var $data;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/remove_element.html',
+              {async: false}
+        ).done(function(data) {
+            $data = $(data);
+        });
+        $data.find('.dom-test').each(function(index){
+            var $this = $(this),
+                btn_selector = $this.attr('data-btn-selector');
+
+            var $input = $this.find('.dom-input-html');
+            var $jstree = $this.find('.dom-input-jstree');
+            var $expected = $this.find('.dom-expected-html');
+            var $jstreeExpected = $this.find('.dom-input-jstree');
+            var jstreeInput = $.parseJSON($jstree.text());
+            var jstreeExpected = $.parseJSON($jstreeExpected.text());
+
+            // TODO: tree id is hardcoded fix this
+            var $tree = $('<div/>').attr('id', 'tree');
+            var $form = $('<form id="xmltool-form">').append($input);
+            var $formContainer = $('<div>').append($form);
+            $fixture.html($formContainer);
+            $fixture.append($tree);
+            xmltool.jstree.load($tree, jstreeInput, $form, $formContainer);
+
+            var $btn = $input.find(btn_selector);
+            var treeHtml = cleanTreeHtml($tree.html());
+            xmltool.form.removeElement($btn, $tree);
+            equal($input.html(), $expected.html());
+            $tree.removeClass('jstree').html('');
+            xmltool.jstree.load($tree, jstreeExpected, $form, $formContainer);
+            equal(treeHtml, cleanTreeHtml($tree.html()));
         });
     });
 
