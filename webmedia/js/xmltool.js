@@ -151,16 +151,73 @@ xmltool.form = {};
                 this.$tree = $tree;
             }
         }
-        this.$form.on('click', '.btn-add', function(e){
+
+        this.$form.on('click', 'a.btn-add', function(e){
           e.preventDefault();
           xmltool.form.addElement($(this), that.options.add_element_url, that.dtdUrl, that.message, that.$tree);
           return false;
         });
 
-        this.$form.on('click', '.btn-delete', function(e){
+        this.$form.on('change', 'select.btn-add', function(e){
+          e.preventDefault();
+          xmltool.form.addElement($(this), that.options.add_element_url, that.dtdUrl, that.message, that.$tree);
+          return false;
+        })
+
+        .on('click', '.btn-delete', function(e){
           e.preventDefault();
           xmltool.form.removeElement($(this), that.$tree);
           return false;
+        })
+
+        .on('click', '.btn-comment', function(e){
+            e.preventDefault();
+            var $this = $(this);
+            var $textarea = $this.next('._comment');
+
+            if (!$textarea.length){
+                $textarea = $('<textarea>').attr('name', $this.data('comment-name')).addClass('_comment').addClass('form-control');
+                $this.after($textarea);
+            }
+
+            // Create the dialog
+            var modal = $this.data('modal');
+            if(modal === undefined){
+                $.ajax({
+                    type: 'GET',
+                    url: that.options.comment_modal_url,
+                    data: {'comment': $textarea.val()},
+                    dataType: 'json',
+                    async: false,
+                    success: function(data, textStatus, jqXHR){
+                        modal = $(data.content);
+                        modal.on('shown.bs.modal', function () {
+                            $(this).find('textarea').focus();
+                        });
+                        $this.data('modal', modal);
+                        modal.find('.submit').click(function(){
+                            var value = modal.find('textarea').val();
+                            $textarea.val(value);
+                            modal.modal('hide');
+
+                            $this.attr('title', value);
+                            if (value){
+                                $this.addClass('has-comment');
+                            }
+                            else{
+                                $this.removeClass('has-comment');
+                            }
+                            return false;
+                        });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                        var msg = jqXHR.status + ' ' + jqXHR.statusText;
+                        that.message('error', msg);
+                    }
+                });
+            }
+            modal.modal('show');
+            return false;
         });
 
         if(typeof this.options.jstreeData !== 'undefined') {
