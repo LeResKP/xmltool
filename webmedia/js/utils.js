@@ -1,164 +1,145 @@
+/**
+ *  @file xmltool.utils
+ *
+ *  Some useful functions need to manipulate the dom.
+ *
+ *  @author Aurélien Matouillot
+ */
+
 if (typeof xmltool === 'undefined') {
-    /*jshint -W020 */
+    /* jshint -W020 */
     xmltool = {};
 }
 
+/** @namespace */
+xmltool.utils = {};
 
-(function($, ns){
-    var re_split = new RegExp('^(.*):([^:]+)$');
 
-    // To make the selector by attributes works on 'data' we need to use the attr
-    // property insteaf of data.
-    var ATTRNAMES = ['name', 'id', 'class', 'value', 'href',
-                     'data-id', 'data-comment-name', 'data-target', 'data-elt-id'];
+(function($) {
+	"use strict";
 
-    ns.utils = {
-        escape_id: function(id){
-            return id.replace(/:/g, '\\:');
-        },
-        get_prefix: function(id){
-            return id.replace(re_split, '$1');
-        },
-        get_index: function(id){
-            return parseInt(id.replace(re_split, '$2'), 10);
-        },
-        _attr: function(elt, name, value){
-            if(typeof value === 'undefined'){
-                return elt.attr(name);
-            }
-            else{
-                elt.attr(name, value);
-            }
-        },
-        increment_id: function(prefix, elts, index, step, offset, force_index){
-            step = step || 1;
-            offset = offset || 0;
-            for (var i=0; i< elts.length; i++){
-                var elt = $(elts[i]);
-                var tmp_index;
-                if (typeof force_index !== 'undefined') {
-                    tmp_index = force_index;
-                }
-                else {
-                    tmp_index = index + 1;
-                }
+    // When we automatically scroll an element we want to apply a top offset
+    var SCROLL_OFFSET = 30;
 
-                ns.utils._replace_id(prefix, elt, ns.utils._attr, ATTRNAMES, tmp_index);
-                ns.utils.increment_id(prefix, elt.children(), 0, 1, offset, tmp_index);
+    // List of attribute name we should update in updatePrefixAttrs
+    var ATTRNAMES = [
+        'name', 'id', 'data-comment-name', 'data-target', 'data-elt-id', 'value'
+        // 'class',  'href', 'data-id'
+    ];
 
-                if (step === 1){
-                    index += 1;
-                }
-                // offet==0 : we have div + btn + div ...
-                //            We always want btn + div have the same index but
-                //            the first div is alone
-                // offet==1 : we have btn + div + btn + div ...
-                else if(((i+offset) % step) === 0){
-                    index += 1;
-                }
-            }
-        },
-        decrement_id: function(prefix, elts, index, step, offset){
-            return ns.utils.increment_id(prefix, elts, index-1, step, offset);
-        },
-        _replace_id: function(prefix, elt, func, names, index){
-            var re_id = new RegExp('^#?(collapse-)?'+prefix+':(\\d+)');
-            for (var key in names){
-                var name = names[key];
-                var value = func(elt, name);
-                if(value){
-                    var values = value.split(' ');
-                    var output = [];
-                    for(var i=0; i<values.length; i++){
-                        var v = values[i];
-                        var old_index = parseInt(v.replace(re_id, '$2'), 10);
-                        var re_str = prefix+':'+old_index;
-                        var escaped = false;
-                        var re_id_escaped;
-                        if (isNaN(old_index)) {
-                            // Perhaps the ':' are escaped
-                            var s = '^#?(collapse-)?'+prefix+':(\\d+)';
-                            s = s.replace(/:/g, '\\\\:');
-                            re_id_escaped = new RegExp(s);
-                            old_index = parseInt(v.replace(re_id_escaped, '$2'), 10);
-                            re_str = (prefix+':'+old_index).replace(/:/g, '\\\\:');
-                            escaped = true;
-                        }
-                        if (isNaN(old_index)) {
-                            // Nothing to do, we keep the value
-                            output.push(v);
-                            continue;
-                        }
-                        var re = new RegExp('^(#?(collapse-)?)'+re_str);
-                        var out = '$1' + prefix + ':' + index;
-                        if (escaped) {
-                            out = out.replace(/:/g, '\\:');
-                        }
-                        var new_value = v.replace(re, out);
-                        output.push(new_value);
-                    }
-                    func(elt, name, output.join(' '));
-                }
-            }
-        },
-        replace_id: function(prefix, elts, step, force_index){
-            step = step || 1;
-            var index = 0;
-            for (var i=0; i< elts.length; i++){
-                var elt = $(elts[i]);
-                var tmp_index;
-                if (typeof force_index !== 'undefined'){
-                    tmp_index = force_index;
-                }
-                else{
-                    tmp_index = index;
-                }
-                ns.utils._replace_id(prefix, elt, ns.utils._attr, ATTRNAMES, tmp_index);
-                ns.utils.replace_id(prefix, elt.children(), 1, tmp_index);
+    /**
+     * Escape special chars to make a valid jQuery selector.
+     * @param {string} value - The attribute value to escape
+     * @return {string} The escaped value
+     * @memberof xmltool.utils
+     * @method escapeAttr
+     */
+    this.escapeAttr = function(value) {
+        return value.replace(/([:\.])/g, '\\$1');
+    };
 
-                if (step === 1){
-                    index += 1;
-                }
-                // In some cases we have btn + div + btn + div ...
-                // We want btn + div have the same index
-                else if(((i+1) % step) === 0 && i !== 0){
-                    index += 1;
-                }
+    /**
+     * Get a jQuery object from a given id.
+     * @param {string} id - The id to get
+     * @return {jQuery} The jQuery element selected by id
+     * @memberof xmltool.utils
+     * @method getElementById
+     */
+    this.getElementById = function(id){
+        return $('#' + this.escapeAttr(id));
+    };
+
+    /**
+     * Scroll to have a given element visible.
+     * @param {jQuery} $elt - the element we want visible
+     * @param {jQuery} $container - the container of $elt we want to change
+     * the scroll position
+     * @memberof xmltool.utils
+     * @method scrollToElement
+     */
+    this.scrollToElement = function($elt, $container) {
+        var scrollTop = $elt.offset().top + $container.scrollTop() - $container.offset().top - SCROLL_OFFSET;
+        $container.scrollTop(scrollTop);
+    };
+
+    /**
+     * Replace the prefix of an element and its children recursively
+     * @param {jQuery} $elt - the element we want to make the replacement
+     * @param {string} prefix - the prefix we want to update
+     * @param {string} newPrefix - the new prefix to put instead of prefix
+     * @memberof xmltool.utils
+     * @method updatePrefixAttrs
+     */
+    this.updatePrefixAttrs = function($elt, prefix, newPrefix) {
+        var re = new RegExp('^(#)?(collapse-)?' + prefix);
+        for (var i=0, lenNames=ATTRNAMES.length; i < lenNames; i++) {
+            var attrname = ATTRNAMES[i];
+            var value = $elt.attr(attrname);
+            if (typeof value !== 'undefined') {
+                value = value.replace(re, '$1$2' + newPrefix);
+                $elt.attr(attrname, value);
             }
-        },
-        truncate: function (str, limit) {
-            var bits, i;
-            bits = str.split('');
-            if (bits.length > limit) {
-                for (i = bits.length - 1; i > -1; --i) {
-                    if (i > limit) {
-                        bits.length = i;
-                    }
-                    else if (' ' === bits[i]) {
-                        bits.length = i;
-                        break;
-                    }
-                }
-                bits.push('...');
-            }
-            return bits.join('');
-        },
-        get_first_class: function(obj){
-            var cls = obj.attr('class');
-            if (typeof cls === 'undefined') {
-                return null;
-            }
-            return cls.split(' ')[0];
-        },
-        update_contenteditable_eol: function(s) {
-            // We want \n as new line when the text comes from contenteditale
-            s = s.replace(/\r?\n?/g, '');
-            s = s.replace(/<br ?\/?>/g, '\n');
-            // Remove the non breaking spaces since we don't want to add it in
-            // the XML files
-            s = s.replace(/\u00A0/g, ' ');
-            return s;
+        }
+        if ($elt.attr('data-toggle') === 'collapse') {
+            // Special case for collapsible since the attribute is already
+            // 'jQuery' escaped
+
+            // Double escapement since it's a regex
+            re = new RegExp('^(#collapse-)' + this.escapeAttr(this.escapeAttr(prefix)));
+            var href = $elt.attr('href');
+            href = href.replace(re, '$1' + this.escapeAttr(newPrefix));
+            $elt.attr('href', href);
+        }
+        var children = $elt.children();
+        for (var j=0, len=children.length; j < len; j++) {
+            this.updatePrefixAttrs(children.eq(j), prefix, newPrefix);
         }
     };
 
-})(window.jQuery, xmltool);
+    /**
+     * Truncate a text on space
+     *
+     * @param {string} text - the text to truncate
+     * @param {integer} limit - the max length of the text. (Default: 30)
+     * @return {string} the truncated text
+     * @memberof xmltool.utils
+     * @method truncateText
+     */
+    this.truncateText = function(text, limit) {
+        limit = limit || 30;
+        var bits, i;
+        bits = text.split('');
+        if (bits.length > limit) {
+            for (i = bits.length - 1; i > -1; --i) {
+                if (i > limit) {
+                    bits.length = i;
+                }
+                else if (' ' === bits[i]) {
+                    bits.length = i;
+                    break;
+                }
+            }
+            bits.push('...');
+        }
+        return bits.join('');
+    };
+
+    /**
+     * Get the prefix and the index of an id of a list element.
+     * The element should be like this: root:list_tag:0:tag
+     *
+     * @param {string} eltId - the list element id to get the prefix and index
+     * @return {object} containing index and prefixId
+     * @memberof xmltool.utils
+     * @method getPrefixIndexFromListEltId
+     */
+    this.getPrefixIndexFromListEltId = function(eltId) {
+        var lis = eltId.split(':'),
+            len = lis.length;
+        return {
+            index: parseInt(lis[len - 2], 10),
+            prefixId:lis.slice(0, len - 2).join(':')
+        };
+    };
+
+}).call(xmltool.utils, jQuery);
