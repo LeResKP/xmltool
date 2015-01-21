@@ -8,6 +8,10 @@ from xmltool import factory, dtd_parser
 
 class TestFactory(TestCase):
 
+    def test_create(self):
+        obj = factory.create('Exercise', dtd_url='tests/exercise.dtd')
+        self.assertEqual(obj.tagname, 'Exercise')
+
     def test_load(self):
         obj = factory.load('tests/exercise.xml')
         self.assertEqual(obj.tagname, 'Exercise')

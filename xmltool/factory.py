@@ -8,6 +8,20 @@ import utils
 import elements
 
 
+def create(root_tag, dtd_url=None, dtd_str=None):
+    """Create a python object for the given root_tag
+
+    :param root_tag: The root tag to create
+    :param dtd_url: The dtd url
+    :param dtd_str: The dtd as string
+    """
+    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    if root_tag not in dic:
+        raise Exception('Bad root_tag %s, '
+                        'it\'s not supported by the dtd' % root_tag)
+    return dic[root_tag]()
+
+
 def load(filename, validate=True):
     """Generate a python object
 
