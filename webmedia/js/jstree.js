@@ -495,8 +495,14 @@ xmltool.jstree = {};
         .bind("select_node.jstree", transitionDecorator(function (e, data) {
             var $elt = that.utils.getFormElement(data.node);
             xmltool.utils.scrollToElement($elt, $formContainer);
-            // TODO: support contenteditable
-            $elt.find('textarea:first').focus();
+            var $textarea = $elt.find('textarea:first');
+            if ($textarea.is(':visible')) {
+                $textarea.focus();
+            }
+            else {
+                // Focus on contenteditable
+                $textarea.next().focus();
+            }
         }))
 
         /**
