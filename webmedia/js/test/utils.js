@@ -78,6 +78,29 @@
         equal(ns.truncateText(text), expected, 'Long text is truncated');
     });
 
+    test('cleanupContenteditableContent', function(){
+        expect(4);
+        var s = 'Hello world\nNew line';
+        var res = xmltool.utils.cleanupContenteditableContent(s);
+        var expected = 'Hello worldNew line';
+        equal(res, expected);
+
+        s = 'Hello world\nNew<br />\n line';
+        res = xmltool.utils.cleanupContenteditableContent(s);
+        expected = 'Hello worldNew\n line';
+        equal(res, expected);
+
+        s = 'Hello world\r\nNew<br>\n line';
+        res = xmltool.utils.cleanupContenteditableContent(s);
+        expected = 'Hello worldNew\n line';
+        equal(res, expected);
+
+        s = 'Hello world\rNew<br >\n line';
+        res = xmltool.utils.cleanupContenteditableContent(s);
+        expected = 'Hello worldNew\n line';
+        equal(res, expected);
+    });
+
     test('getPrefixIndexFromListEltId', function(){
         expect(1);
         var expected = {

@@ -370,6 +370,7 @@ xmltool.jstree = {};
     this.load = function($tree, data, $form, $formContainer) {
         // TODO: make sure we need all this plugins
         var that = this;
+        $tree.removeClass('jstree').empty();
         $tree.jstree({
             "plugins" : ["themes", "ui", "crrm", "dnd", "contextmenu"],
             "core": {
@@ -551,6 +552,13 @@ xmltool.jstree = {};
          */
         $form.on('focus', 'textarea.form-control', transitionDecorator(function(){
             var $elt = that.utils.getTreeElementFromTextarea($(this));
+            $tree.jstree('deselect_all').jstree('select_node', $elt);
+            xmltool.utils.scrollToElement($elt, $tree);
+        }))
+
+        .on('focus', '.contenteditable', transitionDecorator(function(){
+            var $textarea = $(this).data('contenteditablesync').$target;
+            var $elt = that.utils.getTreeElementFromTextarea($textarea);
             $tree.jstree('deselect_all').jstree('select_node', $elt);
             xmltool.utils.scrollToElement($elt, $tree);
         }))

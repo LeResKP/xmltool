@@ -24,7 +24,6 @@ xmltool.utils = {};
     // List of attribute name we should update in updatePrefixAttrs
     var ATTRNAMES = [
         'name', 'id', 'data-comment-name', 'data-target', 'data-elt-id', 'value'
-        // 'class',  'href', 'data-id'
     ];
 
     /**
@@ -122,6 +121,25 @@ xmltool.utils = {};
             bits.push('...');
         }
         return bits.join('');
+    };
+
+    /**
+     * Cleanup contenteditable content. This function is a bit specific to
+     * CKEditor but it should work for all contenteditable
+     *
+     * @param {string} s - the string to cleanup
+     * @return {string} The cleaned string
+     * @memberof xmltool.utils
+     * @method cleanupContenteditableContent
+     */
+    this.cleanupContenteditableContent = function(s) {
+        // We want \n as new line when the text comes from contenteditale
+        s = s.replace(/\r?\n?/g, '');
+        s = s.replace(/<br ?\/?>/g, '\n');
+        // Remove the non breaking spaces since we don't want to add it in
+        // the XML files
+        s = s.replace(/\u00A0/g, ' ');
+        return s;
     };
 
     /**
