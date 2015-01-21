@@ -13,4 +13,4 @@ install:
     - cd ..
 script:
     - python setup.py test;
-    - cd webmedia; grunt qunit
+    - cd webmedia; npm test
