@@ -1343,6 +1343,10 @@ class ChoiceElement(MultipleMixin, Element):
 
 
 def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None, data=None):
+    """Load object according to the given str_id
+
+    ..note:: If data is passed load the data to this object
+    """
     # Will raise an exception if both dtd_url or dtd_str are None or set
     dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
     splitted = str_id.split(':')
@@ -1379,8 +1383,19 @@ def _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=None, dtd_str=None):
     return None
 
 
-def add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
-                            dtd_str=None, skip_extra=False):
+def _get_data_for_html_display(obj):
+    """Returns the data need to display the object in HTML.
+    """
+    return {
+        'jstree_data': obj.to_jstree_dict(),
+        'previous': obj.get_previous_js_selectors(),
+        'html': obj.to_html(),
+        'elt_id': ':'.join(obj.prefixes),
+    }
+
+
+def _add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
+                             dtd_str=None, skip_extra=False):
     """Create an element from data and elt_id. This function should be used to
     make some copy/paste.
 
@@ -1400,26 +1415,19 @@ def add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
     return obj
 
 
-def _get_previous_js_selectors(obj):
-    return obj.get_previous_js_selectors()
+def get_new_element_data_for_html_display(*args, **kw):
+    """Create new sub object according to the given params and returns the data
+    to display it.
+    """
+    obj = _add_new_element_from_id(*args, **kw)
+    if not obj:
+        return None
+    return _get_data_for_html_display(obj)
 
 
-def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
-    """TODO: rename this function
+def get_data_from_str_id_for_html_display(str_id, dtd_url=None, dtd_str=None):
+    """Get the sub object corresponding to the given str_id and returns the
+    data to display it.
     """
     obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    return obj.to_html()
-
-
-def get_display_data_from_obj(obj):
-    return {
-        'jstree_data': obj.to_jstree_dict(),
-        'previous': obj.get_previous_js_selectors(),
-        'html': obj.to_html(),
-        'elt_id': ':'.join(obj.prefixes),
-    }
-
-
-def get_jstree_json_from_str_id(str_id, dtd_url=None, dtd_str=None):
-    obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
-    return get_display_data_from_obj(obj)
+    return _get_data_for_html_display(obj)

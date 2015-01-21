@@ -14,9 +14,9 @@ from xmltool.elements import (
     TextElement,
     ChoiceElement,
     EmptyElement,
-    get_jstree_json_from_str_id,
+    get_data_from_str_id_for_html_display,
     escape_attr,
-    get_display_data_from_obj,
+    _get_data_for_html_display,
 )
 import xmltool.elements as elements
 from ..test_dtd_parser import (
@@ -99,9 +99,9 @@ class ElementTester(BaseTest):
         if self.str_to_html is None:
             return
         for elt_str, expected_html in self.str_to_html:
-            result = elements.get_obj_from_str_id(elt_str,
-                                               dtd_str=self.dtd_str)
-            self.assertEqual_(result, expected_html)
+            obj = elements._get_obj_from_str_id(elt_str,
+                                                dtd_str=self.dtd_str)
+            self.assertEqual_(obj.to_html(), expected_html)
 
     # TODO: add this when it works fine
     # def test_jstree(self):
@@ -119,8 +119,8 @@ class ElementTester(BaseTest):
         for (elt_str, expected_html), selectors in zip(self.str_to_html,
                                                        self.js_selector):
             obj = elements._get_obj_from_str_id(elt_str,
-                                               dtd_str=self.dtd_str)
-            lis = elements._get_previous_js_selectors(obj)
+                                                dtd_str=self.dtd_str)
+            lis = obj.get_previous_js_selectors()
             self.assertEqual(lis, selectors)
 
 
@@ -2104,13 +2104,13 @@ class TestJavascript(TestCase):
         text = obj.add('text')
         subtext = text.add('subtext')
         subtext.text = 'World'
-        dic = get_display_data_from_obj(text)
+        dic = _get_data_for_html_display(text)
 
         filename = 'webmedia/js/test/fixtures/paste.json'
         open(filename, 'w').write(json.dumps(dic))
 
         filename = 'webmedia/js/test/fixtures/paste_expected.json'
-        dic = get_display_data_from_obj(obj)
+        dic = _get_data_for_html_display(obj)
         open(filename, 'w').write(json.dumps(dic))
 
         text = obj.add('text')
@@ -2149,7 +2149,7 @@ class TestJavascript(TestCase):
 
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "[data-elt-id='%s']" % escape_attr(o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
 
         filename = 'js/test/fixtures/add_element/1.json'
@@ -2200,7 +2200,7 @@ class TestJavascript(TestCase):
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "option[value='%s']" % escape_attr(
             o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
         filename = 'js/test/fixtures/add_element/2.json'
         open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
@@ -2258,7 +2258,7 @@ class TestJavascript(TestCase):
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "option[value='%s']" % escape_attr(
             o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
         filename = 'js/test/fixtures/add_element/3.json'
         open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
@@ -2287,7 +2287,7 @@ class TestJavascript(TestCase):
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "option[value='%s']" % escape_attr(
             o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
         filename = 'js/test/fixtures/add_element/4.json'
         open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
@@ -2316,7 +2316,7 @@ class TestJavascript(TestCase):
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "option[value='%s']" % escape_attr(
             o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
         filename = 'js/test/fixtures/add_element/5.json'
         open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
@@ -2373,7 +2373,7 @@ class TestJavascript(TestCase):
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "[data-elt-id='%s']" % escape_attr(
             o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
         filename = 'js/test/fixtures/add_element/6.json'
         open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
@@ -2402,7 +2402,7 @@ class TestJavascript(TestCase):
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "[data-elt-id='%s']" % escape_attr(
             o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
         filename = 'js/test/fixtures/add_element/7.json'
         open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
@@ -2431,7 +2431,7 @@ class TestJavascript(TestCase):
         ident = ':'.join(o.prefixes_no_cache)
         btn_selector = "[data-elt-id='%s']" % escape_attr(
             o._prefix_str)
-        dic = get_jstree_json_from_str_id(ident,
+        dic = get_data_from_str_id_for_html_display(ident,
                                           dtd_str=dtd_str)
         filename = 'js/test/fixtures/add_element/8.json'
         open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))

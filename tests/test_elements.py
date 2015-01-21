@@ -12,7 +12,7 @@ from xmltool.elements import (
     TextElement,
     ChoiceElement,
     ChoiceListElement,
-    get_obj_from_str_id,
+    _get_obj_from_str_id,
     update_eol,
     InListMixin,
     InChoiceMixin,
@@ -2187,20 +2187,22 @@ class TestFunctions(BaseTest):
         res = update_eol('Hello\r')
         self.assertEqual(res, 'Hello\r\n')
 
-    def test_get_obj_from_str_id(self):
+    def test__get_obj_from_str_id(self):
         dtd_str = '''
         <!ELEMENT texts (text)>
         <!ELEMENT text (#PCDATA)>
         '''
         str_id = 'texts:unexisting'
         try:
-            html = get_obj_from_str_id(str_id, dtd_str=dtd_str)
+            obj = _get_obj_from_str_id(str_id, dtd_str=dtd_str)
+            html = obj.to_html()
             assert(False)
         except Exception, e:
             self.assertEqual(str(e), 'Invalid child unexisting')
 
         str_id = 'texts:text'
-        html = get_obj_from_str_id(str_id, dtd_str=dtd_str)
+        obj = _get_obj_from_str_id(str_id, dtd_str=dtd_str)
+        html = obj.to_html()
         expected = (
             '<div id="texts:text">'
             '<label>text</label>'
@@ -2211,13 +2213,14 @@ class TestFunctions(BaseTest):
             '</div>')
         self.assertEqual(html, expected)
 
-    def test_get_obj_from_str_id_list(self):
+    def test__get_obj_from_str_id_list(self):
         dtd_str = '''
         <!ELEMENT texts (text*)>
         <!ELEMENT text (#PCDATA)>
         '''
         str_id = 'texts:list__text:0:text'
-        html = get_obj_from_str_id(str_id, dtd_str=dtd_str)
+        obj = _get_obj_from_str_id(str_id, dtd_str=dtd_str)
+        html = obj.to_html()
         expected = (
             '<a class="btn-add btn-list" '
             'data-elt-id="texts:list__text:0:text">New text</a>'
@@ -2240,7 +2243,8 @@ class TestFunctions(BaseTest):
         <!ELEMENT text (#PCDATA)>
         '''
         str_id = 'texts:list__list:0:list:text'
-        html = get_obj_from_str_id(str_id, dtd_str=dtd_str)
+        obj = _get_obj_from_str_id(str_id, dtd_str=dtd_str)
+        html = obj.to_html()
         expected = (
             '<div id="texts:list__list:0:list:text">'
             '<label>text</label>'
@@ -2251,7 +2255,7 @@ class TestFunctions(BaseTest):
             '</div>')
         self.assertEqual(html, expected)
 
-    def test__get_previous_js_selectors(self):
+    def test_get_previous_js_selectors(self):
         dtd_str = '''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
@@ -2261,24 +2265,24 @@ class TestFunctions(BaseTest):
         '''
         str_id = 'texts'
         obj = elements._get_obj_from_str_id(str_id,
-                                               dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj)
+                                            dtd_str=dtd_str)
+        lis = obj.get_previous_js_selectors()
         self.assertEqual(lis, [])
 
-        lis = elements._get_previous_js_selectors(obj)
+        lis = obj.get_previous_js_selectors()
         self.assertEqual(lis, [])
 
         str_id = 'texts:list__list:0:list:text'
         obj = elements._get_obj_from_str_id(str_id,
-                                               dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj)
+                                            dtd_str=dtd_str)
+        lis = obj.get_previous_js_selectors()
         expected = [('inside', escape_attr('#tree_texts:list__list:0:list'))]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:list__list:0:list'
         obj = elements._get_obj_from_str_id(str_id,
-                                               dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj)
+                                            dtd_str=dtd_str)
+        lis = obj.get_previous_js_selectors()
         expected = [
             ('after', escape_attr('.tree_texts:tag1') + ':last'),
             ('inside', escape_attr('#tree_texts'))]
@@ -2286,21 +2290,21 @@ class TestFunctions(BaseTest):
 
         str_id = 'texts:list__list:1:list'
         obj = elements._get_obj_from_str_id(str_id,
-                                               dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj)
+                                            dtd_str=dtd_str)
+        lis = obj.get_previous_js_selectors()
         expected = [('after', escape_attr('#tree_texts:list__list:0:list'))]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:tag2'
         obj = elements._get_obj_from_str_id(str_id,
-                                               dtd_str=dtd_str)
-        lis = elements._get_previous_js_selectors(obj)
+                                            dtd_str=dtd_str)
+        lis = obj.get_previous_js_selectors()
         expected = [('after', escape_attr('.tree_texts:list__list') + ':last'),
                     ('after', escape_attr('.tree_texts:tag1') + ':last'),
                     ('inside', escape_attr('#tree_texts'))]
         self.assertEqual(lis, expected)
 
-    def test_get_jstree_json_from_str_id(self):
+    def test_get_data_from_str_id_for_html_display(self):
         dtd_str = '''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
@@ -2309,7 +2313,7 @@ class TestFunctions(BaseTest):
         <!ELEMENT tag2 (#PCDATA)>
         '''
         str_id = 'texts:tag2'
-        result = elements.get_jstree_json_from_str_id(str_id, dtd_str=dtd_str)
+        result = elements.get_data_from_str_id_for_html_display(str_id, dtd_str=dtd_str)
         expected = {
             'previous': [
                 ('after', escape_attr('.tree_texts:list__list') + ':last'),
@@ -2336,7 +2340,7 @@ class TestFunctions(BaseTest):
         }
         self.assertEqual(result, expected)
 
-    def test_get_display_data_from_obj(self):
+    def test__get_data_for_html_display(self):
         dtd_str = '''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text1)>
@@ -2359,7 +2363,7 @@ class TestFunctions(BaseTest):
         obj = elements._get_obj_from_str_id(str_id,
                                             dtd_str=dtd_str,
                                             data=data)
-        res = elements.get_display_data_from_obj(obj)
+        res = elements._get_data_for_html_display(obj)
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
             'html': (
@@ -2404,7 +2408,7 @@ class TestFunctions(BaseTest):
         obj = elements._get_obj_from_str_id(str_id,
                                             dtd_str=dtd_str,
                                             data=data)
-        res = elements.get_display_data_from_obj(obj)
+        res = elements._get_data_for_html_display(obj)
         expected = {
             'elt_id': 'texts:list__list:0:list',
             'html': (
@@ -2487,7 +2491,7 @@ class TestFunctions(BaseTest):
         obj = elements._get_obj_from_str_id(str_id,
                                             dtd_str=dtd_str,
                                             data=data)
-        res = elements.get_display_data_from_obj(obj)
+        res = elements._get_data_for_html_display(obj)
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
             'html': (
@@ -2834,7 +2838,7 @@ class TestFunctions(BaseTest):
         # text already exists, can't add it
         self.assertEqual(parentobj, None)
 
-    def test_add_new_element_from_id(self):
+    def test__add_new_element_from_id(self):
         dtd_str = '''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
@@ -2860,13 +2864,13 @@ class TestFunctions(BaseTest):
             }
         }
         # 'text' element can't be added
-        obj = elements.add_new_element_from_id(str_id, data,
+        obj = elements._add_new_element_from_id(str_id, data,
                                                clipboard_data,
                                                dtd_str=dtd_str)
         self.assertEqual(obj, None)
 
         str_id = 'texts:list__list:0:list'
-        obj = elements.add_new_element_from_id(str_id, data,
+        obj = elements._add_new_element_from_id(str_id, data,
                                                clipboard_data,
                                                dtd_str=dtd_str)
         self.assertEqual(obj.tagname, 'list')
