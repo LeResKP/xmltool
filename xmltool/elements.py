@@ -1412,19 +1412,11 @@ def get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
 
 
 def get_display_data_from_obj(obj):
-    # TODO: why do we need is_choice when we paste in js, perhaps we can
-    # implement a better logic
-    is_choice = obj._is_choice
-    if not is_choice and isinstance(obj._parent_obj, ChoiceListElement):
-        # Check if there is multiple possible element in the list
-        is_choice = True
-
     return {
         'jstree_data': obj.to_jstree_dict(),
         'previous': obj.get_previous_js_selectors(),
         'html': obj.to_html(),
         'elt_id': ':'.join(obj.prefixes),
-        'is_choice': is_choice,
     }
 
 

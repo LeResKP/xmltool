@@ -2333,7 +2333,6 @@ class TestFunctions(BaseTest):
                 'state': {'opened': True},
             },
             'elt_id': str_id,
-            'is_choice': False,
         }
         self.assertEqual(result, expected)
 
@@ -2372,7 +2371,6 @@ class TestFunctions(BaseTest):
                 'name="texts:list__list:0:list:text1:_value" rows="1">'
                 'Hello world</textarea>'
                 '</div>'),
-            'is_choice': False,
             'jstree_data': {
                 'li_attr': {
                     'class': 'tree_texts:list__list:0:list:text1 text1',
@@ -2436,7 +2434,6 @@ class TestFunctions(BaseTest):
                 '</div>'
                 '</div>'
             ),
-            'is_choice': False,
             'jstree_data': {
                 'li_attr': {
                     'class': 'tree_texts:list__list list',
@@ -2510,7 +2507,6 @@ class TestFunctions(BaseTest):
                 'name="texts:list__list:0:list:text1:_value" rows="1">'
                 'Hello world</textarea>'
                 '</div>'),
-            'is_choice': True,
             'jstree_data': {
                 'li_attr': {
                     'class': 'tree_texts:list__list:0:list:text1 text1',
@@ -2527,30 +2523,6 @@ class TestFunctions(BaseTest):
             ]
         }
         self.assertEqual(res, expected)
-
-    def test_get_display_data_from_obj_choice(self):
-        dtd_str = '''
-        <!ELEMENT texts (tag1, (text1|text2)*, tag2)>
-        <!ELEMENT text1 (#PCDATA)>
-        <!ELEMENT text2 (#PCDATA)>
-        <!ELEMENT tag1 (#PCDATA)>
-        <!ELEMENT tag2 (#PCDATA)>
-        '''
-        str_id = 'texts:list__text1_text2:0:text1'
-        data = {
-            'texts': {
-                'list_text1_text2': [
-                    {
-                        'text1': {'_value': 'Hello world'},
-                    }
-                ]
-            }
-        }
-        obj = elements._get_obj_from_str_id(str_id,
-                                            dtd_str=dtd_str,
-                                            data=data)
-        res = elements.get_display_data_from_obj(obj)
-        self.assertEqual(res['is_choice'], True)
 
     def test_load_obj_from_id(self):
         dtd_str = '''
