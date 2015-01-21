@@ -9,6 +9,11 @@
         }
     };
 
+    var cleanTreeHtml = function(html) {
+        // We should remove the generated ids
+        return html.replace(/j[0-9]+_[0-9a-z]+/g, '');
+    };
+
     module('xmltool.jstree.utils', {
         setup: function() {
           $fixture = $('#qunit-fixture');
@@ -72,6 +77,61 @@
 
         var $elt = ns.utils.getTreeElementFromCollapsible($col);
         equal($elt.get(0), $node.get(0), 'Found element in the dom');
+    });
+
+    test("getFirstClass", function() {
+        expect(3);
+        var node = {
+            'li_attr': {
+                'class': 'class1 class2'
+            }
+        };
+        var res = ns.utils.getFirstClass(node);
+        equal(res, 'class1');
+
+        node['li_attr']['class'] = 'class';
+        res = ns.utils.getFirstClass(node);
+        equal(res, 'class');
+
+        node['li_attr']['class'] = '';
+        res = ns.utils.getFirstClass(node);
+        equal(res, '');
+    });
+
+    test("getFormPrefix", function() {
+        expect(1);
+        var node = {
+            'li_attr': {
+                'class': 'tree_class1 class2'
+            }
+        };
+        var res = ns.utils.getFormPrefix(node);
+        equal(res, 'class1');
+    });
+
+    test("findParentNodeAndPosition", function() {
+        expect(3);
+        var selectors = [['inside', '#myid']];
+        var res = ns.utils.findParentNodeAndPosition(selectors);
+        deepEqual(res, {});
+
+        var $div = $('<div />').attr('id', 'myid');
+        $fixture.append($div);
+        res = ns.utils.findParentNodeAndPosition(selectors);
+        equal(res.position, 'inside');
+        equal(res.parentobj.attr('id'), 'myid');
+    });
+
+    test("getNodePositionInChildren", function() {
+        expect(2);
+        var node = {id: 'id1'},
+            children = [{id: 'id2'}];
+        var res = ns.utils.getNodePositionInChildren(node, children);
+        equal(res, -1);
+
+        children = [{id: 'id2'}, {id: 'id1'}];
+        res = ns.utils.getNodePositionInChildren(node, children);
+        equal(res, 1);
     });
 
     test("addNode", function() {
@@ -245,6 +305,63 @@
         equal(text, ' (Hello world)');
     });
 
+    test("xmltool.jstree.move_event", function() {
+        expect(20);
+        var $data;
+        $.ajax('http://127.0.0.1:9999/js/test/fixtures/move_element.html',
+            {async: false}
+        ).done(function(data) {
+            $data = $(data);
+        });
+        $data.find('.dom-test').each(function(index){
+            var $this = $(this),
+                childrenIndex = parseInt($this.attr('data-children-index'), 10),
+                position = $this.attr('data-position'),
+                id = $this.attr('data-id');
+
+            var $inputHtml = $(this).find('.dom-input-html').html();
+            var $inputJstree = $(this).find('.dom-input-jstree');
+            var $expectedHtml = $(this).find('.dom-expected-html').html();
+            var $expectedJstree = $(this).find('.dom-expected-jstree');
+
+            var jstreeInput = $.parseJSON($inputJstree.text());
+            var jstreeExpected = $.parseJSON($expectedJstree.text());
+
+            var $container = $('<div />').html($inputHtml);
+            $fixture.html($container);
+            // TODO: tree id is hardcoded fix this
+            var $tree = $('<div/>').attr('id', 'tree');
+            var $form = $('#xmltool-form');
+            var $formContainer = $form.parent();
+            $fixture.append($tree);
+            xmltool.jstree.load($tree, jstreeInput, $form, $formContainer);
+            var treeObj = $tree.data('jstree');
+
+            var node = treeObj.get_node('tree_' + id);
+            var parentNode = treeObj.get_node(node.parent);
+            // First children is not list element so check_move should fail
+            var res = treeObj.move_node(node, parentNode.children[0], position);
+            if (index === 2) {
+                // We move node 2 after the first element, it's allowed since 1
+                // belong the list
+                equal(res, true);
+            }
+            else {
+                equal(res, false);
+            }
+
+            res = treeObj.move_node(node, parentNode.children[childrenIndex], position);
+            equal(res, true);
+            var treeHtml = cleanTreeHtml($tree.html());
+            $.jstree.destroy();
+            $tree.html('');
+            xmltool.jstree.load($tree, jstreeExpected, $form, $formContainer);
+            equal($container.html(), $expectedHtml);
+            equal(treeHtml, cleanTreeHtml($tree.html()));
+        });
+    });
+
+
     test("xmltool.jstree.copy", function() {
         expect(1);
 
@@ -331,6 +448,5 @@
         xmltool.jstree.load($tree, expected.jstree_data, $form, $formContainer);
         equal(tree_html, $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, ''));
     });
-
 
 })(jQuery);

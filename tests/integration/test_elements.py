@@ -2516,3 +2516,207 @@ class TestJavascript(TestCase):
                            pretty_print=True)
         filename = 'webmedia/js/test/fixtures/add_element/test-debug.html'
         open(filename, 'w').write(h)
+
+    def test_move_element(self):
+        lis = []
+        dtd_str = '''
+        <!ELEMENT texts (text)>
+        <!ELEMENT text (block, (subtext1|subtext2)*)>
+        <!ELEMENT subtext1 (minitext*)>
+        <!ELEMENT subtext2 (minitext*)>
+        <!ELEMENT block (#PCDATA)>
+        <!ELEMENT minitext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+<text>
+  <block>tag 0</block>
+  <subtext1>
+    <minitext>tag 1</minitext>
+  </subtext1>
+  <subtext2>
+    <minitext>tag 2</minitext>
+    <minitext>tag 3</minitext>
+  </subtext2>
+  <subtext1>
+    <minitext>tag 4</minitext>
+  </subtext1>
+  <subtext1>
+    <minitext>tag 5</minitext>
+  </subtext1>
+</text>
+</texts>'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        # Move first obj in position 1
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[0]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 1
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="after"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move first obj in last position (3)
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[0]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 3
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="after"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move second obj in position 2
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[1]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 2
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="after"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move last obj in position 0
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[-1]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 0
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="before"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move last obj in position 1
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[-1]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 1
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="before"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+
+        filename = 'webmedia/js/test/fixtures/move_element.html'
+        open(filename, 'w').write('<div>%s</div>' % ''.join(lis))
