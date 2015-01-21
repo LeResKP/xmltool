@@ -5,28 +5,18 @@ from xmltool.testbase import BaseTest
 import json
 from lxml import etree, html
 import tw2.core as twc
-import tw2.core.testbase as tw2test
 import os.path
-from xmltool import dtd_parser, utils, factory, render
+from xmltool import dtd_parser, factory, render
 from xmltool.elements import (
-    Element,
-    ListElement,
-    TextElement,
-    ChoiceElement,
     EmptyElement,
-    get_data_from_str_id_for_html_display,
     escape_attr,
+)
+from xmltool.factory import (
+    get_data_from_str_id_for_html_display,
     _get_data_for_html_display,
 )
-import xmltool.elements as elements
 from ..test_dtd_parser import (
-    BOOK_XML,
-    BOOK_DTD,
-    EXERCISE_XML_2,
-    EXERCISE_DTD_2,
-    EXERCISE_DTD,
     MOVIE_DTD,
-    MOVIE_XML_TITANIC,
     MOVIE_XML_TITANIC_COMMENTS,
 )
 
@@ -99,7 +89,7 @@ class ElementTester(BaseTest):
         if self.str_to_html is None:
             return
         for elt_str, expected_html in self.str_to_html:
-            obj = elements._get_obj_from_str_id(elt_str,
+            obj = factory._get_obj_from_str_id(elt_str,
                                                 dtd_str=self.dtd_str)
             self.assertEqual_(obj.to_html(), expected_html)
 
@@ -118,8 +108,8 @@ class ElementTester(BaseTest):
             return
         for (elt_str, expected_html), selectors in zip(self.str_to_html,
                                                        self.js_selector):
-            obj = elements._get_obj_from_str_id(elt_str,
-                                                dtd_str=self.dtd_str)
+            obj = factory._get_obj_from_str_id(elt_str,
+                                               dtd_str=self.dtd_str)
             lis = obj.get_previous_js_selectors()
             self.assertEqual(lis, selectors)
 
@@ -198,7 +188,6 @@ class TestElementPCDATA(ElementTester):
         text = obj.add('text')
         self.assertEqual(text.tagname, 'text')
         self.assertEqual(obj['text'], text)
-
 
     def test_add_bad_child(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
