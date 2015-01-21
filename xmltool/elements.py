@@ -109,6 +109,10 @@ class Element(object):
         return prefixes
 
     @property
+    def _prefix_str(self):
+        return prefixes_to_str(self.prefixes_no_cache)
+
+    @property
     def prefixes(self):
         """Get the list of prefixes for this object
         """
@@ -122,6 +126,17 @@ class Element(object):
                 prefixes += [self.tagname]
             self._cache_prefixes = prefixes
         return self._cache_prefixes
+
+    @property
+    def position(self):
+        """If the parent is a list, returns the position of self.
+        Otherwise returns None
+        """
+        if not self.parent:
+            return None
+        if not isinstance(self.parent, ListElement):
+            return None
+        return self.parent.index(self)
 
     @classmethod
     def _get_creatable_class_by_tagnames(cls):
@@ -205,7 +220,7 @@ class Element(object):
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
         obj = cls(parent_obj)
-        if value:
+        if value is not None:
             obj.set_text(value)
         return obj
 
@@ -465,8 +480,32 @@ class Element(object):
     def _get_jstree_attrs(self):
         ident = prefixes_to_str(self.prefixes_no_cache)
         return {
-            'id': TREE_PREFIX + ident,
             'class': '%s %s' % (TREE_PREFIX + ident, self.tagname),
+        }
+
+    def nothing(self):
+        css_class = TREE_PREFIX + ':'.join(prefixes or [])
+        if index is not None:
+            # TODO: why we need this?
+            # css_class += ' ' + TREE_PREFIX + ':'.join((prefixes+[str(index)]))
+            pass
+        else:
+            if not prefixes:
+                css_class += self.tagname
+            else:
+                # We don't want to have tree_:tagname
+                css_class += ':' + self.tagname
+
+        dic = {
+            'text': data,
+            'id': TREE_PREFIX + ':'.join(tmp_prefixes),
+            'li_attr': {
+                'class': '%s %s' % (css_class, self.tagname)
+            },
+            'state': {
+                # To be sure jstree will load the tree recursively
+                'opened': True,
+            }
         }
 
     def to_jstree_dict(self):
@@ -482,10 +521,20 @@ class Element(object):
                 else:
                     children += [v]
 
+        ident = prefixes_to_str(self.prefixes_no_cache)
         return {
-            'data': data,
-            'attr': self._get_jstree_attrs(),
+            'text': data,
+            # NOTE: we put the id on the a to let jstree making the unique id
+            # on the node.
+            'a_attr': {
+                'id': TREE_PREFIX + ident,
+            },
+            'li_attr': self._get_jstree_attrs(),
             'children': children,
+            'state': {
+                # To be sure jstree will load the tree recursively
+                'opened': True,
+            }
         }
 
     def __setitem__(self, tagname, value):
@@ -620,17 +669,19 @@ class Element(object):
                 break
             parent_ident = prefixes_to_str(parent.prefixes_no_cache +
                                            [child.tagname])
-            lis += [('after', '.%s%s' % (
+            # NOTE: we use class selector with last in case element is a list.
+            # It should be added after the last element of the list.
+            lis += [('after', escape_attr('.%s%s' % (
                 TREE_PREFIX,
                 parent_ident
-                ))]
+            )) + ':last')]
 
         lis.reverse()
         parent_ident = prefixes_to_str(parent.prefixes_no_cache)
-        lis += [('inside', '#%s%s' % (
+        lis += [('inside', escape_attr('#%s%s' % (
             TREE_PREFIX,
             parent_ident
-        ))]
+        )))]
         return lis
 
 
@@ -840,7 +891,7 @@ class InChoiceMixin(object):
                 del parent_obj[c.tagname]
         # Create the new shortcut
         parent_obj[obj.tagname] = obj
-        if value:
+        if value is not None:
             obj.set_text(value)
         return obj
 
@@ -887,7 +938,7 @@ class InListMixin(object):
             list_parent_obj.insert(index, obj)
         else:
             list_parent_obj.append(obj)
-        if value:
+        if value is not None:
             obj.set_text(value)
         return obj
 
@@ -930,13 +981,12 @@ class InListMixin(object):
         return ''.join(lis)
 
     def _get_jstree_attrs(self):
-        ident = prefixes_to_str(self.prefixes_no_cache)
         parent_ident = prefixes_to_str(self._parent_obj.prefixes_no_cache)
         css_class = TREE_PREFIX + parent_ident
-        index = self._parent_obj.index(self)
-        css_class += ' ' + TREE_PREFIX + parent_ident + ':%s' % index
+        # TODO: see if we really need this
+        # index = self._parent_obj.index(self)
+        # css_class += ' ' + TREE_PREFIX + parent_ident + ':%s' % index
         return {
-            'id': TREE_PREFIX + ident,
             'class': '%s %s' % (css_class, self.tagname),
         }
 
@@ -945,13 +995,21 @@ class InListMixin(object):
         index = self._parent_obj.index(self)
         if index > 0:
             index -= 1
-            parent_ident = prefixes_to_str(self._parent_obj.prefixes_no_cache +
-                                           [str(index)])
-            lis += [
-                ('after', '.%s%s' % (
-                    TREE_PREFIX,
-                    parent_ident
-                ))]
+            tagnames = [self.tagname]
+            if isinstance(self._parent_obj, ChoiceListElement):
+                # Since we don't know which element is the previous we add all
+                # the possibilities
+                tagnames = [c.tagname
+                            for c in self._parent_obj._choice_classes]
+            for tagname in tagnames:
+                parent_ident = prefixes_to_str(
+                    self._parent_obj.prefixes_no_cache +
+                    [str(index), tagname])
+                lis += [
+                    ('after', escape_attr('#%s%s' % (
+                        TREE_PREFIX,
+                        parent_ident
+                    )))]
             return lis
 
         return self._parent_obj.get_previous_js_selectors()
@@ -1007,7 +1065,7 @@ class BaseListElement(list, Element):
         lis = parent_obj.get(cls.tagname)
         if lis is None:
             lis = cls(parent_obj)
-        if value:
+        if value is not None:
             # TODO: not really nice, it's just to raise the same Exception as
             # Element.set_text.
             lis.set_text(value)
@@ -1187,7 +1245,7 @@ class ChoiceElement(MultipleMixin, Element):
         choice = parent_obj.get(cls.tagname)
         if choice is None:
             choice = cls(parent_obj)
-        if value:
+        if value is not None:
             choice.set_text(value)
         return choice
 
@@ -1263,8 +1321,8 @@ class ChoiceElement(MultipleMixin, Element):
             return self._value.to_xml()
 
     def to_jstree_dict(self, index=None):
-        # Nothing to add in for this object
-        raise NotImplementedError
+        if self._value:
+            return self._value.to_jstree_dict()
 
 
 def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
@@ -1275,6 +1333,7 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None):
     cls = dic[s]
     obj = cls()
     index = None
+    # print
     while splitted:
         s = splitted.pop(0)
         if index:
