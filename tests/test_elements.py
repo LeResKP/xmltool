@@ -17,6 +17,7 @@ from xmltool.elements import (
     InListMixin,
     InChoiceMixin,
     EmptyElement,
+    escape_attr,
 )
 from xmltool import render
 import xmltool.elements as elements
@@ -661,11 +662,16 @@ class TestElement(BaseTest):
         obj = self.cls()
         result = obj.to_jstree_dict()
         expected = {
-            'data': 'tag',
-            'attr': {
+            'text': 'tag',
+            'li_attr': {
+                'class': 'tree_tag tag'
+            },
+            'a_attr': {
                 'id': 'tree_tag',
-                'class': 'tree_tag tag'},
-            'children': []}
+            },
+            'children': [],
+            'state': {'opened': True},
+        }
         self.assertEqual(result, expected)
 
         cls = type(
@@ -697,26 +703,42 @@ class TestElement(BaseTest):
 
         result = obj.to_jstree_dict()
         expected = {
-            'data': u'tag <span class="_tree_text">(my value)</span>',
-            'attr': {
+            'text': u'tag <span class="_tree_text">(my value)</span>',
+            'li_attr': {
+                'class': 'tree_root_tag:list_tag tag'
+            },
+            'a_attr': {
                 'id': 'tree_root_tag:list_tag:10:tag',
-                'class': 'tree_root_tag:list_tag tree_root_tag:list_tag:10 tag'},
-            'children': []}
+            },
+            'children': [],
+            'state': {'opened': True},
+        }
         self.assertEqual(result, expected)
 
         obj.add(self.sub_cls.tagname)
         result = obj.to_jstree_dict()
         expected = {
-            'data': u'tag <span class="_tree_text">(my value)</span>',
-            'attr': {
+            'text': u'tag <span class="_tree_text">(my value)</span>',
+            'li_attr': {
+                'class': 'tree_root_tag:list_tag tag'},
+            'a_attr': {
                 'id': 'tree_root_tag:list_tag:10:tag',
-                'class': 'tree_root_tag:list_tag tree_root_tag:list_tag:10 tag'},
+            },
             'children': [
-                {'attr': {
-                    'class': 'tree_root_tag:list_tag:10:tag:subtag subtag',
-                    'id': 'tree_root_tag:list_tag:10:tag:subtag'},
-                 'children': [],
-                 'data': 'subtag'}]}
+                {
+                    'li_attr': {
+                        'class': 'tree_root_tag:list_tag:10:tag:subtag subtag',
+                    },
+                    'a_attr': {
+                        'id': 'tree_root_tag:list_tag:10:tag:subtag'
+                    },
+                    'children': [],
+                    'text': 'subtag',
+                    'state': {'opened': True},
+                }
+            ],
+            'state': {'opened': True},
+        }
         self.assertEqual(result, expected)
 
     def test_to_jstree_dict_with_ListElement(self):
@@ -736,31 +758,42 @@ class TestElement(BaseTest):
         obj = cls()
         result = obj.to_jstree_dict()
         expected = {
-            'data': 'tag',
-            'attr': {
+            'text': 'tag',
+            'li_attr': {
+                'class': 'tree_tag tag'
+            },
+            'a_attr': {
                 'id': 'tree_tag',
-                'class': 'tree_tag tag'},
-            'children': []}
+            },
+            'children': [],
+            'state': {'opened': True},
+        }
         self.assertEqual(result, expected)
 
         list_cls._required = True
         result = obj.to_jstree_dict()
         expected = {
-            'data': 'tag',
-            'attr': {
-                'id': 'tree_tag',
+            'text': 'tag',
+            'li_attr': {
                 'class': 'tree_tag tag'
+            },
+            'a_attr': {
+                'id': 'tree_tag',
             },
             'children': [
                 {
-                    'data': 'sub',
-                    'attr': {
-                        'id': 'tree_tag:element:0:sub',
-                        'class': 'tree_tag:element tree_tag:element:0 sub'
+                    'text': 'sub',
+                    'li_attr': {
+                        'class': 'tree_tag:element sub'
                     },
-                    'children': []
+                    'a_attr': {
+                        'id': 'tree_tag:element:0:sub',
+                    },
+                    'children': [],
+                    'state': {'opened': True},
                 }
-            ]
+            ],
+            'state': {'opened': True},
         }
         self.assertEqual(result, expected)
 
@@ -1641,10 +1674,15 @@ class TestListElement(BaseTest):
         obj._required = True
         result = obj.to_jstree_dict()
         expected = [{
-            'attr': {'class': 'tree_parent_tag:tag tree_parent_tag:tag:0 subtag',
-                     'id': 'tree_parent_tag:tag:0:subtag'},
+            'li_attr': {
+                'class': 'tree_parent_tag:tag subtag',
+            },
+            'a_attr': {
+                'id': 'tree_parent_tag:tag:0:subtag'},
             'children': [],
-            'data': 'subtag'}]
+            'text': 'subtag',
+            'state': {'opened': True},
+        }]
         self.assertEqual(result, expected)
 
     def test_walk_list(self):
@@ -2056,12 +2094,20 @@ class TestChoiceElement(BaseTest):
         self.assertEqual(html, expected)
 
     def test_to_jstree_dict(self):
-        obj = self.cls()
-        try:
-            obj.to_jstree_dict()
-            assert(False)
-        except NotImplementedError:
-            pass
+        obj = self.cls(self.root_obj)
+        res = obj.to_jstree_dict()
+        self.assertEqual(res, None)
+
+        obj.add('subtag1')
+        res = obj.to_jstree_dict()
+        expected = {
+            'text': 'subtag1',
+            'state': {'opened': True},
+            'a_attr': {'id': 'tree_root_tag:subtag1'},
+            'children': [],
+            'li_attr': {'class': 'tree_root_tag:subtag1 subtag1'}
+        }
+        self.assertEqual(res, expected)
 
     def test_to_html(self):
         obj = self.cls(self.root_obj)
@@ -2213,7 +2259,7 @@ class TestFunctions(BaseTest):
         obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
         lis = elements._get_previous_js_selectors(obj)
-        expected = [('inside', '#tree_texts:list__list:0:list')]
+        expected = [('inside', escape_attr('#tree_texts:list__list:0:list'))]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:list__list:0:list'
@@ -2221,24 +2267,24 @@ class TestFunctions(BaseTest):
                                                dtd_str=dtd_str)
         lis = elements._get_previous_js_selectors(obj)
         expected = [
-            ('after', '.tree_texts:tag1'),
-            ('inside', '#tree_texts')]
+            ('after', escape_attr('.tree_texts:tag1') + ':last'),
+            ('inside', escape_attr('#tree_texts'))]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:list__list:1:list'
         obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
         lis = elements._get_previous_js_selectors(obj)
-        expected = [('after', '.tree_texts:list__list:0')]
+        expected = [('after', escape_attr('#tree_texts:list__list:0:list'))]
         self.assertEqual(lis, expected)
 
         str_id = 'texts:tag2'
         obj = elements._get_obj_from_str_id(str_id,
                                                dtd_str=dtd_str)
         lis = elements._get_previous_js_selectors(obj)
-        expected = [('after', '.tree_texts:list__list'),
-                    ('after', '.tree_texts:tag1'),
-                    ('inside', '#tree_texts')]
+        expected = [('after', escape_attr('.tree_texts:list__list') + ':last'),
+                    ('after', escape_attr('.tree_texts:tag1') + ':last'),
+                    ('inside', escape_attr('#tree_texts'))]
         self.assertEqual(lis, expected)
 
     def test_get_jstree_json_from_str_id(self):
@@ -2253,9 +2299,9 @@ class TestFunctions(BaseTest):
         result = elements.get_jstree_json_from_str_id(str_id, dtd_str=dtd_str)
         expected = {
             'previous': [
-                ('after', '.tree_texts:list__list'),
-                ('after', '.tree_texts:tag1'),
-                ('inside', '#tree_texts')],
+                ('after', escape_attr('.tree_texts:list__list') + ':last'),
+                ('after', escape_attr('.tree_texts:tag1') + ':last'),
+                ('inside', escape_attr('#tree_texts'))],
             'html': ('<div id="texts:tag2">'
                      '<label>tag2</label>'
                      '<a data-comment-name="texts:tag2:_comment" '
@@ -2263,11 +2309,16 @@ class TestFunctions(BaseTest):
                      '<textarea class="form-control tag2" name="texts:tag2:_value" '
                      'rows="1"></textarea></div>'),
             'jstree_data': {
-                'data': 'tag2',
-                'attr': {
+                'text': 'tag2',
+                'li_attr': {
+                    'class': 'tree_texts:tag2 tag2'
+                },
+                'a_attr': {
                     'id': 'tree_texts:tag2',
-                    'class': 'tree_texts:tag2 tag2'},
-                'children': []},
+                },
+                'children': [],
+                'state': {'opened': True},
+            },
             'elt_id': str_id,
             'is_choice': False,
         }
@@ -2308,13 +2359,19 @@ class TestFunctions(BaseTest):
                 '</div>'),
             'is_choice': False,
             'jstree_data': {
-                'attr': {
+                'li_attr': {
                     'class': 'tree_texts:list__list:0:list:text1 text1',
-                    'id': 'tree_texts:list__list:0:list:text1'},
+                },
+                'a_attr': {
+                    'id': 'tree_texts:list__list:0:list:text1'
+                },
                 'children': [],
-                'data': u'text1 <span class="_tree_text">(Hello world)</span>'
+                'text': u'text1 <span class="_tree_text">(Hello world)</span>',
+                'state': {'opened': True},
             },
-            'previous': [('inside', '#tree_texts:list__list:0:list')]
+            'previous': [
+                ('inside', escape_attr('#tree_texts:list__list:0:list'))
+            ]
         }
         self.assertEqual(res, expected)
 
@@ -2364,19 +2421,31 @@ class TestFunctions(BaseTest):
             ),
             'is_choice': False,
             'jstree_data': {
-                'attr': {
-                    'class': 'tree_texts:list__list tree_texts:list__list:0 list',
-                    'id': 'tree_texts:list__list:0:list'},
+                'li_attr': {
+                    'class': 'tree_texts:list__list list',
+                },
+                'a_attr': {
+                    'id': 'tree_texts:list__list:0:list'
+                },
                 'children': [{
-                    'attr': {
+                    'li_attr': {
                         'class': 'tree_texts:list__list:0:list:text1 text1',
-                        'id': 'tree_texts:list__list:0:list:text1'},
+                    },
+                    'a_attr': {
+                        'id': 'tree_texts:list__list:0:list:text1'
+                    },
                     'children': [],
-                    'data': ('text1 <span class="_tree_text">'
-                             '(Hello world)</span>')}],
-                'data': 'list'},
-            'previous': [('after', '.tree_texts:tag1'),
-                         ('inside', '#tree_texts')]
+                    'text': ('text1 <span class="_tree_text">'
+                             '(Hello world)</span>'),
+                    'state': {'opened': True},
+                }],
+                'text': 'list',
+                'state': {'opened': True},
+            },
+            'previous': [
+                ('after', escape_attr('.tree_texts:tag1') + ':last'),
+                ('inside', '#tree_texts')
+            ]
         }
         self.assertEqual(res, expected)
 
@@ -2424,13 +2493,19 @@ class TestFunctions(BaseTest):
                 '</div>'),
             'is_choice': True,
             'jstree_data': {
-                'attr': {
+                'li_attr': {
                     'class': 'tree_texts:list__list:0:list:text1 text1',
-                    'id': 'tree_texts:list__list:0:list:text1'},
+                },
+                'a_attr': {
+                    'id': 'tree_texts:list__list:0:list:text1'
+                },
                 'children': [],
-                'data': u'text1 <span class="_tree_text">(Hello world)</span>'
+                'text': u'text1 <span class="_tree_text">(Hello world)</span>',
+                'state': {'opened': True},
             },
-            'previous': [('inside', '#tree_texts:list__list:0:list')]
+            'previous': [
+                ('inside', escape_attr('#tree_texts:list__list:0:list'))
+            ]
         }
         self.assertEqual(res, expected)
 

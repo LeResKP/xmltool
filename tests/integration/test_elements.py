@@ -2,16 +2,20 @@
 
 from unittest import TestCase
 from xmltool.testbase import BaseTest
-from lxml import etree
+import json
+from lxml import etree, html
 import tw2.core as twc
 import tw2.core.testbase as tw2test
 import os.path
-from xmltool import dtd_parser, utils, factory
+from xmltool import dtd_parser, utils, factory, render
 from xmltool.elements import (
     Element,
     ListElement,
     TextElement,
     ChoiceElement,
+    EmptyElement,
+    get_jstree_json_from_str_id,
+    escape_attr,
 )
 import xmltool.elements as elements
 from ..test_dtd_parser import (
@@ -527,7 +531,7 @@ class TestListElement(ElementTester):
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
     def test_add(self):
@@ -652,7 +656,7 @@ class TestListElementEmpty(ElementTester):
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -750,7 +754,7 @@ class TestListElementNotRequired(ElementTester):
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -820,7 +824,7 @@ class TestListElementEmptyNotRequired(ElementTester):
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -929,8 +933,8 @@ class TestListElementElementEmpty(ElementTester):
 
     js_selector = [
         [],
-        [('after', '.tree_texts:list__text:0')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:0:text'))],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -1599,7 +1603,8 @@ class TestListElementOfList(ElementTester):
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text1:0:text1:list__text2:2')],
+        [('after',
+          escape_attr('#tree_texts:list__text1:0:text1:list__text2:2:text2'))],
     ]
 
 
@@ -1952,3 +1957,549 @@ class TestXPath(TestCase):
         res = actor_obj.xpath('..')
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0], actor_obj._parent_obj._parent_obj)
+
+
+def generate_html_block(html, css_class, attrs=''):
+    return '<div class="%s"%s>%s</div>' % (css_class, attrs, html)
+
+
+def generate_javascript_unittest(xml, dtd_str, tagname):
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+        obj.root.html_render = render.Render()
+        obj.root.html_render.add_add_button = lambda: False
+        obj = obj[tagname]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input'
+        )
+        obj.insert(0, EmptyElement(parent_obj=obj))
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            ' prefix="%(tn)s:0:" newprefix="%(tn)s:1:"' % {
+                'tn': obj._prefix_str,
+            }
+        )
+
+        input_html = generate_html_block(
+            obj._get_html_add_button(index=0),
+            'dom-input'
+        )
+        expected_html = generate_html_block(
+            obj._get_html_add_button(index=1),
+            'dom-expected'
+        )
+        test_button_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            ' prefix="%(tn)s:0:" newprefix="%(tn)s:1:"' % {
+                'tn': obj._prefix_str,
+            }
+        )
+        return test_html + test_button_html
+
+
+class TestJavascript(TestCase):
+
+    def test_updatePrefixAttrs(self):
+        lis = []
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>Tag 1</text>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'text')]
+
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (subtext)>
+            <!ELEMENT subtext (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>
+    <subtext>Hello</subtext>
+  </text>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'text')]
+
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (#PCDATA)>
+        <!ELEMENT text2 (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>Tag 1</text1>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'list__text1_text2')]
+
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>
+    <subtext>Tag 1</subtext>
+  </text1>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'list__text1_text2')]
+
+        filename = 'webmedia/js/test/fixtures/updatePrefixAttrs.html'
+        document_root = html.fromstring(''.join(lis))
+        h = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        open(filename, 'w').write(h)
+
+    def test_jstree_utils(self):
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (subtext)>
+            <!ELEMENT subtext (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>
+    <subtext>Hello</subtext>
+  </text>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        h = '''<div id="tree"></div><div id="form-container">
+        <form id="xmltool-form">%s</form>
+        </div>''' % obj.to_html()
+        document_root = html.fromstring(h)
+        h = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        filename = 'webmedia/js/test/fixtures/jstree_utils.html'
+        open(filename, 'w').write(h)
+
+        js = json.dumps(obj.to_jstree_dict())
+        filename = 'webmedia/js/test/fixtures/jstree_utils.json'
+        open(filename, 'w').write(js)
+
+    def test_add_element(self):
+        dtd_str = '''
+            <!ELEMENT texts (text?)>
+            <!ELEMENT text (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts></texts>'''
+
+        lis = []
+        jstree_list = []
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-jstree'
+        )
+
+        o = obj.add('text', '')
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+
+        filename = 'js/test/fixtures/add_element/1.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        jstree_list += [test_jstree]
+
+        dtd_str = '''
+        <!ELEMENT texts (text1|text2)?>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts></texts>'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-jstree'
+        )
+
+        o = obj.add('text1')
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/2.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        jstree_list += [test_jstree]
+
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>
+    <subtext>Tag 1</subtext>
+  </text1>
+  <text2>
+    <subtext>Tag 2</subtext>
+  </text2>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-jstree'
+        )
+
+        o = obj['list__text1_text2'].add('text1', index=0)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/3.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+        jstree_list += [test_jstree]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text1_text2'].add('text1', index=1)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/4.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+        jstree_list += [test_jstree]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text1_text2'].add('text1', index=2)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/5.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+        jstree_list += [test_jstree]
+
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (subtext)>
+            <!ELEMENT subtext (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>
+    <subtext>Hello</subtext>
+  </text>
+  <text>
+    <subtext>World</subtext>
+  </text>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-jstree'
+        )
+
+        o = obj['list__text'].add('text', index=0)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/6.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+        jstree_list += [test_jstree]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text'].add('text', index=1)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/7.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+        jstree_list += [test_jstree]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text'].add('text', index=2)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_jstree_json_from_str_id(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/8.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        test_jstree = generate_html_block(
+            input_jstree + input_html + expected_jstree,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+        jstree_list += [test_jstree]
+
+        filename = 'webmedia/js/test/fixtures/add_element/test.html'
+        open(filename, 'w').write('<div>%s</div>' % ''.join(lis))
+
+        filename = 'webmedia/js/test/fixtures/add_element/test-jstree.html'
+        open(filename, 'w').write('<div>%s</div>' % ''.join(jstree_list))
+
+        document_root = html.fromstring(''.join(lis))
+        h = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        filename = 'webmedia/js/test/fixtures/add_element/test-debug.html'
+        open(filename, 'w').write(h)
