@@ -255,7 +255,7 @@ def _add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
     :type skip_extra: bool
     """
     keys = clipboard_data.keys()
-    assert(len(keys), 1)
+    assert(len(keys) == 1)
     tagname = keys[0]
     parentobj = _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=dtd_url,
                                        dtd_str=dtd_str)

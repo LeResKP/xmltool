@@ -45,7 +45,7 @@ class Element(object):
     """
     tagname = None
     _attribute_names = None
-    _attributes = None
+    attributes = None
     children_classes = None
     _required = False
     _parent_cls = None
@@ -269,8 +269,8 @@ class Element(object):
     def add_attribute(self, name, value):
         if name not in self._attribute_names:
             raise Exception('Invalid attribute name: %s' % name)
-        self._attributes = self._attributes or {}
-        self._attributes[name] = value
+        self.attributes = self.attributes or {}
+        self.attributes[name] = value
 
     def _load_attributes_from_xml(self, xml):
         for k, v in xml.attrib.items():
@@ -286,19 +286,19 @@ class Element(object):
             self.add_attribute(k, v)
 
     def _attributes_to_xml(self, xml):
-        if not self._attributes:
+        if not self.attributes:
             return
-        for k, v in self._attributes.items():
+        for k, v in self.attributes.items():
             xml.attrib[k] = v
 
     def _attributes_to_html(self):
-        if not self._attributes:
+        if not self.attributes:
             return ''
 
         ident = prefixes_to_str(self.prefixes_no_cache)
 
         html = []
-        for k, v in self._attributes.items():
+        for k, v in self.attributes.items():
             html += ['<input value="%s" name="%s" id="%s" class="_attrs" />' % (
                 v,
                 '%s:_attrs:%s' % (ident, k),
@@ -1127,7 +1127,7 @@ class BaseListElement(list, Element):
 
     def to_html(self):
         # We should not have the following parameter for this object
-        assert self._attributes is None
+        assert self.attributes is None
 
         self._before_render()
         renderer = self.get_html_render()

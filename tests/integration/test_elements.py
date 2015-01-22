@@ -1706,20 +1706,20 @@ class TestElementWithAttributes(ElementTester):
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj._attribute_names, ['idtexts', 'name'])
-        self.assertEqual(obj._attributes, {
+        self.assertEqual(obj.attributes, {
             'idtexts': 'id_texts',
             'name': 'my texts',
         })
         self.assertEqual(obj['text']._attribute_names, ['idtext'])
-        self.assertEqual(obj['text']._attributes, {
+        self.assertEqual(obj['text'].attributes, {
             'idtext': 'id_text',
         })
         self.assertEqual(obj['text1'][0]._attribute_names, ['idtext1'])
-        self.assertEqual(obj['text1'][0]._attributes, {
+        self.assertEqual(obj['text1'][0].attributes, {
             'idtext1': 'id_text1_1',
         })
         self.assertEqual(obj['text1'][1]._attribute_names, ['idtext1'])
-        self.assertEqual(obj['text1'][1]._attributes, None)
+        self.assertEqual(obj['text1'][1].attributes, None)
 
     def test_walk(self):
         root = etree.fromstring(self.xml)
