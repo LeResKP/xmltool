@@ -1,33 +1,29 @@
 #!/usr/bin/env python
 
 from unittest import TestCase
-from lxml import etree
+from xmltool.testbase import BaseTest
+import json
+from lxml import etree, html
 import tw2.core as twc
-import tw2.core.testbase as tw2test
 import os.path
-from xmltool import dtd_parser, utils, factory
+from xmltool import dtd_parser, factory, render
 from xmltool.elements import (
-    Element,
-    ListElement,
-    TextElement,
-    ChoiceElement,
+    EmptyElement,
+    escape_attr,
 )
-import xmltool.elements as elements
+from xmltool.factory import (
+    get_data_from_str_id_for_html_display,
+    _get_data_for_html_display,
+)
 from ..test_dtd_parser import (
-    BOOK_XML,
-    BOOK_DTD,
-    EXERCISE_XML_2,
-    EXERCISE_DTD_2,
-    EXERCISE_DTD,
     MOVIE_DTD,
-    MOVIE_XML_TITANIC,
     MOVIE_XML_TITANIC_COMMENTS,
 )
 
 _marker = object()
 
 
-class ElementTester(TestCase):
+class ElementTester(BaseTest):
     # Should be defined in the inheritance classes
     dtd_str = None
     xml = None
@@ -65,7 +61,7 @@ class ElementTester(TestCase):
         dic = dtd_parser.parse(dtd_str=self.dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        self.assertEqual(obj.to_html(), self.expected_html)
+        self.assertEqual_(obj._to_html(), self.expected_html)
 
     def test_load_from_dict(self):
         if self.__class__ == ElementTester:
@@ -93,9 +89,9 @@ class ElementTester(TestCase):
         if self.str_to_html is None:
             return
         for elt_str, expected_html in self.str_to_html:
-            result = elements.get_obj_from_str_id(elt_str,
-                                               dtd_str=self.dtd_str)
-            self.assertEqual(result, expected_html)
+            obj = factory._get_obj_from_str_id(elt_str,
+                                                dtd_str=self.dtd_str)
+            self.assertEqual_(obj.to_html(), expected_html)
 
     # TODO: add this when it works fine
     # def test_jstree(self):
@@ -112,9 +108,9 @@ class ElementTester(TestCase):
             return
         for (elt_str, expected_html), selectors in zip(self.str_to_html,
                                                        self.js_selector):
-            obj, prefixes, index = elements._get_obj_from_str_id(elt_str,
+            obj = factory._get_obj_from_str_id(elt_str,
                                                dtd_str=self.dtd_str)
-            lis = elements._get_previous_js_selectors(obj, prefixes, index)
+            lis = obj.get_previous_js_selectors()
             self.assertEqual(lis, selectors)
 
 
@@ -148,7 +144,6 @@ class TestElementPCDATA(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div id="texts:text">'
@@ -193,7 +188,6 @@ class TestElementPCDATA(ElementTester):
         text = obj.add('text')
         self.assertEqual(text.tagname, 'text')
         self.assertEqual(obj['text'], text)
-
 
     def test_add_bad_child(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
@@ -240,7 +234,6 @@ class TestElementPCDATAEmpty(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div id="texts:text">'
@@ -299,7 +292,6 @@ class TestElementPCDATANotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
@@ -345,7 +337,6 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
@@ -401,7 +392,6 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
@@ -481,7 +471,6 @@ class TestListElement(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -502,6 +491,8 @@ class TestListElement(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -511,10 +502,10 @@ class TestListElement(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -524,15 +515,13 @@ class TestListElement(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
 
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
     def test_add(self):
@@ -607,7 +596,6 @@ class TestListElementEmpty(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -628,6 +616,8 @@ class TestListElementEmpty(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -637,10 +627,10 @@ class TestListElementEmpty(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -650,15 +640,13 @@ class TestListElementEmpty(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
 
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -718,7 +706,6 @@ class TestListElementNotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -728,6 +715,8 @@ class TestListElementNotRequired(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -737,10 +726,10 @@ class TestListElementNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -750,14 +739,12 @@ class TestListElementNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -788,7 +775,6 @@ class TestListElementEmptyNotRequired(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -798,6 +784,8 @@ class TestListElementEmptyNotRequired(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:0:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:0:text">New text</a>'
          '<div id="texts:list__text:0:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -807,10 +795,10 @@ class TestListElementEmptyNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:1:text">New text</a>'
         ),
         ('texts:list__text:10:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:10:text">New text</a>'
          '<div id="texts:list__text:10:text">'
          '<label>text</label>'
          '<a class="btn-delete btn-list" '
@@ -820,15 +808,13 @@ class TestListElementEmptyNotRequired(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:10:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:11:text">New text</a>'
         )
     ]
 
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -861,7 +847,7 @@ class TestListElementElementEmpty(ElementTester):
         'id="texts:list__text:0:text">'
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text'
         '<a class="btn-delete btn-list" '
-        'data-target="#texts:list__text:0:text" title="Delete"></a>'
+        'data-target="#texts:list__text:0:text" title="Delete"/>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
@@ -885,7 +871,6 @@ class TestListElementElementEmpty(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" '
          'title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
@@ -915,6 +900,9 @@ class TestListElementElementEmpty(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text:1:text',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text:1:text">'
+         'New text</a>'
          '<div class="panel panel-default text" id="texts:list__text:1:text">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text'
          '<a class="btn-delete btn-list" '
@@ -930,16 +918,13 @@ class TestListElementElementEmpty(ElementTester):
          'rows="1"></textarea>'
          '</div>'
          '</div></div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text:2:text">'
-         'New text</a>'
         )
     ]
 
     js_selector = [
         [],
-        [('after', '.tree_texts:list__text:0')],
-        [('after', '.tree_texts:list__text:9')],
+        [('after', escape_attr('#tree_texts:list__text:0:text'))],
+        [('after', escape_attr('#tree_texts:list__text:9:text'))],
     ]
 
 
@@ -947,7 +932,6 @@ choice_str_to_html = [
     ('texts',
      '<div class="panel panel-default texts" id="texts">'
      '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-     '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
      '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
      '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
      '<select class="btn-add">'
@@ -1156,7 +1140,6 @@ choicelist_str_to_html = [
     ('texts',
      '<div class="panel panel-default texts" id="texts">'
      '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-     '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
      '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
      '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
      '<div class="list-container">'
@@ -1169,6 +1152,11 @@ choicelist_str_to_html = [
      '</div></div>'
     ),
     ('texts:list__text1_text2:0:text1',
+     '<select class="btn-add btn-list">'
+     '<option>New text1/text2</option>'
+     '<option value="texts:list__text1_text2:0:text1">text1</option>'
+     '<option value="texts:list__text1_text2:0:text2">text2</option>'
+     '</select>'
      '<div id="texts:list__text1_text2:0:text1">'
      '<label>text1</label>'
      '<a class="btn-delete btn-list" '
@@ -1178,13 +1166,13 @@ choicelist_str_to_html = [
      '<textarea class="form-control text1" name="texts:list__text1_text2:0:text1:_value" '
      'rows="1"></textarea>'
      '</div>'
-     '<select class="btn-add btn-list">'
-     '<option>New text1/text2</option>'
-     '<option value="texts:list__text1_text2:1:text1">text1</option>'
-     '<option value="texts:list__text1_text2:1:text2">text2</option>'
-     '</select>'
     ),
     ('texts:list__text1_text2:10:text1',
+     '<select class="btn-add btn-list">'
+     '<option>New text1/text2</option>'
+     '<option value="texts:list__text1_text2:10:text1">text1</option>'
+     '<option value="texts:list__text1_text2:10:text2">text2</option>'
+     '</select>'
      '<div id="texts:list__text1_text2:10:text1">'
      '<label>text1</label>'
      '<a class="btn-delete btn-list" '
@@ -1194,11 +1182,6 @@ choicelist_str_to_html = [
      '<textarea class="form-control text1" name="texts:list__text1_text2:10:text1:_value" '
      'rows="1"></textarea>'
      '</div>'
-     '<select class="btn-add btn-list">'
-     '<option>New text1/text2</option>'
-     '<option value="texts:list__text1_text2:11:text1">text1</option>'
-     '<option value="texts:list__text1_text2:11:text2">text2</option>'
-     '</select>'
     )
 ]
 
@@ -1284,7 +1267,6 @@ class TestElementChoiceList(ElementTester):
     }
     str_to_html = choicelist_str_to_html
     js_selector = choice_list_js_selector
-
 
     def test_add(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
@@ -1553,7 +1535,6 @@ class TestListElementOfList(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
@@ -1563,6 +1544,8 @@ class TestListElementOfList(ElementTester):
          '</div></div>'
         ),
         ('texts:list__text1:0:text1',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text1:0:text1">New text1</a>'
          '<div class="panel panel-default text1" id="texts:list__text1:0:text1">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text1\:0\:text1">'
          'text1'
@@ -1589,10 +1572,10 @@ class TestListElementOfList(ElementTester):
          'New text2</a>'
          '</div>'
          '</div></div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text1:1:text1">New text1</a>'
         ),
         ('texts:list__text1:0:text1:list__text2:3:text2',
+         '<a class="btn-add btn-list" '
+         'data-elt-id="texts:list__text1:0:text1:list__text2:3:text2">New text2</a>'
          '<div id="texts:list__text1:0:text1:list__text2:3:text2">'
          '<label>text2</label>'
          '<a class="btn-delete btn-list" '
@@ -1604,15 +1587,14 @@ class TestListElementOfList(ElementTester):
          'rows="1">'
          '</textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
-         'data-elt-id="texts:list__text1:0:text1:list__text2:4:text2">New text2</a>'
         )
     ]
 
     js_selector = [
         [],
         [('inside', '#tree_texts')],
-        [('after', '.tree_texts:list__text1:0:text1:list__text2:2')],
+        [('after',
+          escape_attr('#tree_texts:list__text1:0:text1:list__text2:2:text2'))],
     ]
 
 
@@ -1688,7 +1670,6 @@ class TestElementWithAttributes(ElementTester):
         ('texts',
          '<div class="panel panel-default texts" id="texts">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-         '<a class="btn-delete" data-target="#texts" title="Delete"></a>'
          '<a data-comment-name="texts:_comment" class="btn-comment" '
          'title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
@@ -1965,4 +1946,865 @@ class TestXPath(TestCase):
 
         res = actor_obj.xpath('..')
         self.assertEqual(len(res), 1)
-        self.assertEqual(res[0], actor_obj.parent.parent)
+        self.assertEqual(res[0], actor_obj._parent_obj._parent_obj)
+
+
+def generate_html_block(html, css_class, attrs=''):
+    return '<div class="%s"%s>%s</div>' % (css_class, attrs, html)
+
+
+def generate_javascript_unittest(xml, dtd_str, tagname):
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+        obj.root.html_render = render.Render()
+        obj.root.html_render.add_add_button = lambda: False
+        obj = obj[tagname]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input'
+        )
+        obj.insert(0, EmptyElement(parent_obj=obj))
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected'
+        )
+        test_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            ' prefix="%(tn)s:0:" newprefix="%(tn)s:1:"' % {
+                'tn': obj._prefix_str,
+            }
+        )
+
+        input_html = generate_html_block(
+            obj._get_html_add_button(index=0),
+            'dom-input'
+        )
+        expected_html = generate_html_block(
+            obj._get_html_add_button(index=1),
+            'dom-expected'
+        )
+        test_button_html = generate_html_block(
+            input_html + expected_html,
+            'dom-test',
+            ' prefix="%(tn)s:0:" newprefix="%(tn)s:1:"' % {
+                'tn': obj._prefix_str,
+            }
+        )
+        return test_html + test_button_html
+
+
+class TestJavascript(TestCase):
+
+    def test_updatePrefixAttrs(self):
+        lis = []
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>Tag 1</text>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'text')]
+
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (subtext)>
+            <!ELEMENT subtext (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>
+    <subtext>Hello</subtext>
+  </text>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'text')]
+
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (#PCDATA)>
+        <!ELEMENT text2 (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>Tag 1</text1>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'list__text1_text2')]
+
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>
+    <subtext>Tag 1</subtext>
+  </text1>
+</texts>
+'''
+        lis += [generate_javascript_unittest(xml, dtd_str, 'list__text1_text2')]
+
+        filename = 'webmedia/js/test/fixtures/updatePrefixAttrs.html'
+        document_root = html.fromstring(''.join(lis))
+        h = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        open(filename, 'w').write(h)
+
+    def test_jstree_utils(self):
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (subtext)>
+            <!ELEMENT subtext (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>
+    <subtext>Hello</subtext>
+  </text>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        h = '''<div id="tree"></div><div id="form-container">
+        <form id="xmltool-form">%s</form>
+        </div>''' % obj.to_html()
+        document_root = html.fromstring(h)
+        h = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        filename = 'webmedia/js/test/fixtures/jstree_utils.html'
+        open(filename, 'w').write(h)
+
+        js = json.dumps(obj.to_jstree_dict())
+        filename = 'webmedia/js/test/fixtures/jstree_utils.json'
+        open(filename, 'w').write(js)
+
+        text = obj.add('text')
+        subtext = text.add('subtext')
+        subtext.text = 'World'
+        dic = _get_data_for_html_display(text)
+
+        filename = 'webmedia/js/test/fixtures/paste.json'
+        open(filename, 'w').write(json.dumps(dic))
+
+        filename = 'webmedia/js/test/fixtures/paste_expected.json'
+        dic = _get_data_for_html_display(obj)
+        open(filename, 'w').write(json.dumps(dic))
+
+        text = obj.add('text')
+        subtext = text.add('subtext')
+        subtext.text = '!'
+
+        js = json.dumps(obj.to_jstree_dict())
+        filename = 'webmedia/js/test/fixtures/nodes.json'
+        open(filename, 'w').write(js)
+
+    def test_add_element(self):
+        dtd_str = '''
+            <!ELEMENT texts (text?)>
+            <!ELEMENT text (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts></texts>'''
+
+        lis = []
+        jstree_list = []
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj.add('text', '')
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+
+        filename = 'js/test/fixtures/add_element/1.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        dtd_str = '''
+        <!ELEMENT texts (text1|text2)?>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts></texts>'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj.add('text1')
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/2.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>
+    <subtext>Tag 1</subtext>
+  </text1>
+  <text2>
+    <subtext>Tag 2</subtext>
+  </text2>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text1_text2'].add('text1', index=0)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/3.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text1_text2'].add('text1', index=1)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/4.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text1_text2'].add('text1', index=2)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "option[value='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/5.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        dtd_str = '''
+            <!ELEMENT texts (text+)>
+            <!ELEMENT text (subtext)>
+            <!ELEMENT subtext (#PCDATA)>
+            '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text>
+    <subtext>Hello</subtext>
+  </text>
+  <text>
+    <subtext>World</subtext>
+  </text>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text'].add('text', index=0)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/6.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text'].add('text', index=1)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/7.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        o._parent_obj.remove(o)
+        o = obj['list__text'].add('text', index=2)
+
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-elt-id='%s']" % escape_attr(
+            o._prefix_str)
+        dic = get_data_from_str_id_for_html_display(ident,
+                                          dtd_str=dtd_str)
+        filename = 'js/test/fixtures/add_element/8.json'
+        open(os.path.join('webmedia', filename), 'w').write(json.dumps(dic))
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            'data-url="%s"'
+            ' data-btn-selector="%s"'
+            ' data-id="%s"' % (filename, btn_selector, ident),
+        )
+        lis += [test_html]
+
+        filename = 'webmedia/js/test/fixtures/add_element/test.html'
+        open(filename, 'w').write('<div>%s</div>' % ''.join(lis))
+
+        document_root = html.fromstring(''.join(lis))
+        h = etree.tostring(document_root, encoding='unicode',
+                           pretty_print=True)
+        filename = 'webmedia/js/test/fixtures/add_element/test-debug.html'
+        open(filename, 'w').write(h)
+
+    def test_remove_element(self):
+        dtd_str = '''
+        <!ELEMENT texts ((text1|text2)+)>
+        <!ELEMENT text1 (subtext)>
+        <!ELEMENT text2 (subtext?)>
+        <!ELEMENT subtext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+  <text1>
+    <subtext>Tag 1</subtext>
+  </text1>
+  <text2>
+    <subtext>Tag 2</subtext>
+  </text2>
+  <text2>
+    <subtext>Tag 3</subtext>
+  </text2>
+  <text2>
+    <subtext>Tag 4</subtext>
+  </text2>
+</texts>
+'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        lis = []
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+        self.assertEqual(len(obj['list__text1_text2']), 4)
+        o = obj['list__text1_text2'][0]
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        self.assertEqual(len(obj['list__text1_text2']), 3)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text1_text2'][1]
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        self.assertEqual(len(obj['list__text1_text2']), 2)
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text1_text2'][1]['subtext']
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        o = obj['list__text1_text2'][-1]
+        ident = ':'.join(o.prefixes_no_cache)
+        btn_selector = "[data-target='#%s']" % escape_attr(ident)
+        o.delete()
+        self.assertEqual(len(obj['list__text1_text2']), 1)
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_jstree + input_html + expected_jstree + expected_html,
+            'dom-test',
+            ' data-btn-selector="%s"' % btn_selector
+        )
+        lis += [test_html]
+
+        filename = 'webmedia/js/test/fixtures/remove_element.html'
+        open(filename, 'w').write('<div>%s</div>' % ''.join(lis))
+
+    def test_move_element(self):
+        lis = []
+        dtd_str = '''
+        <!ELEMENT texts (text)>
+        <!ELEMENT text (block, (subtext1|subtext2)*)>
+        <!ELEMENT subtext1 (minitext*)>
+        <!ELEMENT subtext2 (minitext*)>
+        <!ELEMENT block (#PCDATA)>
+        <!ELEMENT minitext (#PCDATA)>
+        '''
+        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+<texts>
+<text>
+  <block>tag 0</block>
+  <subtext1>
+    <minitext>tag 1</minitext>
+  </subtext1>
+  <subtext2>
+    <minitext>tag 2</minitext>
+    <minitext>tag 3</minitext>
+  </subtext2>
+  <subtext1>
+    <minitext>tag 4</minitext>
+  </subtext1>
+  <subtext1>
+    <minitext>tag 5</minitext>
+  </subtext1>
+</text>
+</texts>'''
+        root = etree.fromstring(xml)
+        dic = dtd_parser.parse(dtd_str=dtd_str)
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        input_html = generate_html_block(
+            obj.to_html(),
+            'dom-input-html'
+        )
+        input_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-input-jstree'
+        )
+
+        # Move first obj in position 1
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[0]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 1
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="after"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move first obj in last position (3)
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[0]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 3
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="after"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move second obj in position 2
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[1]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 2
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="after"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move last obj in position 0
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[-1]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 0
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="before"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+        obj = dic[root.tag]()
+        obj.load_from_xml(root)
+
+        # Move last obj in position 1
+        lis_obj = obj['text']['list__subtext1_subtext2']
+        sub1 = lis_obj[-1]
+        from_ident = ':'.join(sub1.prefixes_no_cache)
+        to_position = 1
+        sub1.delete()
+        lis_obj.insert(to_position, sub1)
+
+        expected_html = generate_html_block(
+            obj.to_html(),
+            'dom-expected-html'
+        )
+        expected_jstree = generate_html_block(
+            json.dumps(obj.to_jstree_dict()),
+            'dom-expected-jstree'
+        )
+
+        test_html = generate_html_block(
+            input_html + input_jstree + expected_html + expected_jstree,
+            'dom-test',
+            ' data-id="%s"'
+            # We should get to_position + 1 because we have an element before
+            # the list: when we get node.children we get all children not only
+            # the list children
+            ' data-children-index="%s"'
+            ' data-position="before"' % (from_ident, to_position + 1)
+        )
+        lis += [test_html]
+
+
+        filename = 'webmedia/js/test/fixtures/move_element.html'
+        open(filename, 'w').write('<div>%s</div>' % ''.join(lis))
