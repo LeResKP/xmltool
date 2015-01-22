@@ -18,7 +18,9 @@ You will see in this example how it's easy to create an XML file according to th
     >>> from lxml import etree
     >>> import xmltool
     >>> from xmltool import dtd_parser
-    >>> dtd_url = 'http://xmltool.lereskp.fr/examples/movie.dtd'
+    >>> dtd_url = (
+    ...     'https://raw.githubusercontent.com/LeResKP/xmltool/master/'
+    ...     'docs/examples/movie.dtd')
     >>> dic = dtd_parser.parse(dtd_url=dtd_url)
     >>> movie = dic['movie']()
     >>> title = movie.add('title', 'Movie title')
@@ -53,7 +55,9 @@ Now we will see how to handle case with some conditional elements. It's '(qcm|mq
 
     >>> import xmltool
     >>> from xmltool import dtd_parser
-    >>> dtd_url = 'http://xmltool.lereskp.fr/examples/exercise.dtd'
+    >>> dtd_url = (
+    ...     'https://raw.githubusercontent.com/LeResKP/xmltool/master/'
+    ...     'docs/examples/exercise.dtd')
     >>> dic = dtd_parser.parse(dtd_url=dtd_url)
     >>> exercise = dic['Exercise']()
     >>> question = exercise.add('question', 'the question')
@@ -88,7 +92,9 @@ See the example below:
     >>> from lxml import etree
     >>> import xmltool
     >>> from xmltool import dtd_parser
-    >>> dtd_url = 'http://xmltool.lereskp.fr/examples/exercise.dtd'
+    >>> dtd_url = (
+    ...     'https://raw.githubusercontent.com/LeResKP/xmltool/master/'
+    ...     'docs/examples/exercise.dtd')
     >>> dic = dtd_parser.parse(dtd_url=dtd_url)
     >>> exercise = dic['Exercise']()
     >>> question = exercise.add('question', 'the question')
@@ -116,7 +122,7 @@ For this example we will load the following XML file:
 
     >>> xml_filename = 'examples/movie.xml'
     >>> obj = xmltool.load(xml_filename)
-    >>> print obj._attributes
+    >>> print obj.attributes
     {'idmovie': 'M1'}
     >>> print obj #doctest: +ELLIPSIS
     <xmltool.dtd_parser.movie object at 0x...>
@@ -124,7 +130,7 @@ For this example we will load the following XML file:
     Full Metal Jacket
     >>> print obj['characters']['character'][0].text
     Matthew Modine
-    >>> print obj['characters']['character'][0]._attributes
+    >>> print obj['characters']['character'][0].attributes
     {'idcharacter': 'C1'}
 
 

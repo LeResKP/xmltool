@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE movie SYSTEM "http://xmltool.lereskp.fr/examples/movie.dtd">
+<!DOCTYPE movie SYSTEM "https://raw.githubusercontent.com/LeResKP/xmltool/master/docs/examples/movie.dtd">
 <movie>
   <title>My movie title</title>
   <realisator>My movie realisator</realisator>

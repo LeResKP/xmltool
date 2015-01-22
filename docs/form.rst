@@ -39,18 +39,20 @@ Submitting a HTML form
 XML tool support you submit WebOb request or dict. We will use a dict for this example.
 
     >>> xml_filename = 'examples/my-movie.xml'
-    >>> dic = {'_xml_dtd_url': 'http://xmltool.lereskp.fr/examples/movie.dtd',
+    >>> dic = {'_xml_dtd_url': (
+    ...     'https://raw.githubusercontent.com/LeResKP/xmltool/master/'
+    ...     'docs/examples/movie.dtd'),
     ...        '_xml_encoding': 'UTF-8',
     ...        'movie:title:_value': 'My movie title',
     ...        'movie:realisator:_value': 'My movie realisator',
-    ...        'movie:characters:character__list:1:character:_value': 'My first character',
-    ...        'movie:characters:character__list:2:character:_value': 'My second character',
+    ...        'movie:characters:list__character:0:character:_value': 'My first character',
+    ...        'movie:characters:list__character:1:character:_value': 'My second character',
     ...       }
     >>> obj = xmltool.update(xml_filename, dic)
-    >>> print obj.title._value
+    >>> print obj['title'].text
     My movie title
-    >>> print obj.characters.character[0]._value
-    My first character
+    >>> print obj['characters']['character'][1].text
+    My second character
 
 The generated XML looks like:
 

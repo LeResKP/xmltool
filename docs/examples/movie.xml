@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE movie PUBLIC "http://xmltool.lereskp.fr/examples/movie.dtd" "http://xmltool.lereskp.fr/examples/movie.dtd">
+<!DOCTYPE movie PUBLIC "https://raw.githubusercontent.com/LeResKP/xmltool/master/docs/examples/movie.dtd" "https://raw.githubusercontent.com/LeResKP/xmltool/master/docs/examples/movie.dtd">
 <movie idmovie="M1">
  <title>Full Metal Jacket</title>
  <realisator>Stanley Kubrick</realisator>

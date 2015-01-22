@@ -7,25 +7,21 @@
 xmltool's documentation!
 #########################
 
-.. toctree::
-    :maxdepth: 2
-
 
 Introduction
 ============
 
 xmltool is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
-The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
 You can find the `source on github <https://github.com/LeResKP/xmltool>`_.
 
-.. include:: changelog.rst.inc
 
+.. toctree::
+    :maxdepth: 2
 
-.. include:: basic.rst.inc
-
-.. include:: form.rst.inc
-
-.. include:: module.rst.inc
+    basic
+    form
+    module
+    changelog
 
 
 Indices and tables
