@@ -51,7 +51,6 @@ class Element(object):
     _parent_cls = None
     sourceline = None
     comment = None
-    _is_choice = False
     _is_empty = False
 
     # The following attributes should be used for the root element.

@@ -154,9 +154,6 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
                                         subislist, subconditionals,
                                         inlist=islist, inchoice=(not islist))
             sub_cls._parent_cls = parent_cls
-            # TODO: We can have choice in list, so this parameter name is not really
-            # explicit!
-            sub_cls._is_choice = not islist
             parent_cls._choice_classes += [sub_cls]
         return parent_cls
 
