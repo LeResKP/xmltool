@@ -305,9 +305,9 @@ class TestElement(BaseTest):
     def test__load_comment_from_xml(self):
         obj = self.cls()
         xml = etree.Element('test')
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
         obj._load_comment_from_xml(xml)
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
 
         for i in range(5):
             if i == 2:
@@ -317,7 +317,7 @@ class TestElement(BaseTest):
             xml.append(elt)
         obj._load_comment_from_xml(xml.getchildren()[2])
         expected = 'comment 0\ncomment 1\ncomment 3\ncomment 4'
-        self.assertEqual(obj._comment, expected)
+        self.assertEqual(obj.comment, expected)
 
         obj = self.cls()
         xml = etree.Element('test')
@@ -325,7 +325,7 @@ class TestElement(BaseTest):
             elt = etree.Element('sub')
             xml.append(elt)
         obj._load_comment_from_xml(xml.getchildren()[2])
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
 
         obj = self.cls()
         xml = etree.Element('test')
@@ -337,15 +337,15 @@ class TestElement(BaseTest):
             xml.append(elt)
         obj._load_comment_from_xml(xml.getchildren()[2])
         expected = 'comment 1'
-        self.assertEqual(obj._comment, expected)
+        self.assertEqual(obj.comment, expected)
 
     def test__load_comment_from_dict(self):
         obj = self.cls()
         obj._load_comment_from_dict({})
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
         dic = {'_comment': 'my comment'}
         obj._load_comment_from_dict(dic)
-        self.assertEqual(obj._comment, 'my comment')
+        self.assertEqual(obj.comment, 'my comment')
 
     def test__comment_to_xml(self):
         xml = etree.Element('test')
@@ -353,7 +353,7 @@ class TestElement(BaseTest):
         obj._comment_to_xml(xml)
         self.assertEqual(xml.getprevious(), None)
 
-        obj._comment = 'my comment'
+        obj.comment = 'my comment'
         obj._comment_to_xml(xml)
         elt = xml.getprevious()
         self.assertEqual(elt.getprevious(), None)
@@ -366,7 +366,7 @@ class TestElement(BaseTest):
                     'class="btn-comment" title="Add comment"></a>')
         self.assertEqual(html, expected)
 
-        obj._comment = 'my comment'
+        obj.comment = 'my comment'
         html = obj._comment_to_html()
         expected = ('<a data-comment-name="root_tag:tag:_comment" '
                     'class="btn-comment has-comment" title="my comment"></a>'
@@ -384,7 +384,7 @@ class TestElement(BaseTest):
         obj = self.cls()
         obj._attribute_names = ['attr']
         obj._load_extra_from_xml(xml.getchildren()[1])
-        self.assertEqual(obj._comment, 'comment')
+        self.assertEqual(obj.comment, 'comment')
         self.assertEqual(obj.attributes, {'attr': 'value'})
 
     def test_load_from_xml(self):
@@ -407,13 +407,13 @@ class TestElement(BaseTest):
         obj = cls()
         obj.load_from_xml(xml)
         self.assertTrue(obj)
-        self.assertFalse(obj._comment)
+        self.assertFalse(obj.comment)
         self.assertFalse(obj.attributes)
         self.assertTrue(obj['prev'])
-        self.assertFalse(obj['prev']._comment)
+        self.assertFalse(obj['prev'].comment)
         self.assertFalse(obj['prev'].attributes)
         self.assertTrue(obj['element'])
-        self.assertEqual(obj['element']._comment, 'comment')
+        self.assertEqual(obj['element'].comment, 'comment')
         self.assertEqual(obj['element'].attributes, {'attr': 'value'})
 
     def test__load_extra_from_dict(self):
@@ -421,7 +421,7 @@ class TestElement(BaseTest):
         obj._attribute_names = ['attr']
         dic = {'_comment': 'comment', '_attrs': {'attr': 'value'}}
         obj._load_extra_from_dict(dic)
-        self.assertEqual(obj._comment, 'comment')
+        self.assertEqual(obj.comment, 'comment')
         self.assertEqual(obj.attributes, {'attr': 'value'})
 
     def test_load_from_dict(self):
@@ -437,7 +437,7 @@ class TestElement(BaseTest):
         obj = cls()
         dic = {}
         obj.load_from_dict(dic)
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
         self.assertEqual(obj.attributes, None)
         dic = {
             'tag': {
@@ -449,11 +449,11 @@ class TestElement(BaseTest):
         }
         obj.load_from_dict(dic)
         self.assertTrue(obj)
-        self.assertEqual(obj._comment, 'comment')
+        self.assertEqual(obj.comment, 'comment')
         self.assertFalse(obj.attributes)
         self.assertFalse(hasattr(obj, 'prev'))
         self.assertTrue(obj['element'])
-        self.assertEqual(obj['element']._comment, 'element comment')
+        self.assertEqual(obj['element'].comment, 'element comment')
         self.assertEqual(obj['element'].attributes, {'attr': 'value'})
 
         # skip_extra = True
@@ -471,11 +471,11 @@ class TestElement(BaseTest):
         }
         obj.load_from_dict(dic, skip_extra=True)
         self.assertTrue(obj)
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
         self.assertFalse(obj.attributes)
         self.assertFalse(hasattr(obj, 'prev'))
         self.assertTrue(obj['element'])
-        self.assertEqual(obj['element']._comment, None)
+        self.assertEqual(obj['element'].comment, None)
         self.assertEqual(obj['element'].attributes, None)
 
     def test_load_from_dict_sub_list(self):
@@ -495,7 +495,7 @@ class TestElement(BaseTest):
         dic = {}
         obj = cls()
         obj.load_from_dict(dic)
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
         self.assertEqual(obj.attributes, None)
         dic = {
             'tag': {
@@ -509,12 +509,12 @@ class TestElement(BaseTest):
         }
         obj = cls()
         obj.load_from_dict(dic)
-        self.assertEqual(obj._comment, 'comment')
+        self.assertEqual(obj.comment, 'comment')
         self.assertFalse(obj.attributes)
         self.assertFalse(hasattr(obj, 'prev'))
         self.assertTrue(obj['sub'])
         self.assertEqual(len(obj['sub']), 1)
-        self.assertEqual(obj['sub'][0]._comment, 'element comment')
+        self.assertEqual(obj['sub'][0].comment, 'element comment')
         self.assertEqual(obj['sub'][0].attributes, {'attr': 'value'})
 
         # Test with empty element to keep the index position
@@ -531,13 +531,13 @@ class TestElement(BaseTest):
         }
         obj = cls()
         obj.load_from_dict(dic)
-        self.assertEqual(obj._comment, 'comment')
+        self.assertEqual(obj.comment, 'comment')
         self.assertFalse(obj.attributes)
         self.assertFalse(hasattr(obj, 'prev'))
         self.assertTrue(obj['sub'])
         self.assertEqual(len(obj['sub']), 2)
         self.assertTrue(isinstance(obj['sub'][0], elements.EmptyElement))
-        self.assertEqual(obj['sub'][1]._comment, 'element comment')
+        self.assertEqual(obj['sub'][1].comment, 'element comment')
         self.assertEqual(obj['sub'][1].attributes, {'attr': 'value'})
 
     def test_to_xml(self):
@@ -550,7 +550,7 @@ class TestElement(BaseTest):
                    'children_classes': [sub_cls]})
         obj = cls()
         obj['element'] = sub_cls()
-        obj['element']._comment = 'comment'
+        obj['element'].comment = 'comment'
         obj['element'].attributes = {'attr': 'value'}
         xml = obj.to_xml()
         self.assertEqual(xml.tag, 'tag')
@@ -578,10 +578,10 @@ class TestElement(BaseTest):
         obj = cls()
         lis = list_cls(obj)
         obj1 = lis.add(sub_cls.tagname)
-        obj1._comment = 'comment1'
+        obj1.comment = 'comment1'
         obj1.attributes = {'attr': 'value'}
         obj2 = lis.add(sub_cls.tagname)
-        obj2._comment = 'comment2'
+        obj2.comment = 'comment2'
         xml = obj.to_xml()
         self.assertEqual(xml.tag, 'tag')
         self.assertEqual(len(xml.getchildren()), 4)
@@ -1137,7 +1137,7 @@ class TestTextElement(BaseTest):
         obj = self.cls()
         obj.load_from_xml(text)
         self.assertEqual(obj.text, 'text')
-        self.assertEqual(obj._comment, 'comment')
+        self.assertEqual(obj.comment, 'comment')
         self.assertEqual(obj.attributes, {'attr': 'value'})
 
         text.text = 'Hello world'
@@ -1147,13 +1147,13 @@ class TestTextElement(BaseTest):
         obj = self.cls()
         obj.load_from_xml(text)
         self.assertEqual(obj.text, 'Hello world')
-        self.assertEqual(obj._comment, 'comment\ncomment inside a tag')
+        self.assertEqual(obj.comment, 'comment\ncomment inside a tag')
         self.assertEqual(obj.attributes, {'attr': 'value'})
 
         obj = self.cls()
         obj.load_from_xml(empty)
         self.assertEqual(obj.text, '')
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
 
     def test_load_from_dict(self):
         dic = {'tag': {'_value': 'text',
@@ -1165,19 +1165,19 @@ class TestTextElement(BaseTest):
         obj = self.cls()
         obj.load_from_dict(dic)
         self.assertEqual(obj.text, 'text')
-        self.assertEqual(obj._comment, 'comment')
+        self.assertEqual(obj.comment, 'comment')
         self.assertEqual(obj.attributes, {'attr': 'value'})
 
         obj = self.cls()
         obj.load_from_dict(dic, skip_extra=True)
         self.assertEqual(obj.text, 'text')
-        self.assertEqual(obj._comment, None)
+        self.assertEqual(obj.comment, None)
         self.assertEqual(obj.attributes, None)
 
     def test_to_xml(self):
         obj = self.cls()
         obj.text = 'text'
-        obj._comment = 'comment'
+        obj.comment = 'comment'
         obj.attributes = {'attr': 'value'}
         xml = obj.to_xml()
         self.assertTrue(xml.tag, 'tag')
@@ -1552,7 +1552,7 @@ class TestListElement(BaseTest):
         self.assertEqual(lis, [])
 
         subobj = self.sub_cls()
-        subobj._comment = 'comment'
+        subobj.comment = 'comment'
         subobj.attributes = {'attr': 'value'}
 
         obj.append(subobj)

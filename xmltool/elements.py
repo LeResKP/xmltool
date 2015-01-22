@@ -50,7 +50,7 @@ class Element(object):
     _required = False
     _parent_cls = None
     sourceline = None
-    _comment = None
+    comment = None
     _is_choice = False
     _is_empty = False
 
@@ -330,21 +330,21 @@ class Element(object):
                 break
             end_comments += [nextelt.text]
         comments += end_comments
-        self._comment = '\n'.join(comments) or None
+        self.comment = '\n'.join(comments) or None
 
     def _load_comment_from_dict(self, dic):
-        self._comment = dic.pop('_comment', None)
+        self.comment = dic.pop('_comment', None)
 
     def _comment_to_xml(self, xml):
-        if not self._comment:
+        if not self.comment:
             return None
-        elt = etree.Comment(update_eol(self._comment))
+        elt = etree.Comment(update_eol(self.comment))
         xml.addprevious(elt)
 
     def _comment_to_html(self):
         ident = prefixes_to_str(self.prefixes_no_cache + ['_comment'])
 
-        if not self._comment:
+        if not self.comment:
             return (
                 u'<a data-comment-name="%s" class="btn-comment" '
                 u'title="Add comment"></a>') % ident
@@ -356,7 +356,7 @@ class Element(object):
                 '</textarea>'
             ).format(
                 name=ident,
-                comment=self._comment
+                comment=self.comment
             )
 
     def _load_extra_from_xml(self, xml):
@@ -769,10 +769,10 @@ class TextElement(Element):
                 if isinstance(e, etree._Comment):
                     comments += [e.text]
             if comments:
-                self._comment = self._comment or ''
-                if self._comment:
-                    self._comment += '\n'
-                self._comment += '\n'.join(comments)
+                self.comment = self.comment or ''
+                if self.comment:
+                    self.comment += '\n'
+                self.comment += '\n'.join(comments)
 
             for s in xml.itertext():
                 if s in comments:
@@ -1115,8 +1115,8 @@ class BaseListElement(list, Element):
         for e in self:
             if isinstance(e, EmptyElement):
                 continue
-            if e._comment:
-                elt = etree.Comment(e._comment)
+            if e.comment:
+                elt = etree.Comment(e.comment)
                 lis += [elt]
             lis += [e.to_xml()]
         self._after_render()

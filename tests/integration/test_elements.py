@@ -1781,50 +1781,50 @@ class TestElementComments(ElementTester):
         obj.load_from_xml(root)
         self.assertEqual(obj.sourceline, 3)
         self.assertEqual(obj['name'].text, 'Titanic')
-        self.assertEqual(obj['name']._comment, ' name comment ')
+        self.assertEqual(obj['name'].comment, ' name comment ')
         self.assertEqual(obj['name'].sourceline, 5)
         self.assertEqual(obj['resume'].text, '\n     Resume of the movie\n  ')
-        self.assertEqual(obj['resume']._comment, ' resume comment ')
+        self.assertEqual(obj['resume'].comment, ' resume comment ')
         self.assertEqual(obj['resume'].sourceline, 43)
         self.assertEqual(obj['year'].text, '1997')
-        self.assertEqual(obj['year']._comment, ' year comment ')
+        self.assertEqual(obj['year'].comment, ' year comment ')
         self.assertEqual(obj['year'].sourceline, 7)
         self.assertEqual([c.text for c in obj['critique']], ['critique1', 'critique2'])
-        self.assertEqual(obj['critique'][0]._comment, ' critique 1 comment ')
-        self.assertEqual(obj['critique'][1]._comment, ' critique 2 comment ')
+        self.assertEqual(obj['critique'][0].comment, ' critique 1 comment ')
+        self.assertEqual(obj['critique'][1].comment, ' critique 2 comment ')
         self.assertEqual(len(obj['actors']['actor']), 3)
         self.assertEqual(len(obj['directors']['director']), 1)
-        self.assertEqual(obj['actors']._comment, ' actors comment ')
+        self.assertEqual(obj['actors'].comment, ' actors comment ')
         self.assertEqual(obj['actors']['actor'][0].sourceline, 21)
-        self.assertEqual(obj['actors']['actor'][0]._comment, ' actor 1 comment ')
+        self.assertEqual(obj['actors']['actor'][0].comment, ' actor 1 comment ')
         self.assertEqual(obj['actors']['actor'][0]['name'].text, 'DiCaprio')
-        self.assertEqual(obj['actors']['actor'][0]['name']._comment,
+        self.assertEqual(obj['actors']['actor'][0]['name'].comment,
                          ' actor 1 name comment ')
         self.assertEqual(obj['actors']['actor'][0]['name'].sourceline, 23)
         self.assertEqual(obj['actors']['actor'][0]['firstname'].text, 'Leonardo')
-        self.assertEqual(obj['actors']['actor'][0]['firstname']._comment,
+        self.assertEqual(obj['actors']['actor'][0]['firstname'].comment,
                          ' actor 1 firstname comment ')
-        self.assertEqual(obj['actors']['actor'][1]._comment, ' actor 2 comment ')
+        self.assertEqual(obj['actors']['actor'][1].comment, ' actor 2 comment ')
         self.assertEqual(obj['actors']['actor'][1]['name'].text, 'Winslet')
-        self.assertEqual(obj['actors']['actor'][1]['name']._comment,
+        self.assertEqual(obj['actors']['actor'][1]['name'].comment,
                          ' actor 2 name comment ')
         self.assertEqual(obj['actors']['actor'][1]['firstname'].text, 'Kate')
-        self.assertEqual(obj['actors']['actor'][1]['firstname']._comment,
+        self.assertEqual(obj['actors']['actor'][1]['firstname'].comment,
                          ' actor 2 firstname comment ')
-        self.assertEqual(obj['actors']['actor'][2]._comment,
+        self.assertEqual(obj['actors']['actor'][2].comment,
                          ' actor 3 comment ')
         self.assertEqual(obj['actors']['actor'][2]['name'].text, 'Zane')
-        self.assertEqual(obj['actors']['actor'][2]['name']._comment,
+        self.assertEqual(obj['actors']['actor'][2]['name'].comment,
                          ' actor 3 name comment ')
         self.assertEqual(obj['actors']['actor'][2]['firstname'].text, 'Billy')
-        self.assertEqual(obj['actors']['actor'][2]['firstname']._comment,
+        self.assertEqual(obj['actors']['actor'][2]['firstname'].comment,
                          ' actor 3 firstname comment ')
-        self.assertEqual(obj['directors']._comment, ' directors comment ')
+        self.assertEqual(obj['directors'].comment, ' directors comment ')
         self.assertEqual(obj['directors']['director'][0]['name'].text, 'Cameron')
-        self.assertEqual(obj['directors']['director'][0]['name']._comment,
+        self.assertEqual(obj['directors']['director'][0]['name'].comment,
                          ' director name comment ')
         self.assertEqual(obj['directors']['director'][0]['firstname'].text, 'James')
-        self.assertEqual(obj['directors']['director'][0]['firstname']._comment,
+        self.assertEqual(obj['directors']['director'][0]['firstname'].comment,
                          ' director firstname comment ')
 
 
