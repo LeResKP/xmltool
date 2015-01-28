@@ -1,4 +1,5 @@
 from factory import (
+    create,
     load,
     load_string,
     generate_form,
