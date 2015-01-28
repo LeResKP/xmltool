@@ -433,6 +433,12 @@ class Element(object):
                 v._comment_to_xml(e)
         return xml
 
+    def __unicode__(self):
+        return etree.tostring(self.to_xml(), pretty_print=True)
+
+    def __str__(self):
+        return unicode(self)
+
     def _get_html_add_button(self, css_class=None):
         ident = prefixes_to_str(self.prefixes_no_cache)
         css_classes = ['btn-add']
