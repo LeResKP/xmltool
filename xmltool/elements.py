@@ -54,9 +54,10 @@ class Element(object):
     _is_empty = False
 
     # The following attributes should be used for the root element.
-    _xml_filename = None
-    _xml_dtd_url = None
-    _xml_encoding = None
+    filename = None
+    dtd_url = None
+    dtd_str = None
+    encoding = None
 
     # The render used to make HTML rendering.
     # See render.py for more details
@@ -91,6 +92,7 @@ class Element(object):
         # is used to know the object has been added by the code so we should
         # remove it in the code.
         self._auto_added = auto_added
+
 
     @property
     def prefixes_no_cache(self):
@@ -488,31 +490,6 @@ class Element(object):
             'class': '%s %s' % (TREE_PREFIX + ident, self.tagname),
         }
 
-    def nothing(self):
-        css_class = TREE_PREFIX + ':'.join(prefixes or [])
-        if index is not None:
-            # TODO: why we need this?
-            # css_class += ' ' + TREE_PREFIX + ':'.join((prefixes+[str(index)]))
-            pass
-        else:
-            if not prefixes:
-                css_class += self.tagname
-            else:
-                # We don't want to have tree_:tagname
-                css_class += ':' + self.tagname
-
-        dic = {
-            'text': data,
-            'id': TREE_PREFIX + ':'.join(tmp_prefixes),
-            'li_attr': {
-                'class': '%s %s' % (css_class, self.tagname)
-            },
-            'state': {
-                # To be sure jstree will load the tree recursively
-                'opened': True,
-            }
-        }
-
     def to_jstree_dict(self):
         data = self._get_jstree_data()
         children = []
@@ -591,18 +568,22 @@ class Element(object):
                 lis += [elt]
         return lis
 
-    def write(self, filename=None, encoding=None, dtd_url=None, validate=True,
+    def write(self, filename=None, encoding=None, dtd_url=None, dtd_str=None,
+              validate=True,
               transform=None):
-        filename = filename or self._xml_filename
+        filename = filename or self.filename
         if not filename:
             raise Exception('No filename given')
-        dtd_url = dtd_url or self._xml_dtd_url
-        if not dtd_url:
-            raise Exception('No dtd url given')
-        encoding = encoding or self._xml_encoding or DEFAULT_ENCODING
+        dtd_url = dtd_url or self.dtd_url
+        dtd_str = dtd_str or self.dtd_str
+        if not dtd_url and not dtd_str:
+            raise Exception('No dtd given')
+        encoding = encoding or self.encoding or DEFAULT_ENCODING
         xml = self.to_xml()
         if validate:
-            dtd_str = utils.get_dtd_content(dtd_url, os.path.dirname(filename))
+            if not dtd_str:
+                dtd_str = utils.get_dtd_content(dtd_url,
+                                                os.path.dirname(filename))
             utils.validate_xml(xml, dtd_str)
 
         doctype = '<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {

@@ -873,11 +873,12 @@ class TestElement(BaseTest):
             except Exception, e:
                 self.assertEqual(str(e), 'No filename given')
 
+            obj.dtd_url = None
             try:
                 obj.write(filename)
                 assert 0
             except Exception, e:
-                self.assertEqual(str(e), 'No dtd url given')
+                self.assertEqual(str(e), 'No dtd given')
 
             old_get_content = utils.get_dtd_content
             old_validate_xml = utils.validate_xml
@@ -896,11 +897,11 @@ class TestElement(BaseTest):
                         "<tag/>\n")
             self.assertEqual(result, expected)
 
-            obj._xml_filename = filename
+            obj.filename = filename
             obj.write(dtd_url='http://dtd.url', validate=False)
 
-            obj._xml_dtd_url = 'http://dtd.url'
-            obj._xml_encoding = 'iso-8859-1'
+            obj.dtd_url = 'http://dtd.url'
+            obj.encoding = 'iso-8859-1'
             obj.write(validate=False)
             result = open(filename, 'r').read()
             expected = ("<?xml version='1.0' encoding='iso-8859-1'?>\n"

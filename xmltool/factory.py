@@ -19,7 +19,11 @@ def create(root_tag, dtd_url=None, dtd_str=None):
     if root_tag not in dic:
         raise Exception('Bad root_tag %s, '
                         'it\'s not supported by the dtd' % root_tag)
-    return dic[root_tag]()
+    obj = dic[root_tag]()
+    obj.dtd_url = dtd_url
+    obj.dtd_str = dtd_str
+    obj.encoding = elements.DEFAULT_ENCODING
+    return obj
 
 
 def load(filename, validate=True):
@@ -44,9 +48,9 @@ def load(filename, validate=True):
     root = tree.getroot()
     obj = dic[root.tag]()
     obj.load_from_xml(root)
-    obj._xml_filename = filename
-    obj._xml_dtd_url = dtd_url
-    obj._xml_encoding = tree.docinfo.encoding
+    obj.filename = filename
+    obj.dtd_url = dtd_url
+    obj.encoding = tree.docinfo.encoding
     return obj
 
 
@@ -94,8 +98,8 @@ def generate_form_from_obj(obj, form_action=None, form_filename=None,
         'id="_xml_encoding" value="%s" />'
     ) % (
         form_filename or '',
-        obj._xml_dtd_url,
-        obj._xml_encoding or elements.DEFAULT_ENCODING,
+        obj.dtd_url,
+        obj.encoding or elements.DEFAULT_ENCODING,
     )
     attrs = {}
     if form_attrs:
@@ -140,7 +144,8 @@ def update(filename, data, validate=True, transform=None):
     obj = dic[root_tag]()
 
     obj.load_from_dict(data)
-    obj.write(filename, encoding, dtd_url, validate, transform)
+    obj.write(filename, encoding, dtd_url=dtd_url, validate=validate,
+              transform=transform)
     return obj
 
 
