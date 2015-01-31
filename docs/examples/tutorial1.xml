@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE movies SYSTEM "examples/movies.dtd">
+<movies>
+  <movie>
+    <title>Titanic</title>
+    <realisator>Cameron James</realisator>
+    <characters>
+      <character>Leonardo DiCaprio</character>
+      <character>Kate Winslet</character>
+    </characters>
+    <good-comment>My comment 1</good-comment>
+    <bad-comment>My comment 2</bad-comment>
+  </movie>
+</movies>

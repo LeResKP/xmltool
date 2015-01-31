@@ -1,181 +1,201 @@
-Basic
-=====
+###############
+Getting started
+###############
 
-Creating a XML
--------------------
 
-General case
-^^^^^^^^^^^^
+For the following examples will use this dtd content:
 
-You will see in this example how it's easy to create an XML file according to the following DTD file:
 
-.. include:: examples/movie.dtd
+.. include:: examples/movies.dtd
     :code: dtd
 
 
+Creating a XML file
+===================
+
+To create a XML we just need to call the method ``create`` like in the following example:
+
+
+.. We need to create a copy to be sure we will display the good XML since movies.xml will be updated later.
+.. testsetup::
+
+    import xmltool
+    dtd_url = 'examples/movies.dtd'
+    movies = xmltool.create('movies', dtd_url=dtd_url)
+    movies.write('examples/movies-duplicated.xml')
+
+
 .. doctest::
 
-    >>> from lxml import etree
     >>> import xmltool
-    >>> from xmltool import dtd_parser
-    >>> dtd_url = (
-    ...     'https://raw.githubusercontent.com/LeResKP/xmltool/master/'
-    ...     'docs/examples/movie.dtd')
-    >>> dic = dtd_parser.parse(dtd_url=dtd_url)
-    >>> movie = dic['movie']()
-    >>> title = movie.add('title', 'Movie title')
-    >>> print title.text
-    Movie title
-    >>> realisator = movie.add('realisator', 'realisator name')
-    >>> characters = movie.add('characters')
-    >>> c1 = characters.add('character', 'character 1')
-    >>> c2 = characters.add('character', 'character 2')
-    >>> print etree.tostring(movie.to_xml(), pretty_print=True)
-    <movie>
-      <title>Movie title</title>
-      <realisator>realisator name</realisator>
-      <characters>
-        <character>character 1</character>
-        <character>character 2</character>
-      </characters>
-    </movie>
+    >>> dtd_url = 'examples/movies.dtd'
+    >>> movies = xmltool.create('movies', dtd_url=dtd_url)
+    >>> print movies
+    <movies/>
     <BLANKLINE>
+    >>> movies.write('examples/movies.xml')
 
 
-Case with conditional elements
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+You can see the content of the generated file and note that the required tags have been added automatically to make a valid XML file.
 
-Now we will see how to handle case with some conditional elements. It's '(qcm|mqm)*' in the following DTD files:
-
-.. include:: examples/exercise.dtd
-    :code: dtd
-
-
-.. doctest::
-
-    >>> import xmltool
-    >>> from xmltool import dtd_parser
-    >>> dtd_url = (
-    ...     'https://raw.githubusercontent.com/LeResKP/xmltool/master/'
-    ...     'docs/examples/exercise.dtd')
-    >>> dic = dtd_parser.parse(dtd_url=dtd_url)
-    >>> exercise = dic['Exercise']()
-    >>> question = exercise.add('question', 'the question')
-    >>> qcm = exercise.add('qcm')
-    >>> # Now we can't add a mqm since a qcm exists
-    >>> exercise.add('mqm')
-    Traceback (most recent call last):
-    Exception: qcm already defined
-    >>> exercise.add('qcm')
-    Traceback (most recent call last):
-    Exception: qcm already defined
-    >>> c1 = qcm.add('good-choice', 'choice 1')
-    >>> print etree.tostring(exercise.to_xml(), pretty_print=True)
-    <Exercise>
-      <question>the question</question>
-      <qcm>
-        <good-choice>choice 1</good-choice>
-      </qcm>
-    </Exercise>
-    <BLANKLINE>
-
-
-Accessing to the property
--------------------------
-
-To access to the elements you just have use the python dict style: obj['my-prop'].
-
-See the example below:
-
-.. doctest::
-
-    >>> from lxml import etree
-    >>> import xmltool
-    >>> from xmltool import dtd_parser
-    >>> dtd_url = (
-    ...     'https://raw.githubusercontent.com/LeResKP/xmltool/master/'
-    ...     'docs/examples/exercise.dtd')
-    >>> dic = dtd_parser.parse(dtd_url=dtd_url)
-    >>> exercise = dic['Exercise']()
-    >>> question = exercise.add('question', 'the question')
-    >>> comments = exercise.add('comments')
-    >>> c1 = comments.add('good-comment', 'comment 1')
-    >>> print exercise['question'].text
-    the question
-    >>> exercise['comments'][0]['good-comment'].text
-    'comment 1'
+.. include:: examples/movies-duplicated.xml
+    :code: xml
 
 
 Loading a XML file
--------------------
+===================
 
-For this example we will load the following XML file:
-
-.. include:: examples/movie.xml
-    :code: xml
-
-.. testsetup:: *
-
-    import xmltool
+For this example we load the file previously created:
 
 .. doctest::
 
-    >>> xml_filename = 'examples/movie.xml'
-    >>> obj = xmltool.load(xml_filename)
-    >>> print obj.attributes
-    {'idmovie': 'M1'}
-    >>> print obj #doctest: +ELLIPSIS
-    <xmltool.dtd_parser.movie object at 0x...>
-    >>> print obj['title'].text
+    >>> import xmltool
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>> print movies
+    <movies/>
+    <BLANKLINE>
+
+
+Updating a XML file
+===================
+
+Now we will see that updating an XML is very easy:
+
+
+.. doctest::
+
+    >>> import xmltool
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>> print movies
+    <movies/>
+    <BLANKLINE>
+    >>> movie = movies.add('movie')
+    >>> title = movie.add('title', 'Full Metal Jacket')
+    >>> print title
+    <title>Full Metal Jacket</title>
+    <BLANKLINE>
+    >>> print movies
+    <movies>
+      <movie>
+        <title>Full Metal Jacket</title>
+        <realisator></realisator>
+        <characters>
+          <character></character>
+        </characters>
+      </movie>
+    </movies>
+    <BLANKLINE>
+    >>> movies.write()
+
+
+Accessing
+=========
+
+
+To access a property of the XML object you have to use the list and dictionnary syntax.
+
+
+.. doctest::
+
+    >>> import xmltool
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>> # As you can see in the dtd, movies has only one child movie
+    >>> # which is a repeated element.
+    >>> # Here is the syntax to get the first movie
+    >>> print movies['movie'][0]
+    <movie>
+      <title>Full Metal Jacket</title>
+      <realisator></realisator>
+      <characters>
+        <character></character>
+      </characters>
+    </movie>
+    <BLANKLINE>
+    >>> # You have the text property to access to the value of a tag
+    >>> print movies['movie'][0]['title'].text
     Full Metal Jacket
-    >>> print obj['characters']['character'][0].text
-    Matthew Modine
-    >>> print obj['characters']['character'][0].attributes
-    {'idcharacter': 'C1'}
 
 
-Writing a XML file
--------------------
+To check if a XML property exists you can use if ... in ... or .get():
 
 .. doctest::
 
-    >>> xml_filename = 'examples/movie.xml'
-    >>> obj = xmltool.load(xml_filename)
-    >>> obj['title'].text = 'My new title'
-    >>> obj.write('examples/movie-updated.xml')
+    >>> import xmltool
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>> movie1 = movies['movie'][0]
+    >>> print 'date' in movie1
+    False
+    >>> print movie1.get('date')
+    None
 
-See the content of the new XML file:
+There is also a method to get or add element
 
-.. include:: examples/movie-updated.xml
-    :code: xml
+.. doctest::
 
-
-Updating a XML file after a dtd change
----------------------------------------
-
-Our dtd file:
-
-.. include:: examples/movie.dtd
-    :code: dtd
-
-Now we add a comment field required. In XML the tag is required, not the content!
-
-.. include:: examples/movie-1.dtd
-    :code: dtd
-
-Use the new DTD file in our XML file. You don't need to create a new DTD file when you want to update it, it's just needed to write this example easily.
-
-.. include:: examples/movie-1.xml
-    :code: xml
+    >>> import xmltool
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>> movie1 = movies['movie'][0]
+    >>> # Long version
+    >>> if 'date' not in movie1:
+    ...     date = movie1.add('date')
+    >>> # Short version
+    >>> date = movie1.get_or_add('date')
 
 
-To update the file according to the DTD change, we just need to load it without validating the XML and write it.  Xmltools detects the missing tags and add it!
+We can also access to the attributes
 
-    >>> xml_filename = 'examples/movie-1.xml'
-    >>> obj = xmltool.load(xml_filename, validate=False)
-    >>> obj.write('examples/movie-1-updated.xml')
+.. doctest::
 
-You can see that the comment tag is added automatically:
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>> movie1 = movies['movie'][0]
+    >>> movie1.add_attribute('idmovie', 'myid')
+    >>> print movie1
+    <movie idmovie="myid">
+      <title>Full Metal Jacket</title>
+      <realisator></realisator>
+      <characters>
+        <character></character>
+      </characters>
+    </movie>
+    <BLANKLINE>
+    >>> print movie1.attributes['idmovie']
+    myid
 
-.. include:: examples/movie-1-updated.xml
-    :code: xml
+
+Traversing
+==========
+
+To find all elements from a tagname use ``findall``
+
+.. doctest::
+
+    >>> import xmltool
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>> # Add 2 new movies to improve this example
+    >>> for i in range(2):
+    ...     movie = movies.add('movie')
+    ...     title = movie.add('title', 'Title %i' % i)
+    >>> titles = movies.findall('title')
+    >>> titles_str = [t.text for t in titles]
+    >>> print titles_str
+    ['Full Metal Jacket', 'Title 0', 'Title 1']
+
+
+You can also go through all the elements by using ``walk``
+
+.. doctest::
+
+    >>> import xmltool
+    >>> filename = 'examples/movies.xml'
+    >>> movies = xmltool.load(filename)
+    >>>
+    >>> tagnames = [elt.tagname for elt in movies.walk()]
+    >>> print tagnames
+    ['movie', 'title', 'realisator', 'characters', 'character']

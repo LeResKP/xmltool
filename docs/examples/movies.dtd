@@ -1,0 +1,14 @@
+<!ELEMENT movies (movie*)>
+<!ELEMENT movie (title, date?, realisator, characters, (good-comment|bad-comment)*, (bad|good|awesome)?)>
+<!ATTLIST movie idmovie ID #IMPLIED>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT date (#PCDATA)>
+<!ELEMENT realisator (#PCDATA)>
+<!ELEMENT characters (character+)>
+<!ELEMENT character (#PCDATA)>
+<!ATTLIST character idcharacter ID #IMPLIED>
+<!ELEMENT good-comment (#PCDATA)>
+<!ELEMENT bad-comment (#PCDATA)>
+<!ELEMENT bad (#PCDATA)>
+<!ELEMENT good (#PCDATA)>
+<!ELEMENT awesome (#PCDATA)>

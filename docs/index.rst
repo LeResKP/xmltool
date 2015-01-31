@@ -3,13 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-#########################
-xmltool's documentation!
-#########################
+#######################
+xmltool's documentation
+#######################
 
-
-Introduction
-============
 
 xmltool is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
 You can find the `source on github <https://github.com/LeResKP/xmltool>`_.
@@ -19,14 +16,7 @@ You can find the `source on github <https://github.com/LeResKP/xmltool>`_.
     :maxdepth: 2
 
     basic
+    tutorial
+    migration
     form
-    module
     changelog
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
