@@ -298,8 +298,10 @@ class TestElement(BaseTest):
         obj.attributes = dic
         list_obj.insert(0, EmptyElement(parent_obj=list_obj))
         html = obj._attributes_to_html()
-        expected = ('<input value="value" name="root_tag:list_tag:1:tag:_attrs:attr" '
-                    'id="root_tag:list_tag:1:tag:_attrs:attr" class="_attrs" />')
+        expected = (
+            '<a name="attr=value"></a>'
+            '<input value="value" name="root_tag:list_tag:1:tag:_attrs:attr" '
+            'id="root_tag:list_tag:1:tag:_attrs:attr" class="_attrs" />')
         self.assertEqual(html, expected)
 
     def test__load_comment_from_xml(self):

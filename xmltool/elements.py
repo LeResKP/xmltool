@@ -300,6 +300,7 @@ class Element(object):
 
         html = []
         for k, v in self.attributes.items():
+            html += ['<a name="%s=%s"></a>' % (k, v)]
             html += ['<input value="%s" name="%s" id="%s" class="_attrs" />' % (
                 v,
                 '%s:_attrs:%s' % (ident, k),
