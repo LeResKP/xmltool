@@ -22,8 +22,9 @@ def prefixes_to_str(lis):
 
 
 def escape_attr(s):
-    # TODO: escape attribute
-    return s.replace(':', '\\:')
+    """Escape attributes ':' and '.' since it's not supported by jQuery
+    """
+    return s.replace(':', '\\:').replace('.', '\\.')
 
 
 def update_eol(text):
