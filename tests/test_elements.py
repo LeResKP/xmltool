@@ -143,6 +143,31 @@ class TestElement(BaseTest):
         obj['subtag'] = self.sub_cls()
         self.assertTrue(obj._has_value())
 
+    def test_children(self):
+        obj = self.cls()
+        children = list(obj.children)
+        self.assertEqual(children, [])
+
+        sub = obj.add('subtag')
+        children = list(obj.children)
+        self.assertEqual(children, [sub])
+
+    def test__children_with_required(self):
+        obj = self.cls()
+        children = list(obj._children_with_required)
+        self.assertEqual(children, [])
+
+        self.sub_cls._required = True
+        children = list(obj._children_with_required)
+        self.assertEqual(len(children), 1)
+        self.assertTrue(isinstance(children[0], self.sub_cls))
+
+    def test__full_children(self):
+        obj = self.cls()
+        children = list(obj._full_children)
+        self.assertEqual(len(children), 1)
+        self.assertTrue(isinstance(children[0], self.sub_cls))
+
     def test_root(self):
         self.assertEqual(self.root_obj.root, self.root_obj)
         obj = self.cls._create('subtag', self.root_obj)
@@ -1479,6 +1504,13 @@ class TestListElement(BaseTest):
         obj = list_obj.add(self.sub_cls.tagname)
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), [obj])
 
+    def test_children(self):
+        obj = self.root_cls()
+        sub1 = obj.add('subtag')
+        sub2 = obj.add('subtag')
+        children = list(obj.children)
+        self.assertEqual(children, [sub1, sub2])
+
     def test_is_addable(self):
         obj = self.root_obj.add(self.cls.tagname)
         # Can't add same object as child
@@ -1768,6 +1800,15 @@ class TestChoiceListElement(BaseTest):
         self.sub_cls1._parent_cls = self.cls
         self.sub_cls2._parent_cls = self.cls
 
+    def test_children(self):
+        obj = self.root_cls()
+        children = list(obj.children)
+        self.assertEqual(children, [])
+        sub1 = obj.add('subtag1')
+        sub2 = obj.add('subtag2')
+        children = list(obj.children)
+        self.assertEqual(children, [sub1, sub2])
+
     def test_delete(self):
         root_obj = self.root_cls()
         list_obj = self.cls(root_obj)
@@ -2004,6 +2045,14 @@ class TestChoiceElement(BaseTest):
         self.assertTrue(isinstance(result, self.cls))
         obj = self.root_obj.add('subtag1')
         self.assertEqual(self.cls._get_sub_value(self.root_obj), obj)
+
+    def test_children(self):
+        obj = self.root_cls()
+        children = list(obj.children)
+        self.assertEqual(children, [])
+        sub1 = obj.add('subtag1')
+        children = list(obj.children)
+        self.assertEqual(children, [sub1])
 
     def test_is_addable(self):
         obj = self.cls()

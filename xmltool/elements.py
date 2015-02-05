@@ -194,6 +194,8 @@ class Element(object):
 
     @property
     def children(self):
+        """Iterator to get the children defined of an object.
+        """
         for cls in self.children_classes:
             v = cls._get_value_from_parent(self)
             if v:
@@ -204,7 +206,10 @@ class Element(object):
                     yield v
 
     @property
-    def _all_children(self):
+    def _children_with_required(self):
+        """Iterator to get the children defined and the required of an object.
+        If possible, We create on the fly the required object not defined.
+        """
         for cls in self.children_classes:
             obj = cls._get_sub_value(self)
             if obj is not None:
@@ -212,6 +217,9 @@ class Element(object):
 
     @property
     def _full_children(self):
+        """Iterator to get all the children of an object.
+        If possible, We create on the fly the all the child object.
+        """
         for cls in self.children_classes:
             obj = cls._get_sub_value(self)
             if obj is None:
@@ -422,7 +430,7 @@ class Element(object):
         xml = etree.Element(self.tagname)
         self._comment_to_xml(xml)
         self._attributes_to_xml(xml)
-        for v in self._all_children:
+        for v in self._children_with_required:
             e = v.to_xml()
             v._delete_auto_added()
             if e is None:
@@ -495,7 +503,7 @@ class Element(object):
         data = self._get_jstree_data()
         children = []
 
-        for o in self._all_children:
+        for o in self._children_with_required:
             v = o.to_jstree_dict()
             o._delete_auto_added()
             if v:
