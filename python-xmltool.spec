@@ -1,6 +1,6 @@
 %define modname xmltool
-%define version 0.3.7
-%define unmangled_version 0.3.7
+%define version 0.4
+%define unmangled_version 0.4
 %define release 1
 
 Summary: Tool to manipulate XML files
@@ -23,12 +23,20 @@ xmltool
 =========
 
 xmltool is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
-The main goal of this package was to create a HTML form to edit and create a XML file. The form generation is based on a dtd file.
 `Read the documentation <http://xmltool.lereskp.fr>`_
 
 
 Changelog
 =========
+
+O.4:
+    * Rewrite javascript and add unittest
+    * Cleanup python code
+    * Remove deprecated functions
+
+O.3.7:
+    * Cache to get the dtd content
+    * CKEditor render
 
 O.3.6.2:
     * Support to have comment inside a TextElement

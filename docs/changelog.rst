@@ -1,6 +1,12 @@
 Changelog
 =========
 
+
+O.4:
+    * Rewrite javascript and add unittest
+    * Cleanup python code
+    * Remove deprecated functions
+
 O.3.7:
     * Cache to get the dtd content
     * CKEditor render
