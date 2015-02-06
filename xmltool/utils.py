@@ -44,7 +44,7 @@ def _get_dtd_content(url, path=None):
         # unicode, it fails when creating classes with type().
         return res.content
 
-    if path and not url.startswith('/'):
+    if path and not url.startswith('/') and not url.startswith(path):
         url = os.path.join(path, url)
     return open(url, 'r').read()
 

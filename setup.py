@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-version = '0.3.7'
+version = '0.4'
 
 setup(name='xmltool',
       version=version,

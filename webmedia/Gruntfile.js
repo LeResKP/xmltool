@@ -11,6 +11,7 @@ module.exports = function(grunt) {
       '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
       '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
       ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
+
     // Task configuration.
     clean: {
       files: ['dist']
@@ -21,7 +22,7 @@ module.exports = function(grunt) {
         stripBanners: true
       },
       dist: {
-        src: ['bower_components/bootstrap/dist/js/bootstrap.js', 'src/*.js'],
+        src: ['js/*.js'],
         dest: 'dist/js/<%= pkg.name %>.js'
       },
     },
@@ -35,7 +36,10 @@ module.exports = function(grunt) {
       },
     },
     qunit: {
-      files: ['test/**/*.html']
+        options: {
+          '--local-to-remote-url-access': true
+          },
+        files: ['js/test/xmltool.html']
     },
     jshint: {
       gruntfile: {
@@ -46,15 +50,15 @@ module.exports = function(grunt) {
       },
       src: {
         options: {
-          jshintrc: 'src/.jshintrc'
+          jshintrc: 'js/.jshintrc'
         },
-        src: ['src/**/*.js']
+        src: ['js/**/*.js']
       },
       test: {
         options: {
-          jshintrc: 'test/.jshintrc'
+          jshintrc: 'js/test/.jshintrc'
         },
-        src: ['test/**/*.js']
+        src: ['js/test/**/*.js']
       },
     },
     less: {
@@ -102,19 +106,44 @@ module.exports = function(grunt) {
         tasks: ['jshint:test', 'qunit']
       },
     },
+    connect: {
+      server: {
+        options: {
+          hostname: 'localhost',
+          port: 9999,
+          middleware: function(connect, options, middleware) {
+            var lis = [
+                function(req, res, next) {
+                    res.setHeader('Access-Control-Allow-Origin', '*');
+                    res.setHeader('Access-Control-Allow-Methods', '*');
+                    next();
+                }
+            ];
+            return lis.concat(middleware);
+          }
+        }
+      }
+    },
+    jsdoc : {
+        dist : {
+            src: ['js/*.js'],
+            options: {
+                destination: 'doc',
+                configure: '.jsdoc.json'
+            },
+            // Use last version of jsdoc to have better markdown support
+            jsdoc: 'node_modules/.bin/jsdoc'
+        },
+    }
   });
 
-  // These plugins provide necessary tasks.
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-qunit');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-less');
-  grunt.loadNpmTasks('grunt-contrib-copy');
+  require('load-grunt-tasks')(grunt, {scope: 'devDependencies'});
+  require('time-grunt')(grunt);
 
   // Default task.
   grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify', 'less', 'copy']);
+  grunt.registerTask('dev', ['connect', 'watch']);
+  grunt.registerTask('test', ['connect', 'qunit']);
+  grunt.registerTask('doc', ['jsdoc']);
 
 };

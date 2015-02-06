@@ -1,6 +1,6 @@
 {
   "name": "xmltool",
-  "version": "0.3.6",
+  "version": "0.4",
   "homepage": "https://github.com/LeResKP/xmltool",
   "authors": [
     "Aurélien Matouillot <a.matouillot@gmail.com>"
@@ -18,6 +18,7 @@
     "jquery.contenteditablesync": "~0.1.0",
     "jquery": "~1.11.0",
     "bootstrap": "~3.2.0",
-    "ckeditor": "~4.4.3"
+    "ckeditor": "~4.4.3",
+    "jstree": "~3.0.8"
   }
 }

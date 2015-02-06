@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE movies SYSTEM "examples/movies.dtd">
+<movies>
+  <movie>
+    <title>Full Metal Jacket</title>
+    <realisator></realisator>
+    <characters>
+      <character></character>
+    </characters>
+  </movie>
+</movies>
