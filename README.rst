@@ -1,5 +1,5 @@
 xmltool
-=========
+=======
 
 xmltool is a python package to manipulate XML files. It's very useful to update some XML files with the python syntax without using the DOM.
 `Read the documentation <http://xmltool.lereskp.fr>`_
