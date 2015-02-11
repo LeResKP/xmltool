@@ -235,7 +235,7 @@ def _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=None, dtd_str=None):
 
     if target_obj.is_addable(tagname):
         return target_obj
-    if target_obj._parent_obj.is_addable(tagname):
+    if target_obj._parent_obj and target_obj._parent_obj.is_addable(tagname):
         return target_obj._parent_obj
     return None
 
