@@ -70,7 +70,7 @@ xmltool.form = {};
      * @memberof xmltool.form
      * @method addElement
      */
-    this.addElement = function($btn, url, dtdUrl, msgFunc, $tree, async) {
+    this.addElement = function($btn, url, dtdUrl, msgFunc, $tree, async, extra_params) {
         async = (typeof async === 'undefined')? true: async;
         var eltId;
         if ($btn.is('select')) {
@@ -80,10 +80,18 @@ xmltool.form = {};
             eltId = $btn.attr('data-elt-id');
         }
         var that = this;
+
         var params = {
-            elt_id: eltId,
-            dtd_url: dtdUrl
-        };
+                elt_id: eltId,
+                dtd_url: dtdUrl
+            };
+
+        if (typeof extra_params !== 'undefined') {
+            for (var i=0, len=extra_params.length; i < len; i++) {
+                var tmp = extra_params[i];
+                params[tmp.name] = tmp.value;
+            }
+        }
 
         $.ajax({
             type: 'GET',
@@ -92,8 +100,22 @@ xmltool.form = {};
             async: async,
             dataType: 'json',
             success: function(data){
-                that._addElement(eltId, $btn, data.html);
-                xmltool.jstree.utils.addNode($btn, $tree, data);
+                if (typeof data.modal !== 'undefined') {
+                    // We support to return a modal if we need more information
+                    // for adding a new element.
+                    var modal = $(data.modal);
+                    modal.find('form').on('submit', function(e) {
+                        e.preventDefault();
+                        modal.modal('hide');
+                        var p = $(this).serializeArray();
+                        that.addElement($btn, url, dtdUrl, msgFunc, $tree, async, p);
+                    });
+                    modal.modal('show');
+                }
+                else {
+                    that._addElement(eltId, $btn, data.html);
+                    xmltool.jstree.utils.addNode($btn, $tree, data);
+                }
             },
             error: function(jqXHR){
                 var msg = jqXHR.status + ' ' + jqXHR.statusText;
