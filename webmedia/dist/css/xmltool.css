@@ -6333,6 +6333,9 @@ fieldset[disabled] #xmltool-form .btn-add.active {
 #xmltool-form ._attrs {
   display: none;
 }
+#xmltool-form .contenteditable.form-control {
+  height: auto;
+}
 #tree {
   font-size: 12px;
 }
