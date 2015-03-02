@@ -1059,7 +1059,7 @@ class TestContainerElement(BaseTest):
 
     def test_to_html_readonly(self):
         obj = self.cls()
-        obj.root.html_render = render.ReadonlyRender()
+        obj.root.html_renderer = render.ReadonlyRender()
         html = obj._to_html()
         expected1 = (
             '<div class="panel panel-default tag" id="tag">'
@@ -1072,13 +1072,13 @@ class TestContainerElement(BaseTest):
         self.assertEqual(html, expected1)
 
         obj = self.cls()
-        obj.root.html_render = render.ReadonlyRender()
+        obj.root.html_renderer = render.ReadonlyRender()
         obj._parent_obj = 'my fake parent'
         html = obj._to_html()
         self.assertEqual(html, '')
 
         obj = self.cls()
-        obj.root.html_render = render.ReadonlyRender()
+        obj.root.html_renderer = render.ReadonlyRender()
         html = obj._to_html()
         expected2 = (
             '<div class="panel panel-default tag" id="tag">'
@@ -1396,7 +1396,7 @@ class TestTextElement(BaseTest):
 
     def test_to_html_readonly(self):
         obj = self.cls()
-        obj.root.html_render = render.ReadonlyRender()
+        obj.root.html_renderer = render.ReadonlyRender()
         html = obj._to_html()
         self.assertEqual(html, '')
 
@@ -1671,7 +1671,7 @@ class TestListElement(BaseTest):
 
     def test_to_html_readonly(self):
         obj = self.root_obj.add(self.cls.tagname)
-        obj.root.html_render = render.ReadonlyRender()
+        obj.root.html_renderer = render.ReadonlyRender()
         html = obj._to_html()
         expected = '<div class="list-container"></div>'
         self.assertEqual(html, expected)

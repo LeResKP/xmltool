@@ -62,7 +62,7 @@ class Element(object):
 
     # The render used to make HTML rendering.
     # See render.py for more details
-    html_render = None
+    html_renderer = None
 
     def __init__(self, parent_obj=None, parent=None, auto_added=False, *args, **kw):
         super(Element, self).__init__(*args, **kw)
@@ -466,19 +466,19 @@ class Element(object):
         return ('<a class="btn-delete" '
                 'data-target="#%s" title="Delete"></a>') % ident
 
-    def get_html_render(self):
+    def get_html_renderer(self):
         """Render uses to make the textarea as HTML and a first decision about
         adding buttons and comments.
         """
-        if self.root.html_render is None:
+        if self.root.html_renderer is None:
             # Set a default renderer
-            self.root.html_render = render.Render()
-        return self.root.html_render
+            self.root.html_renderer = render.Render()
+        return self.root.html_renderer
 
     def _add_html_add_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_add_button():
             return False
         return not self._required
@@ -486,7 +486,7 @@ class Element(object):
     def _add_html_delete_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_delete_button():
             return False
         return not self._required
@@ -684,7 +684,7 @@ class Element(object):
 class ContainerElement(Element):
 
     def _to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         # TODO: remove self._parent_obj condition. When we want to render an
         # HTML we should call to_html
         if not self._has_value() and not self._required and self._parent_obj:
@@ -695,7 +695,7 @@ class ContainerElement(Element):
         return self.to_html()
 
     def to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         sub_html = [self._attributes_to_html()]
 
         for obj in self._full_children:
@@ -817,7 +817,7 @@ class TextElement(Element):
         return attrs
 
     def _to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
 
         if self.text is None and not self._required:
             if not renderer.add_add_button():
@@ -826,7 +826,7 @@ class TextElement(Element):
         return self.to_html()
 
     def to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         add_button = ''
         if self._add_html_add_button():
             add_button = self._get_html_add_button(css_class='hidden')
@@ -842,7 +842,7 @@ class TextElement(Element):
             cnt += 1
         rows = max(cnt, 1)
         attrs = self._get_html_attrs(rows)
-        render = self.get_html_render()
+        render = self.get_html_renderer()
         textarea = render.text_element_to_html(self, attrs, value)
 
         comment = ''
@@ -903,7 +903,7 @@ class InChoiceMixin(object):
     def _add_html_add_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_add_button():
             return False
         return True
@@ -914,7 +914,7 @@ class InChoiceMixin(object):
     def _add_html_delete_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_delete_button():
             return False
         return True
@@ -957,7 +957,7 @@ class InListMixin(object):
     def _add_html_delete_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_delete_button():
             return False
         return True
@@ -968,7 +968,7 @@ class InListMixin(object):
                 'data-target="#%s" title="Delete"></a>') % ident
 
     def to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         lis = []
         if renderer.add_add_button():
             index = self._parent_obj.index(self)
@@ -1126,7 +1126,7 @@ class BaseListElement(list, Element):
         assert self.attributes is None
 
         self._before_render()
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         i = 0
         lis = []
         for e in self:

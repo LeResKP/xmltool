@@ -1962,8 +1962,8 @@ def generate_javascript_unittest(xml, dtd_str, tagname):
         dic = dtd_parser.parse(dtd_str=dtd_str)
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        obj.root.html_render = render.Render()
-        obj.root.html_render.add_add_button = lambda: False
+        obj.root.html_renderer = render.Render()
+        obj.root.html_renderer.add_add_button = lambda: False
         obj = obj[tagname]
 
         input_html = generate_html_block(

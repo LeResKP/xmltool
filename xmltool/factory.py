@@ -276,15 +276,21 @@ def get_new_element_data_for_html_display(*args, **kw):
     """Create new sub object according to the given params and returns the data
     to display it.
     """
+    html_renderer = kw.pop('html_renderer', None)
     obj = _add_new_element_from_id(*args, **kw)
     if not obj:
         return None
+    obj.root.html_renderer = html_renderer
     return _get_data_for_html_display(obj)
 
 
-def get_data_from_str_id_for_html_display(str_id, dtd_url=None, dtd_str=None):
+def get_data_from_str_id_for_html_display(str_id, dtd_url=None, dtd_str=None,
+                                          html_renderer=None):
     """Get the sub object corresponding to the given str_id and returns the
     data to display it.
     """
     obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
+    if not obj:
+        return None
+    obj.root.html_renderer = html_renderer
     return _get_data_for_html_display(obj)
