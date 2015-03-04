@@ -1,4 +1,4 @@
-/*! Xmltool - v0.1.0 - 2015-03-02
+/*! Xmltool - v0.1.0 - 2015-03-04
 * https://github.com/LeResKP/xmltool
 * Copyright (c) 2015 Aurélien Matouillot; Licensed MIT */
 if (typeof xmltool === 'undefined') {
