@@ -5,6 +5,7 @@ import re
 from lxml import etree
 import dtd_parser
 import utils
+from utils import prefixes_to_str
 from distutils.version import StrictVersion
 from . import render
 
@@ -15,10 +16,6 @@ TREE_PREFIX = 'tree_'
 # We expect just '\n' in the XML output
 EOL = '\n'
 eol_regex = re.compile(r'\r?\n|\r\n?')
-
-
-def prefixes_to_str(lis):
-    return ':'.join(lis)
 
 
 def escape_attr(s):

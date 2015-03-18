@@ -1,3 +1,5 @@
+from utils import prefixes_to_str
+
 def attrs_to_str(attrs):
     """Create string from the given attrs
 
@@ -60,11 +62,15 @@ class ContenteditableRender(Render):
 
     def text_element_to_html(self, obj, attrs, value):
 
+        ident = prefixes_to_str(obj.prefixes_no_cache + ['_contenteditable'])
+
         div_attrs = [
             ('class', 'contenteditable'),
             ('class', 'form-control'),
+            ('class', obj.tagname),
             ('contenteditable', 'true'),
             ('spellcheck', 'false'),
+            ('id', ident),
         ]
         if self.extra_div_attrs_func:
             div_attrs += self.extra_div_attrs_func(obj)
