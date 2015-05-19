@@ -1,4 +1,4 @@
-/*! Xmltool - v0.1.0 - 2015-03-04
+/*! Xmltool - v0.1.0 - 2015-05-19
 * https://github.com/LeResKP/xmltool
 * Copyright (c) 2015 Aurélien Matouillot; Licensed MIT */
 if (typeof xmltool === 'undefined') {
@@ -370,7 +370,7 @@ xmltool.jstree = {};
      * @memberof xmltool.jstree.core
      * @method load
      */
-    this.load = function($tree, data, $form, $formContainer) {
+    this.load = function($tree, data, $form, $formContainer, $treeContainer) {
         // TODO: make sure we need all this plugins
         var that = this;
         $tree.removeClass('jstree').empty();
@@ -562,14 +562,15 @@ xmltool.jstree = {};
         $form.on('focus', 'textarea.form-control', transitionDecorator(function(){
             var $elt = that.utils.getTreeElementFromTextarea($(this));
             $tree.jstree('deselect_all').jstree('select_node', $elt);
-            xmltool.utils.scrollToElement($elt, $tree);
+            console.log('scroll to tree');
+            xmltool.utils.scrollToElement($elt, $treeContainer);
         }))
 
         .on('focus', '.contenteditable', transitionDecorator(function(){
             var $textarea = $(this).data('contenteditablesync').$target;
             var $elt = that.utils.getTreeElementFromTextarea($textarea);
             $tree.jstree('deselect_all').jstree('select_node', $elt);
-            xmltool.utils.scrollToElement($elt, $tree);
+            xmltool.utils.scrollToElement($elt, $treeContainer);
         }))
 
         /**
@@ -1141,6 +1142,7 @@ xmltool.form = {};
                 this.$tree,
                 this.options.jstreeData,
                 this.$form,
+                $(this.options.formContainerSelector),
                 $(this.options.treeContainerSelector)
             );
         }
@@ -1190,7 +1192,9 @@ xmltool.form = {};
         message: function(type, msg, options) {
             alert(type + ': ' + msg);
         },
-        treeContainerSelector: 'body',
+        // treeContainerSelector: use to scroll on the node in the tree
+        treeContainerSelector: '#tree',
+        formContainerSelector: 'body',
         dtdUrlSelector: '#_xml_dtd_url'
     };
 
