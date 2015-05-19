@@ -141,7 +141,7 @@ module.exports = function(grunt) {
   require('time-grunt')(grunt);
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify', 'less', 'copy']);
+  grunt.registerTask('default', ['jshint', 'test', 'clean', 'concat', 'uglify', 'less', 'copy']);
   grunt.registerTask('dev', ['connect', 'watch']);
   grunt.registerTask('test', ['connect', 'qunit']);
   grunt.registerTask('doc', ['jsdoc']);
