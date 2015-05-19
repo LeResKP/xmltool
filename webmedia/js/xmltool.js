@@ -258,6 +258,7 @@ xmltool.form = {};
                 this.$tree,
                 this.options.jstreeData,
                 this.$form,
+                $(this.options.formContainerSelector),
                 $(this.options.treeContainerSelector)
             );
         }
@@ -307,7 +308,9 @@ xmltool.form = {};
         message: function(type, msg, options) {
             alert(type + ': ' + msg);
         },
-        treeContainerSelector: 'body',
+        // treeContainerSelector: use to scroll on the node in the tree
+        treeContainerSelector: '#tree',
+        formContainerSelector: 'body',
         dtdUrlSelector: '#_xml_dtd_url'
     };
 

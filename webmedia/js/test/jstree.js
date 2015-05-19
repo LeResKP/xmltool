@@ -157,7 +157,7 @@
         $formContainer.append($form);
         var $tree = $('<div />').attr('id', 'tree');
         $fixture.append($tree).append($formContainer);
-        ns.load($tree, tree_data, $form, $formContainer);
+        ns.load($tree, tree_data, $form, $formContainer, $tree);
         var jstreeObj = $tree.data('jstree');
 
         var $node = $('#tree_texts\\:list__text\\:0\\:text');
@@ -222,7 +222,7 @@
         $formContainer.append($form);
         var $tree = $('<div />').attr('id', 'tree');
         $fixture.append($tree).append($formContainer);
-        ns.load($tree, tree_data, $form, $formContainer);
+        ns.load($tree, tree_data, $form, $formContainer, $tree);
         var jstreeObj = $tree.data('jstree');
 
         var node0, node1, node2, childNode0, childNode1, childNode2;
@@ -338,13 +338,13 @@
             var $form = $('#xmltool-form');
             var $formContainer = $form.parent();
             $fixture.append($tree);
-            xmltool.jstree.load($tree, jstreeInput, $form, $formContainer);
+            xmltool.jstree.load($tree, jstreeInput, $form, $formContainer, $tree);
             var res = xmltool.jstree.utils.addNode($btn, $tree, data);
             ok(typeof res !== 'undefined');
             var inputHtml = $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, '');
 
             $tree.removeClass('jstree').html('');
-            xmltool.jstree.load($tree, jstreeExpected, $form, $formContainer);
+            xmltool.jstree.load($tree, jstreeExpected, $form, $formContainer, $tree);
             // Just replaces the generated ids
             var expectedHtml = $tree.html().replace(/j[0-9]+_[0-9a-z]+/g, '');
             equal(inputHtml, expectedHtml);
@@ -412,7 +412,7 @@
         var $form = $('#xmltool-form');
         var $formContainer = $form.parent();
         var $tree = $('#tree');
-        ns.load($tree, tree_data, $form, $formContainer);
+        ns.load($tree, tree_data, $form, $formContainer, $tree);
         var jstreeObj = $tree.data('jstree');
 
         // Test collapse behaviours according to tree node
