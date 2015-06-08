@@ -848,6 +848,8 @@ class TextElement(Element):
         ident = prefixes_to_str(self.prefixes_no_cache)
         return (
             u'<div id="{ident}"><label>{label}</label>'
+            u'<span class="btn-external-editor" '
+            u'ng-click="externalEditor(\'{ident}\')"></span>'
             u'{add_button}'
             u'{delete_button}'
             u'{comment}'

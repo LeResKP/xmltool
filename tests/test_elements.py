@@ -1273,6 +1273,8 @@ class TestTextElement(BaseTest):
 
         expected = ('<div id="tag">'
                     '<label>tag</label>'
+                    '<span class="btn-external-editor" '
+                    'ng-click="externalEditor(\'tag\')"></span>'
                     '<a class="btn-add hidden" '
                     'data-elt-id="tag">Add tag</a>'
                     '<a class="btn-delete" data-target="#tag" '
@@ -1299,6 +1301,8 @@ class TestTextElement(BaseTest):
         html = obj._to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
+                    '<span class="btn-external-editor" '
+                    'ng-click="externalEditor(\'tag\')"></span>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
                     '<textarea class="form-control tag" name="tag:_value" rows="1">'
@@ -1314,6 +1318,8 @@ class TestTextElement(BaseTest):
         html = obj._to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
+                    '<span class="btn-external-editor" '
+                    'ng-click="externalEditor(\'tag\')"></span>'
                     '<a data-comment-name="tag:_comment" '
                     'class="btn-comment" title="Add comment"></a>'
                     '<textarea class="form-control tag" name="tag:_value" rows="2">'
@@ -1357,6 +1363,8 @@ class TestTextElement(BaseTest):
             'data-elt-id="parent_tag:mytag:0:tag">New tag</a>'
             '<div id="parent_tag:mytag:0:tag">'
             '<label>tag</label>'
+            '<span class="btn-external-editor" '
+            'ng-click="externalEditor(\'parent_tag:mytag:0:tag\')"></span>'
             '<a class="btn-delete btn-list" '
             'data-target="#parent_tag:mytag:0:tag" title="Delete"></a>'
             '<a data-comment-name="parent_tag:mytag:0:tag:_comment" class="btn-comment"'
@@ -1378,6 +1386,8 @@ class TestTextElement(BaseTest):
             'data-elt-id="parent_tag:mytag:0:tag">New tag</a>'
             '<div id="parent_tag:mytag:0:tag">'
             '<label>tag</label>'
+            '<span class="btn-external-editor" '
+            'ng-click="externalEditor(\'parent_tag:mytag:0:tag\')"></span>'
             '<a class="btn-delete btn-list" '
             'data-target="#parent_tag:mytag:0:tag" title="Delete"></a>'
             '<a data-comment-name="parent_tag:mytag:0:tag:_comment" class="btn-comment"'
@@ -1404,6 +1414,8 @@ class TestTextElement(BaseTest):
         html = obj._to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
+                    '<span class="btn-external-editor" '
+                    'ng-click="externalEditor(\'tag\')"></span>'
                     '<textarea class="form-control tag" name="tag:_value" '
                     'rows="1" readonly="readonly"></textarea>'
                     '</div>')
@@ -1413,6 +1425,8 @@ class TestTextElement(BaseTest):
         html = obj._to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
+                    '<span class="btn-external-editor" '
+                    'ng-click="externalEditor(\'tag\')"></span>'
                     '<textarea class="form-control tag" name="tag:_value" '
                     'rows="1" readonly="readonly">'
                     '</textarea>'
@@ -1423,6 +1437,8 @@ class TestTextElement(BaseTest):
         html = obj._to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
+                    '<span class="btn-external-editor" '
+                    'ng-click="externalEditor(\'tag\')"></span>'
                     '<textarea class="form-control tag" name="tag:_value" '
                     'rows="2" readonly="readonly">'
                     'line1\nline2'
@@ -1443,6 +1459,8 @@ class TestTextElement(BaseTest):
         html = obj._to_html()
         expected = ('<div id="tag">'
                     '<label>tag</label>'
+                    '<span class="btn-external-editor" '
+                    'ng-click="externalEditor(\'tag\')"></span>'
                     '<textarea class="form-control tag" name="tag:_value" '
                     'rows="1" readonly="readonly">'
                     '</textarea>'
