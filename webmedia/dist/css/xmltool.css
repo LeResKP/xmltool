@@ -206,6 +206,24 @@ fieldset[disabled] #xmltool-form .btn-add {
   text-decoration: none;
   cursor: pointer;
 }
+#xmltool-form .btn-external-editor {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  float: right;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-left: 10px;
+}
+#xmltool-form .btn-external-editor:before {
+  content: "\e096";
+}
 #xmltool-form .panel {
   margin-top: 10px;
   margin-bottom: 5px;
