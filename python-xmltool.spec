@@ -17,6 +17,7 @@ Vendor: Aurélien Matouillot <a.matouillot@gmail.com>
 Url: http://xmltool.lereskp.fr/
 Requires: python-lxml
 Requires: python-webob
+Requires: python-dogpile-cache
 
 %description
 xmltool
