@@ -450,7 +450,7 @@ class Element(object):
 
     def _get_html_add_button(self, css_class=None):
         ident = prefixes_to_str(self.prefixes_no_cache)
-        css_classes = ['btn-add']
+        css_classes = ['btn-add btn-add-%s' % self.tagname]
         if css_class:
             css_classes += [css_class]
         return '<a class="%s" data-elt-id="%s">Add %s</a>' % (
@@ -847,7 +847,7 @@ class TextElement(Element):
             comment = self._comment_to_html()
         ident = prefixes_to_str(self.prefixes_no_cache)
         return (
-            u'<div id="{ident}"><label>{label}</label>'
+            u'<div id="{ident}" class="xt-container-{label}"><label>{label}</label>'
             u'<span class="btn-external-editor" '
             u'ng-click="externalEditor(\'{ident}\')"></span>'
             u'{add_button}'
@@ -1167,7 +1167,9 @@ class ListElement(BaseListElement):
 
     def _get_html_add_button(self, index):
         assert(index is not None)
-        css_classes = ['btn-add btn-list']
+        css_classes = ['btn-add btn-add-%s btn-list' % (
+            self._children_class.tagname
+        )]
 
         ident = prefixes_to_str(self.prefixes_no_cache + [
             str(index), self._children_class.tagname])
@@ -1235,10 +1237,12 @@ class ChoiceListElement(MultipleMixin, BaseListElement):
             str(index)])
 
         for e in self._choice_classes:
-            button += '<option value="%s:%s">%s</option>' % (
-                ident,
-                e.tagname,
-                e.tagname)
+            button += (
+                '<option class="xt-option-%s" value="%s:%s">%s</option>' % (
+                    e.tagname,
+                    ident,
+                    e.tagname,
+                    e.tagname))
         button += '</select>'
         return button
 
@@ -1310,10 +1314,12 @@ class ChoiceElement(MultipleMixin, Element):
         button = '<select class="%s">' % ' '.join(css_classes)
         button += '<option>New %s</option>' % '/'.join([e.tagname for e in self._choice_classes])
         for e in self._choice_classes:
-            button += '<option value="%s:%s">%s</option>' % (
-                ident,
-                e.tagname,
-                e.tagname)
+            button += (
+                '<option class="xt-option-%s" value="%s:%s">%s</option>' % (
+                    e.tagname,
+                    ident,
+                    e.tagname,
+                    e.tagname))
         button += '</select>'
         return button
 

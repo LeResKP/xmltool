@@ -626,7 +626,7 @@ class TestElement(BaseTest):
     def test__get_html_add_button(self):
         obj = self.cls(self.root_obj)
         html = obj._get_html_add_button()
-        expected = ('<a class="btn-add" data-elt-id="root_tag:tag">'
+        expected = ('<a class="btn-add btn-add-tag" data-elt-id="root_tag:tag">'
                     'Add tag</a>')
         self.assertEqual(html, expected)
 
@@ -656,7 +656,7 @@ class TestElement(BaseTest):
         list_obj.insert(0, EmptyElement(parent_obj=list_obj))
 
         html = obj._get_html_add_button('css_class')
-        expected = ('<a class="btn-add css_class" '
+        expected = ('<a class="btn-add btn-add-tag css_class" '
                     'data-elt-id="root_tag:list_tag:1:tag">'
                     'Add tag</a>')
         self.assertEqual(html, expected)
@@ -675,7 +675,8 @@ class TestElement(BaseTest):
         html = obj._get_html_add_button()
         expected = ('<select class="btn-add">'
                     '<option>New tag</option>'
-                    '<option value="root_tag:tag">tag</option>'
+                    '<option class="xt-option-tag" '
+                    'value="root_tag:tag">tag</option>'
                     '</select>')
         self.assertEqual(html, expected)
 
@@ -989,7 +990,7 @@ class TestContainerElement(BaseTest):
             '</span>'
             '</div>'
             '<div class="panel-body panel-collapse collapse in" id="collapse-tag">'
-            '<a class="btn-add" data-elt-id="tag:subtag">Add subtag</a>'
+            '<a class="btn-add btn-add-subtag" data-elt-id="tag:subtag">Add subtag</a>'
             '</div></div>')
         self.assertEqual_(html, expected1)
 
@@ -1000,7 +1001,8 @@ class TestContainerElement(BaseTest):
         obj = self.cls()
         obj._parent_obj = self.root_obj
         html = obj._to_html()
-        expected_button = ('<a class="btn-add" data-elt-id="root_tag:tag">'
+        expected_button = ('<a class="btn-add btn-add-tag" '
+                           'data-elt-id="root_tag:tag">'
                            'Add tag</a>')
         self.assertEqual_(html, expected_button)
 
@@ -1009,13 +1011,15 @@ class TestContainerElement(BaseTest):
             '<div class="panel panel-default tag" id="root_tag:tag">'
             '<div class="panel-heading">'
             '<span data-toggle="collapse" href="#collapse-root_tag\:tag">'
-            'tag<a class="btn-add hidden" data-elt-id="root_tag:tag">Add tag</a>'
+            'tag<a class="btn-add btn-add-tag hidden" '
+            'data-elt-id="root_tag:tag">Add tag</a>'
             '<a class="btn-delete" data-target="#root_tag:tag" title="Delete"></a>'
             '<a data-comment-name="root_tag:tag:_comment" class="btn-comment" '
             'title="Add comment"></a></span></div>'
             '<div class="panel-body panel-collapse collapse in" '
             'id="collapse-root_tag:tag">'
-            '<a class="btn-add" data-elt-id="root_tag:tag:subtag">Add subtag</a>'
+            '<a class="btn-add btn-add-subtag" '
+            'data-elt-id="root_tag:tag:subtag">Add subtag</a>'
             '</div></div>'
         )
 
@@ -1033,7 +1037,8 @@ class TestContainerElement(BaseTest):
             '</div>'
             '<div class="panel-body panel-collapse collapse in" '
             'id="collapse-root_tag:tag">'
-            '<a class="btn-add" data-elt-id="root_tag:tag:subtag">Add '
+            '<a class="btn-add btn-add-subtag" '
+            'data-elt-id="root_tag:tag:subtag">Add '
             'subtag</a></div></div>')
 
         # Required Container
@@ -1268,14 +1273,15 @@ class TestTextElement(BaseTest):
         # No value
         obj = self.cls()
         html = obj._to_html()
-        expected = '<a class="btn-add" data-elt-id="tag">Add tag</a>'
+        expected = (
+            '<a class="btn-add btn-add-tag" data-elt-id="tag">Add tag</a>')
         self.assertEqual_(html, expected)
 
-        expected = ('<div id="tag">'
+        expected = ('<div id="tag" class="xt-container-tag">'
                     '<label>tag</label>'
                     '<span class="btn-external-editor" '
                     'ng-click="externalEditor(\'tag\')"></span>'
-                    '<a class="btn-add hidden" '
+                    '<a class="btn-add btn-add-tag hidden" '
                     'data-elt-id="tag">Add tag</a>'
                     '<a class="btn-delete" data-target="#tag" '
                     'title="Delete"></a>'
@@ -1299,7 +1305,7 @@ class TestTextElement(BaseTest):
         # Required
         obj._required = True
         html = obj._to_html()
-        expected = ('<div id="tag">'
+        expected = ('<div id="tag" class="xt-container-tag">'
                     '<label>tag</label>'
                     '<span class="btn-external-editor" '
                     'ng-click="externalEditor(\'tag\')"></span>'
@@ -1316,7 +1322,7 @@ class TestTextElement(BaseTest):
         # Multiline
         obj.text = 'line1\nline2'
         html = obj._to_html()
-        expected = ('<div id="tag">'
+        expected = ('<div id="tag" class="xt-container-tag">'
                     '<label>tag</label>'
                     '<span class="btn-external-editor" '
                     'ng-click="externalEditor(\'tag\')"></span>'
@@ -1359,9 +1365,9 @@ class TestTextElement(BaseTest):
 
         html = obj._to_html()
         expected = (
-            '<a class="btn-add btn-list" '
+            '<a class="btn-add btn-add-tag btn-list" '
             'data-elt-id="parent_tag:mytag:0:tag">New tag</a>'
-            '<div id="parent_tag:mytag:0:tag">'
+            '<div id="parent_tag:mytag:0:tag" class="xt-container-tag">'
             '<label>tag</label>'
             '<span class="btn-external-editor" '
             'ng-click="externalEditor(\'parent_tag:mytag:0:tag\')"></span>'
@@ -1382,9 +1388,9 @@ class TestTextElement(BaseTest):
         obj._required = False
         html = obj.to_html()
         expected = (
-            '<a class="btn-add btn-list" '
+            '<a class="btn-add btn-add-tag btn-list" '
             'data-elt-id="parent_tag:mytag:0:tag">New tag</a>'
-            '<div id="parent_tag:mytag:0:tag">'
+            '<div id="parent_tag:mytag:0:tag" class="xt-container-tag">'
             '<label>tag</label>'
             '<span class="btn-external-editor" '
             'ng-click="externalEditor(\'parent_tag:mytag:0:tag\')"></span>'
@@ -1399,7 +1405,8 @@ class TestTextElement(BaseTest):
         self.assertEqual_(html, expected)
 
         expected = (
-            '<a class="btn-add" data-elt-id="parent_tag:mytag:0:tag">'
+            '<a class="btn-add btn-add-tag" '
+            'data-elt-id="parent_tag:mytag:0:tag">'
             'Add tag</a>')
         html = obj._to_html()
         self.assertEqual_(html, expected)
@@ -1412,7 +1419,7 @@ class TestTextElement(BaseTest):
 
         obj.set_text('')
         html = obj._to_html()
-        expected = ('<div id="tag">'
+        expected = ('<div id="tag" class="xt-container-tag">'
                     '<label>tag</label>'
                     '<span class="btn-external-editor" '
                     'ng-click="externalEditor(\'tag\')"></span>'
@@ -1423,7 +1430,7 @@ class TestTextElement(BaseTest):
 
         obj._required = True
         html = obj._to_html()
-        expected = ('<div id="tag">'
+        expected = ('<div id="tag" class="xt-container-tag">'
                     '<label>tag</label>'
                     '<span class="btn-external-editor" '
                     'ng-click="externalEditor(\'tag\')"></span>'
@@ -1435,7 +1442,7 @@ class TestTextElement(BaseTest):
 
         obj.text = 'line1\nline2'
         html = obj._to_html()
-        expected = ('<div id="tag">'
+        expected = ('<div id="tag" class="xt-container-tag">'
                     '<label>tag</label>'
                     '<span class="btn-external-editor" '
                     'ng-click="externalEditor(\'tag\')"></span>'
@@ -1457,7 +1464,7 @@ class TestTextElement(BaseTest):
             }
         )(self.root_obj)
         html = obj._to_html()
-        expected = ('<div id="tag">'
+        expected = ('<div id="tag" class="xt-container-tag">'
                     '<label>tag</label>'
                     '<span class="btn-external-editor" '
                     'ng-click="externalEditor(\'tag\')"></span>'
@@ -1624,12 +1631,12 @@ class TestListElement(BaseTest):
     def test__get_html_add_button(self):
         obj = self.cls(self.root_obj)
         html = obj._get_html_add_button(0)
-        expected = ('<a class="btn-add btn-list" '
+        expected = ('<a class="btn-add btn-add-subtag btn-list" '
                     'data-elt-id="parent_tag:tag:0:subtag">New subtag</a>')
         self.assertEqual(html, expected)
 
         html = obj._get_html_add_button(10)
-        expected = ('<a class="btn-add btn-list" '
+        expected = ('<a class="btn-add btn-add-subtag btn-list" '
                     'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>')
         self.assertEqual(html, expected)
 
@@ -1637,7 +1644,7 @@ class TestListElement(BaseTest):
         obj = self.root_obj.add(self.cls.tagname)
         html = obj._to_html()
         expected = ('<div class="list-container">'
-                    '<a class="btn-add btn-list" '
+                    '<a class="btn-add btn-add-subtag btn-list" '
                     'data-elt-id="parent_tag:tag:0:subtag">New subtag</a>'
                     '</div>')
         self.assertEqual_(html, expected)
@@ -1645,7 +1652,7 @@ class TestListElement(BaseTest):
         obj._required = True
         html = obj._to_html()
         expected = ('<div class="list-container">'
-                    '<a class="btn-add btn-list" '
+                    '<a class="btn-add btn-add-subtag btn-list" '
                     'data-elt-id="parent_tag:tag:0:subtag">New subtag</a>'
                     '<div class="panel panel-default subtag" '
                     'id="parent_tag:tag:0:subtag">'
@@ -1656,7 +1663,7 @@ class TestListElement(BaseTest):
                     'class="btn-comment" title="Add comment"></a>'
                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-parent_tag:tag:0:subtag">'
                     '</div></div>'
-                    '<a class="btn-add btn-list" '
+                    '<a class="btn-add btn-add-subtag btn-list" '
                     'data-elt-id="parent_tag:tag:1:subtag">New subtag</a>'
                     '</div>')
         self.assertEqual_(html, expected)
@@ -1669,7 +1676,7 @@ class TestListElement(BaseTest):
             obj.insert(0, EmptyElement(parent_obj=obj))
         html = obj._to_html()
         expected = ('<div class="list-container">'
-                    '<a class="btn-add btn-list" '
+                    '<a class="btn-add btn-add-subtag btn-list" '
                     'data-elt-id="parent_tag:tag:10:subtag">New subtag</a>'
                     '<div class="panel panel-default subtag" id="parent_tag:tag:10:subtag">'
                     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-parent_tag\:tag\:10\:subtag">subtag'
@@ -1679,7 +1686,7 @@ class TestListElement(BaseTest):
                     'class="btn-comment" title="Add comment"></a>'
                     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-parent_tag:tag:10:subtag">'
                     '</div></div>'
-                    '<a class="btn-add btn-list" '
+                    '<a class="btn-add btn-add-subtag btn-list" '
                     'data-elt-id="parent_tag:tag:11:subtag">New subtag</a>'
                     '</div>')
         self.assertEqual_(html, expected)
@@ -1865,8 +1872,10 @@ class TestChoiceListElement(BaseTest):
         html = obj._get_html_add_button(0)
         expected = ('<select class="btn-add btn-list">'
                     '<option>New subtag1/subtag2</option>'
-                    '<option value="tag:0:subtag1">subtag1</option>'
-                    '<option value="tag:0:subtag2">subtag2</option>'
+                    '<option class="xt-option-subtag1" '
+                    'value="tag:0:subtag1">subtag1</option>'
+                    '<option class="xt-option-subtag2" '
+                    'value="tag:0:subtag2">subtag2</option>'
                     '</select>')
         self.assertEqual(html, expected)
 
@@ -1896,8 +1905,10 @@ class TestChoiceListElement(BaseTest):
             '<div class="list-container">'
             '<select class="btn-add btn-list">'
             '<option>New subtag1/subtag2</option>'
-            '<option value="parent_tag:tag:0:subtag1">subtag1</option>'
-            '<option value="parent_tag:tag:0:subtag2">subtag2</option>'
+            '<option class="xt-option-subtag1" '
+            'value="parent_tag:tag:0:subtag1">subtag1</option>'
+            '<option class="xt-option-subtag2" '
+            'value="parent_tag:tag:0:subtag2">subtag2</option>'
             '</select>'
             '</div>'
         )
@@ -1921,8 +1932,10 @@ class TestChoiceListElement(BaseTest):
             '<div class="list-container">'
             '<select class="btn-add btn-list">'
             '<option>New subtag1/subtag2</option>'
-            '<option value="parent_tag:tag:0:subtag1">subtag1</option>'
-            '<option value="parent_tag:tag:0:subtag2">subtag2</option>'
+            '<option class="xt-option-subtag1" '
+            'value="parent_tag:tag:0:subtag1">subtag1</option>'
+            '<option class="xt-option-subtag2" '
+            'value="parent_tag:tag:0:subtag2">subtag2</option>'
             '</select>'
             '<div class="panel panel-default subtag1" '
             'id="parent_tag:tag:0:subtag1">'
@@ -1939,8 +1952,10 @@ class TestChoiceListElement(BaseTest):
             '</div>'
             '<select class="btn-add btn-list">'
             '<option>New subtag1/subtag2</option>'
-            '<option value="parent_tag:tag:1:subtag1">subtag1</option>'
-            '<option value="parent_tag:tag:1:subtag2">subtag2</option>'
+            '<option class="xt-option-subtag1" '
+            'value="parent_tag:tag:1:subtag1">subtag1</option>'
+            '<option class="xt-option-subtag2" '
+            'value="parent_tag:tag:1:subtag2">subtag2</option>'
             '</select>'
             '</div>'
 
@@ -1957,8 +1972,10 @@ class TestChoiceListElement(BaseTest):
             '<div class="list-container">'
             '<select class="btn-add btn-list">'
             '<option>New subtag1/subtag2</option>'
-            '<option value="parent_tag:tag:10:subtag1">subtag1</option>'
-            '<option value="parent_tag:tag:10:subtag2">subtag2</option>'
+            '<option class="xt-option-subtag1" '
+            'value="parent_tag:tag:10:subtag1">subtag1</option>'
+            '<option class="xt-option-subtag2" '
+            'value="parent_tag:tag:10:subtag2">subtag2</option>'
             '</select>'
             '<div class="panel panel-default subtag1" '
             'id="parent_tag:tag:10:subtag1">'
@@ -1975,8 +1992,10 @@ class TestChoiceListElement(BaseTest):
             '</div>'
             '<select class="btn-add btn-list">'
             '<option>New subtag1/subtag2</option>'
-            '<option value="parent_tag:tag:11:subtag1">subtag1</option>'
-            '<option value="parent_tag:tag:11:subtag2">subtag2</option>'
+            '<option class="xt-option-subtag1" '
+            'value="parent_tag:tag:11:subtag1">subtag1</option>'
+            '<option class="xt-option-subtag2" '
+            'value="parent_tag:tag:11:subtag2">subtag2</option>'
             '</select>'
             '</div>'
         )
@@ -2170,8 +2189,10 @@ class TestChoiceElement(BaseTest):
         html = obj._get_html_add_button()
         expected = ('<select class="btn-add">'
                     '<option>New subtag1/subtag2</option>'
-                    '<option value="root_tag:subtag1">subtag1</option>'
-                    '<option value="root_tag:subtag2">subtag2</option>'
+                    '<option class="xt-option-subtag1" '
+                    'value="root_tag:subtag1">subtag1</option>'
+                    '<option class="xt-option-subtag2" '
+                    'value="root_tag:subtag2">subtag2</option>'
                     '</select>')
         self.assertEqual(html, expected)
 
@@ -2196,8 +2217,10 @@ class TestChoiceElement(BaseTest):
         expected = (
             '<select class="btn-add">'
             '<option>New subtag1/subtag2</option>'
-            '<option value="root_tag:subtag1">subtag1</option>'
-            '<option value="root_tag:subtag2">subtag2</option>'
+            '<option class="xt-option-subtag1" '
+            'value="root_tag:subtag1">subtag1</option>'
+            '<option class="xt-option-subtag2" '
+            'value="root_tag:subtag2">subtag2</option>'
             '</select>'
         )
         html = obj._to_html()
@@ -2221,8 +2244,10 @@ class TestChoiceElement(BaseTest):
             'href="#collapse-root_tag\:subtag1">subtag1'
             '<select class="btn-add hidden">'
             '<option>New subtag1/subtag2</option>'
-            '<option value="root_tag:subtag1">subtag1</option>'
-            '<option value="root_tag:subtag2">subtag2</option>'
+            '<option class="xt-option-subtag1" '
+            'value="root_tag:subtag1">subtag1</option>'
+            '<option class="xt-option-subtag2" '
+            'value="root_tag:subtag2">subtag2</option>'
             '</select>'
             '<a class="btn-delete" data-target="#root_tag:subtag1" '
             'title="Delete"/>'

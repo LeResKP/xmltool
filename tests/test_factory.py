@@ -167,7 +167,7 @@ class TestFactory(BaseTest):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn-add" data-elt-id="choice">'
+                    '<a class="btn-add btn-add-choice" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -182,7 +182,7 @@ class TestFactory(BaseTest):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn-add" data-elt-id="choice">'
+                    '<a class="btn-add btn-add-choice" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -199,7 +199,7 @@ class TestFactory(BaseTest):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn-add" data-elt-id="choice">'
+                    '<a class="btn-add btn-add-choice" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -248,7 +248,7 @@ class TestFactory(BaseTest):
         obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
         html = obj.to_html()
         expected = (
-            '<div id="texts:text">'
+            '<div id="texts:text" class="xt-container-text">'
             '<label>text</label>'
             '<span class="btn-external-editor" '
             'ng-click="externalEditor(\'texts:text\')"></span>'
@@ -268,9 +268,9 @@ class TestFactory(BaseTest):
         obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
         html = obj.to_html()
         expected = (
-            '<a class="btn-add btn-list" '
+            '<a class="btn-add btn-add-text btn-list" '
             'data-elt-id="texts:list__text:0:text">New text</a>'
-            '<div id="texts:list__text:0:text">'
+            '<div id="texts:list__text:0:text" class="xt-container-text">'
             '<label>text</label>'
             '<span class="btn-external-editor" '
             'ng-click="externalEditor(\'texts:list__text:0:text\')"></span>'
@@ -294,7 +294,7 @@ class TestFactory(BaseTest):
         obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
         html = obj.to_html()
         expected = (
-            '<div id="texts:list__list:0:list:text">'
+            '<div id="texts:list__list:0:list:text" class="xt-container-text">'
             '<label>text</label>'
             '<span class="btn-external-editor" '
             'ng-click="externalEditor(\'texts:list__list:0:list:text\')">'
@@ -524,7 +524,7 @@ class TestFactory(BaseTest):
                 ('after', escape_attr('.tree_texts:list__list') + ':last'),
                 ('after', escape_attr('.tree_texts:tag1') + ':last'),
                 ('inside', escape_attr('#tree_texts'))],
-            'html': ('<div id="texts:tag2">'
+            'html': ('<div id="texts:tag2" class="xt-container-tag2">'
                      '<label>tag2</label>'
                      '<span class="btn-external-editor" '
                      'ng-click="externalEditor(\'texts:tag2\')"></span>'
@@ -574,7 +574,8 @@ class TestFactory(BaseTest):
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
             'html': (
-                '<div id="texts:list__list:0:list:text1">'
+                '<div id="texts:list__list:0:list:text1" '
+                'class="xt-container-text1">'
                 '<label>text1</label>'
                 '<span class="btn-external-editor" '
                 'ng-click="externalEditor(\'texts:list__list:0:list:text1\')">'
@@ -622,7 +623,7 @@ class TestFactory(BaseTest):
         expected = {
             'elt_id': 'texts:list__list:0:list',
             'html': (
-                '<a class="btn-add btn-list" '
+                '<a class="btn-add btn-add-list btn-list" '
                 'data-elt-id="texts:list__list:0:list">New list</a>'
                 '<div class="panel panel-default list" '
                 'id="texts:list__list:0:list">'
@@ -637,7 +638,8 @@ class TestFactory(BaseTest):
                 '</div>'
                 '<div class="panel-body panel-collapse collapse in" '
                 'id="collapse-texts:list__list:0:list">'
-                '<div id="texts:list__list:0:list:text1">'
+                '<div id="texts:list__list:0:list:text1" '
+                'class="xt-container-text1">'
                 '<label>text1</label>'
                 '<span class="btn-external-editor" '
                 'ng-click="externalEditor(\'texts:list__list:0:list:text1\')">'
@@ -708,15 +710,18 @@ class TestFactory(BaseTest):
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
             'html': (
-                '<div id="texts:list__list:0:list:text1">'
+                '<div id="texts:list__list:0:list:text1" '
+                'class="xt-container-text1">'
                 '<label>text1</label>'
                 '<span class="btn-external-editor" '
                 'ng-click="externalEditor(\'texts:list__list:0:list:text1\')">'
                 '</span>'
                 '<select class="btn-add hidden">'
                 '<option>New text1/text2</option>'
-                '<option value="texts:list__list:0:list:text1">text1</option>'
-                '<option value="texts:list__list:0:list:text2">text2</option>'
+                '<option class="xt-option-text1" '
+                'value="texts:list__list:0:list:text1">text1</option>'
+                '<option class="xt-option-text2" '
+                'value="texts:list__list:0:list:text2">text2</option>'
                 '</select>'
                 '<a class="btn-delete" '
                 'data-target="#texts:list__list:0:list:text1" title="Delete">'
