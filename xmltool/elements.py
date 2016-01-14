@@ -849,7 +849,7 @@ class TextElement(Element):
         return (
             u'<div id="{ident}" class="xt-container-{label}"><label>{label}</label>'
             u'<span class="btn-external-editor" '
-            u'ng-click="externalEditor(\'{ident}\')"></span>'
+            u'ng-click="externalEditor(this)"></span>'
             u'{add_button}'
             u'{delete_button}'
             u'{comment}'
