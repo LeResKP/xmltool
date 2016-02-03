@@ -234,10 +234,16 @@ def _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=None, dtd_str=None):
                                       data=data)
 
     if target_obj.is_addable(tagname):
-        return target_obj
+        return target_obj, 0
+
     if target_obj._parent_obj and target_obj._parent_obj.is_addable(tagname):
-        return target_obj._parent_obj
-    return None
+        index = target_obj.position
+        if index is not None:
+            index += 1
+        else:
+            index = None
+        return target_obj._parent_obj, index
+    return None, None
 
 
 def _get_data_for_html_display(obj):
@@ -262,12 +268,12 @@ def _add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
     keys = clipboard_data.keys()
     assert(len(keys) == 1)
     tagname = keys[0]
-    parentobj = _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=dtd_url,
-                                       dtd_str=dtd_str)
+    parentobj, index = _get_parent_to_add_obj(
+        elt_id, tagname, data, dtd_url=dtd_url, dtd_str=dtd_str)
     if not parentobj:
         return None
 
-    obj = parentobj.add(tagname)
+    obj = parentobj.add(tagname, index=index)
     obj.load_from_dict(clipboard_data, skip_extra=skip_extra)
     return obj
 

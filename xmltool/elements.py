@@ -131,11 +131,11 @@ class Element(object):
         """If the parent is a list, returns the position of self.
         Otherwise returns None
         """
-        if not self.parent:
+        if not self._parent_obj:
             return None
-        if not isinstance(self.parent, ListElement):
+        if not isinstance(self._parent_obj, ListElement):
             return None
-        return self.parent.index(self)
+        return self._parent_obj.index(self)
 
     @classmethod
     def _get_creatable_class_by_tagnames(cls):

@@ -89,6 +89,10 @@ class TestElement(BaseTest):
         sub_obj._cache_prefixes = None
         self.assertEqual(sub_obj.prefixes, ['subtag'])
 
+    def test_position(self):
+        obj = self.cls()
+        self.assertEqual(obj.position, None)
+
     def test__get_creatable_class_by_tagnames(self):
         self.assertEqual(self.cls._get_creatable_class_by_tagnames(),
                          {'tag': self.cls})
@@ -1138,6 +1142,10 @@ class TestTextElement(BaseTest):
     def test___repr__(self):
         self.assertTrue(repr(self.cls()))
 
+    def test_position(self):
+        obj = self.cls()
+        self.assertEqual(obj.position, None)
+
     def test__get_creatable_class_by_tagnames(self):
         res = self.cls._get_creatable_class_by_tagnames()
         expected = {
@@ -1503,6 +1511,15 @@ class TestListElement(BaseTest):
         self.root_obj = self.root_cls()
         self.cls._parent_cls = self.root_cls
         self.sub_cls._parent_cls = self.cls
+
+    def test_position(self):
+        self.assertEqual(self.root_obj.position, None)
+
+        obj = self.root_cls()
+        sub1 = obj.add('subtag')
+        sub2 = obj.add('subtag')
+        self.assertEqual(sub1.position, 0)
+        self.assertEqual(sub2.position, 1)
 
     def test__get_creatable_class_by_tagnames(self):
         res = self.cls._get_creatable_class_by_tagnames()
@@ -2041,6 +2058,14 @@ class TestChoiceElement(BaseTest):
         self.cls._parent_cls = self.root_cls
         self.sub_cls1._parent_cls = self.cls
         self.sub_cls2._parent_cls = self.cls
+
+    def test_position(self):
+        self.assertEqual(self.root_obj.position, None)
+        obj1 = self.sub_cls1()
+        obj2 = self.sub_cls2()
+
+        self.assertEqual(obj1.position, None)
+        self.assertEqual(obj2.position, None)
 
     def test__get_creatable_class_by_tagnames(self):
         res = self.cls._get_creatable_class_by_tagnames()

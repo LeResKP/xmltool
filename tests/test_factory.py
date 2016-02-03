@@ -769,15 +769,17 @@ class TestFactory(BaseTest):
                 ]
             }
         }
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         # The 'text' element can be pasted here.
         self.assertEqual(parentobj, None)
+        self.assertEqual(index, None)
 
         str_id = 'texts:list__list:0:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'list', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'list', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
+        self.assertEqual(index, 1)
 
         # Remove the 'text' element from 'list'
         data = {
@@ -790,9 +792,10 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:0:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
+        self.assertEqual(index, 0)
 
         # Try with missing element
         data = {
@@ -801,9 +804,10 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:10:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'list', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'list', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
+        self.assertEqual(index, 11)
 
         # Try with empty element
         # The str_id has no value so didn't exist, we want to make sure we
@@ -829,11 +833,12 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:1:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                    dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
         lis = parentobj._parent_obj
         self.assertEqual(lis[1], parentobj)
+        self.assertEqual(index, 0)
 
         data = {
             'texts': {
@@ -851,10 +856,11 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:1:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         # text already exists, can't add it
         self.assertEqual(parentobj, None)
+        self.assertEqual(index, None)
 
     def test__add_new_element_from_id(self):
         dtd_str = '''
