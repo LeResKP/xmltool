@@ -1,52 +1,16 @@
 #!/usr/bin/env python
 
-import os
-import requests
 import StringIO
 from lxml import etree
 import re
 import webob
 from dogpile.cache.api import NO_VALUE
-from . import cache
+from . import cache, dtd
 
 
 # This hack helps work with different versions of WebOb
 if not hasattr(webob, 'MultiDict'):
     webob.MultiDict = webob.multidict.MultiDict
-
-
-def is_http_url(url):
-    """Determine if the given url is on http(s).
-
-    :param url: the url to check
-    :type url: str
-    :return: True if the given url is on http or https.
-    :rtype: boolean
-    """
-    if url.startswith('http://') or url.startswith('https://'):
-        return True
-    return False
-
-
-def _get_dtd_content(url, path=None):
-    """Get the content of url.
-
-    :param url: the url of the dtd file.
-    :type url: str
-    :param path: the path to use for a local file.
-    :type path: str
-    :return: The content of the given url
-    :rtype: string
-    """
-    if is_http_url(url):
-        res = requests.get(url, timeout=5)
-        # Use res.content instead of res.text because we want string. If we get
-        # unicode, it fails when creating classes with type().
-        return res.content
-
-    if path and not url.startswith('/') and not url.startswith(path):
-        url = os.path.join(path, url)
-    return open(url, 'r').read()
 
 
 def get_dtd_content(url, path=None):
@@ -59,16 +23,7 @@ def get_dtd_content(url, path=None):
     :return: The content of the given url
     :rtype: string
     """
-    if cache.CACHE_TIMEOUT is None:
-        return _get_dtd_content(url, path=path)
-
-    cache_key = 'xmltool.get_dtd_content.%s.%s' % (url, path)
-    v = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
-    if v is not NO_VALUE:
-        return v
-    content = _get_dtd_content(url, path=path)
-    cache.region.set(cache_key, content)
-    return content
+    return dtd.DTD(url, path).content
 
 
 def validate_xml(xml_obj, dtd_str):
