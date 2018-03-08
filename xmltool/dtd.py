@@ -21,11 +21,12 @@ class DTD(object):
         url: the url to get the dtd, it can be http or filesystem resources
         path is used in case the dtd use relative filesystem path
         """
+        self._parsed_dict = None
         if isinstance(url, StringIO.StringIO):
+            self.url = None
             # set _content and validation
             self._content = url.getvalue()
             self.validate()
-            self.url = None
         else:
             self.url = url
             self.path = path
@@ -85,12 +86,20 @@ class DTD(object):
         dtd_obj = etree.DTD(filename)
         if dtd_obj.error_log:
             raise ValidationError(dtd_obj.error_log)
+        # It can raise an exception if something is wrong in the dtd
+        # For example, etree.DTD doesn't raise exception if a sub element is
+        # not defined, self.parse does.
+        self.parse()
 
     def _parse(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.content)
-        return dtd_parser._create_classes(dtd_dict)
+        self._parsed_dict = dtd_parser._create_classes(dtd_dict)
+        return self._parsed_dict
 
     def parse(self):
+        if self._parsed_dict:
+            return self._parsed_dict
+
         if cache.CACHE_TIMEOUT is None:
             return self._parse()
 

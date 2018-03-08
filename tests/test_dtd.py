@@ -42,7 +42,10 @@ class TestDTD(TestCase):
         with mock.patch('xmltool.dtd.DTD._fetch', lambda self: 'my content'):
             self.assertEqual(dtd_obj.content, 'my content')
 
-        content = '<!ELEMENT tag1 (subtag)>'
+        content = (
+            '<!ELEMENT tag1 (subtag)>'
+            '<!ELEMENT subtag (#PCDATA)>'
+        )
 
         with mock.patch('xmltool.cache.CACHE_TIMEOUT', 3600):
             with mock.patch('xmltool.dtd.DTD._fetch',
@@ -91,12 +94,14 @@ class TestDTD(TestCase):
                              sorted(['question', 'Exercise']))
 
             # The cache only works if we have an url
+            dtd_obj._parsed_dict = None
             dtd_obj.url = 'my url'
             dic = dtd_obj.parse()
             dtd_str = '''
                 <!ELEMENT question (#PCDATA)>
             '''
             dtd_obj = dtd.DTD(StringIO.StringIO(dtd_str))
+            dtd_obj._parsed_dict = None
             dtd_obj.url = 'my url'
             dic = dtd_obj.parse()
             self.assertEqual(sorted(dic.keys()),
