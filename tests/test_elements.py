@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
+import StringIO
 from unittest import TestCase
 from xmltool.testbase import BaseTest
 from lxml import etree, html as lxml_html
 import os.path
-from xmltool import utils, dtd_parser
+from xmltool import utils, dtd_parser, dtd
 from xmltool.elements import (
     Element,
     ContainerElement,
@@ -1593,7 +1594,7 @@ class TestListElement(BaseTest):
         <!ELEMENT text (subtext+)>
         <!ELEMENT subtext (#PCDATA)>
         '''
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic['texts']()
         text = obj.add('text')
         subtext = text.add('subtext', 'value')

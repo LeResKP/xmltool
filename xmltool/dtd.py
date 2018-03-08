@@ -1,3 +1,4 @@
+import StringIO
 from dogpile.cache.api import NO_VALUE
 from lxml import etree
 import os
@@ -5,7 +6,8 @@ import requests
 import tempfile
 
 
-from . import cache
+import dtd_parser
+import cache
 
 
 class ValidationError(Exception):
@@ -19,9 +21,15 @@ class DTD(object):
         url: the url to get the dtd, it can be http or filesystem resources
         path is used in case the dtd use relative filesystem path
         """
-        self.url = url
-        self.path = path
-        self._content = None
+        if isinstance(url, StringIO.StringIO):
+            # set _content and validation
+            self._content = url.getvalue()
+            self.validate()
+            self.url = None
+        else:
+            self.url = url
+            self.path = path
+            self._content = None
 
     def _fetch(self):
         """Fetch the dtd content
@@ -49,6 +57,7 @@ class DTD(object):
         if cache.CACHE_TIMEOUT is None:
             return self._fetch()
 
+        assert(self.url)
         cache_key = 'xmltool.get_dtd_content.%s.%s' % (self.url, self.path)
         value = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
         if value is not NO_VALUE:
@@ -76,3 +85,23 @@ class DTD(object):
         dtd_obj = etree.DTD(filename)
         if dtd_obj.error_log:
             raise ValidationError(dtd_obj.error_log)
+
+    def _parse(self):
+        dtd_dict = dtd_parser.dtd_to_dict_v2(self.content)
+        return dtd_parser._create_classes(dtd_dict)
+
+    def parse(self):
+        if cache.CACHE_TIMEOUT is None:
+            return self._parse()
+
+        cache_key = 'xmltool.parse.%s' % self.url if self.url else None
+
+        if not cache_key:
+            return self._parse()
+
+        value = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
+        if value is not NO_VALUE:
+            return value
+        value = self._parse()
+        cache.region.set(cache_key, value)
+        return value

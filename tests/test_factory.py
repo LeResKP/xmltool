@@ -3,7 +3,7 @@
 from xmltool.testbase import BaseTest
 from lxml import etree
 import os.path
-from xmltool import factory, dtd_parser, elements
+from xmltool import factory, dtd_parser, elements, dtd
 from xmltool.elements import escape_attr
 
 
@@ -96,7 +96,7 @@ class TestFactory(BaseTest):
 
         # Empty object
         dtd_url = 'tests/exercise.dtd'
-        dic = dtd_parser.parse(dtd_url=dtd_url)
+        dic = dtd.DTD(dtd_url).parse()
         obj = dic['Exercise']()
         html = factory.generate_form_from_obj(obj)
         self.assertTrue('<form method="POST" id="xmltool-form">' in html)

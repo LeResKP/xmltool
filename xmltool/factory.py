@@ -3,9 +3,9 @@
 import os
 from lxml import etree
 from StringIO import StringIO
-import dtd_parser
 import utils
-import elements
+from . import elements
+from . import dtd
 
 
 def create(root_tag, dtd_url=None, dtd_str=None):
@@ -15,13 +15,14 @@ def create(root_tag, dtd_url=None, dtd_str=None):
     :param dtd_url: The dtd url
     :param dtd_str: The dtd as string
     """
-    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    url = dtd_url if dtd_url else StringIO(dtd_str)
+    dtd_obj = dtd.DTD(url)
+    dic = dtd_obj.parse()
     if root_tag not in dic:
         raise Exception('Bad root_tag %s, '
                         'it\'s not supported by the dtd' % root_tag)
     obj = dic[root_tag]()
     obj.dtd_url = dtd_url
-    obj.dtd_str = dtd_str
     obj.encoding = elements.DEFAULT_ENCODING
     return obj
 
@@ -38,13 +39,14 @@ def load(filename, validate=True):
     """
     tree = etree.parse(filename)
     dtd_url = tree.docinfo.system_url
-    path = isinstance(filename, basestring) and os.path.dirname(filename) or None
-    dtd_str = utils.get_dtd_content(dtd_url, path)
-    if validate:
-        utils.validate_xml(tree, dtd_str)
+    path = (os.path.dirname(filename)
+            if isinstance(filename, basestring) else None)
 
-    dic = dtd_parser.parse(dtd_str=dtd_str,
-                           cache_key='xmltool.parse.%s' % dtd_url)
+    dtd_obj = dtd.DTD(dtd_url, path)
+    if validate:
+        utils.validate_xml(tree, dtd_obj.content)
+
+    dic = dtd_obj.parse()
     root = tree.getroot()
     obj = dic[root.tag]()
     obj.load_from_xml(root)
@@ -140,7 +142,8 @@ def update(filename, data, validate=True, transform=None):
         raise Exception('Bad data')
 
     root_tag = data.keys()[0]
-    dic = dtd_parser.parse(dtd_url=dtd_url, path=os.path.dirname(filename))
+
+    dic = dtd.DTD(dtd_url, path=os.path.dirname(filename)).parse()
     obj = dic[root_tag]()
 
     obj.load_from_dict(data)
@@ -150,7 +153,7 @@ def update(filename, data, validate=True, transform=None):
 
 
 def new(dtd_url, root_tag, form_action=None, form_attrs=None):
-    dic = dtd_parser.parse(dtd_url=dtd_url)
+    dic = dtd.DTD(dtd_url).parse()
     obj = dic[root_tag]()
 
     # Merge the following line with the function which generate the form!
@@ -204,8 +207,8 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None, data=None):
 
     ..note:: If data is passed load the data to this object
     """
-    # Will raise an exception if both dtd_url or dtd_str are None or set
-    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    url = dtd_url if dtd_url else StringIO(dtd_str)
+    dic = dtd.DTD(url).parse()
     splitted = str_id.split(':')
     s = splitted.pop(0)
     cls = dic[s]

@@ -2,7 +2,6 @@
 
 from unittest import TestCase
 from xmltool import dtd_parser
-import xmltool.utils as utils
 from xmltool.elements import (
     TextElement,
     Element,
@@ -12,8 +11,6 @@ from xmltool.elements import (
     InListMixin,
     InChoiceMixin,
 )
-import mock
-from xmltool import cache
 
 
 MOVIE_DTD = '''
@@ -598,56 +595,3 @@ class DtdParser(TestCase):
         self.assertEqual(subtag._required, True)
         self.assertEqual(subtag.children_classes, [])
         self.assertEqual(subtag._parent_cls, tag)
-
-    def test__parse(self):
-        try:
-            dtd_parser._parse()
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e), 'You didn\'t provide dtd_str nor dtd_url')
-
-        try:
-            dtd_parser._parse(dtd_str=True, dtd_url=True)
-            assert 0
-        except Exception, e:
-            self.assertEqual(str(e),
-                             'You should provide either dtd_str or dtd_url')
-
-        dtd_str = '''
-            <!ELEMENT Exercise (question)>
-            <!ELEMENT question (#PCDATA)>
-        '''
-        dic = dtd_parser._parse(dtd_str=dtd_str)
-        self.assertEqual(len(dic), 2)
-        self.assertTrue(issubclass(dic['Exercise'], Element))
-        self.assertTrue(issubclass(dic['question'], TextElement))
-        old_get_dtd_content = utils.get_dtd_content
-        try:
-            # We pass the content instead of the url
-            utils.get_dtd_content = lambda content, path: content
-            dic = dtd_parser._parse(dtd_url=dtd_str)
-            self.assertEqual(len(dic), 2)
-            self.assertTrue(issubclass(dic['Exercise'], Element))
-            self.assertTrue(issubclass(dic['question'], TextElement))
-        finally:
-            utils.get_dtd_content = old_get_dtd_content
-
-    def test_parse(self):
-        with mock.patch('xmltool.dtd_parser._parse',
-                        return_value={'hello': 'world'}):
-            res = dtd_parser.parse(dtd_url='http://url')
-            self.assertEqual(res, {'hello': 'world'})
-
-        cache.CACHE_TIMEOUT = 3600
-        try:
-            with mock.patch('xmltool.dtd_parser._parse',
-                            return_value={'hello': 'world'}):
-                res = dtd_parser.parse(dtd_url='http://url')
-                self.assertEqual(res, {'hello': 'world'})
-
-            with mock.patch('xmltool.dtd_parser._parse',
-                            return_value={'bonjour': 'monde'}):
-                res = dtd_parser.parse(dtd_url='http://url')
-                self.assertEqual(res, {'hello': 'world'})
-        finally:
-            cache.CACHE_TIMEOUT = None

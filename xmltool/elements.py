@@ -3,7 +3,6 @@
 import os
 import re
 from lxml import etree
-import dtd_parser
 import utils
 from utils import prefixes_to_str
 from distutils.version import StrictVersion

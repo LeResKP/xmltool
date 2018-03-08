@@ -5,7 +5,6 @@ from lxml import etree
 import re
 import webob
 from dogpile.cache.api import NO_VALUE
-from . import cache, dtd
 
 
 # This hack helps work with different versions of WebOb
@@ -23,6 +22,7 @@ def get_dtd_content(url, path=None):
     :return: The content of the given url
     :rtype: string
     """
+    from . import dtd
     return dtd.DTD(url, path).content
 
 
