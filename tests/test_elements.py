@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import StringIO
+from mock import patch
 from unittest import TestCase
 from xmltool.testbase import BaseTest
 from lxml import etree, html as lxml_html
@@ -913,15 +914,8 @@ class TestElement(BaseTest):
             except Exception, e:
                 self.assertEqual(str(e), 'No dtd given')
 
-            old_get_content = utils.get_dtd_content
-            old_validate_xml = utils.validate_xml
-            try:
-                utils.get_dtd_content = lambda url, path: 'dtd content'
-                utils.validate_xml = lambda xml, dtd_str: True
+            with patch('xmltool.dtd.DTD.validate_xml', return_value=True):
                 obj.write(filename, dtd_url='http://dtd.url')
-            finally:
-                utils.get_dtd_content = old_get_content
-                utils.validate_xml = old_validate_xml
 
             obj.write(filename, dtd_url='http://dtd.url', validate=False)
             result = open(filename, 'r').read()

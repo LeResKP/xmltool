@@ -11,6 +11,8 @@ from xmltool.elements import (
     Element,
 )
 
+from test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
+
 
 def fake_fetch(self, content):
     self._content = content
@@ -110,3 +112,15 @@ class TestDTD(TestCase):
             dtd_obj.url = None
             dic = dtd_obj.parse()
             self.assertEqual(dic.keys(), ['question'])
+
+    def test_validate_xml(self):
+        dtd_obj = dtd.DTD(StringIO.StringIO(EXERCISE_DTD))
+        root = etree.fromstring(EXERCISE_XML)
+        res = dtd_obj.validate_xml(root)
+        self.assertTrue(res)
+        try:
+            root = etree.fromstring(INVALID_EXERCISE_XML)
+            dtd_obj.validate_xml(root)
+            assert 0
+        except etree.DocumentInvalid:
+            pass

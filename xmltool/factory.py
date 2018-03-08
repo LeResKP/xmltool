@@ -44,7 +44,7 @@ def load(filename, validate=True):
 
     dtd_obj = dtd.DTD(dtd_url, path)
     if validate:
-        utils.validate_xml(tree, dtd_obj.content)
+        dtd_obj.validate_xml(tree)
 
     dic = dtd_obj.parse()
     root = tree.getroot()

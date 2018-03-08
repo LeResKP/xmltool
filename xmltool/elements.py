@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import StringIO
 import os
 import re
 from lxml import etree
@@ -587,10 +588,9 @@ class Element(object):
         encoding = encoding or self.encoding or DEFAULT_ENCODING
         xml = self.to_xml()
         if validate:
-            if not dtd_str:
-                dtd_str = utils.get_dtd_content(dtd_url,
-                                                os.path.dirname(filename))
-            utils.validate_xml(xml, dtd_str)
+            url = dtd_url if dtd_url else StringIO.StringIO(dtd_str)
+            from . import dtd
+            dtd.DTD(url, os.path.dirname(filename)).validate_xml(xml)
 
         doctype = '<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
             'root_tag': self.tagname,

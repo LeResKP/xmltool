@@ -9,16 +9,6 @@ import webob
 
 class TestUtils(TestCase):
 
-    def test_validate_xml(self):
-        root = etree.fromstring(EXERCISE_XML)
-        utils.validate_xml(root, EXERCISE_DTD)
-        try:
-            root = etree.fromstring(INVALID_EXERCISE_XML)
-            utils.validate_xml(root, EXERCISE_DTD)
-            assert 0
-        except etree.DocumentInvalid:
-            pass
-
     def test_to_int(self):
         result = utils.to_int('bob')
         self.assertEqual(result, None)

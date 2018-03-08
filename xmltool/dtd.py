@@ -114,3 +114,20 @@ class DTD(object):
         value = self._parse()
         cache.region.set(cache_key, value)
         return value
+
+    def validate_xml(self, xml_obj):
+        """Validate an XML object
+
+        :param xml_obj: The XML object to validate
+        :type xml_obj: etree.Element
+        :param dtd_str: The dtd to use for the validation
+        :type dtd_str: str
+        :return: True. Raise an exception if the XML is not valid
+        :rtype: bool
+        """
+        # Make sure the dtd is valid
+        self.validate()
+        # We should cache the etree.DTD in the object
+        dtd_obj = etree.DTD(StringIO.StringIO(self.content))
+        dtd_obj.assertValid(xml_obj)
+        return True

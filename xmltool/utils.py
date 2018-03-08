@@ -1,44 +1,12 @@
 #!/usr/bin/env python
 
-import StringIO
-from lxml import etree
 import re
 import webob
-from dogpile.cache.api import NO_VALUE
 
 
 # This hack helps work with different versions of WebOb
 if not hasattr(webob, 'MultiDict'):
     webob.MultiDict = webob.multidict.MultiDict
-
-
-def get_dtd_content(url, path=None):
-    """Get the content of url.
-
-    :param url: the url of the dtd file.
-    :type url: str
-    :param path: the path to use for a local file.
-    :type path: str
-    :return: The content of the given url
-    :rtype: string
-    """
-    from . import dtd
-    return dtd.DTD(url, path).content
-
-
-def validate_xml(xml_obj, dtd_str):
-    """Validate an XML object
-
-    :param xml_obj: The XML object to validate
-    :type xml_obj: etree.Element
-    :param dtd_str: The dtd to use for the validation
-    :type dtd_str: str
-    :return: True. Raise an exception if the XML is not valid
-    :rtype: bool
-    """
-    dtd_obj = etree.DTD(StringIO.StringIO(dtd_str))
-    dtd_obj.assertValid(xml_obj)
-    return True
 
 
 def to_int(value):
