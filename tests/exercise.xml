@@ -32,6 +32,7 @@
     </qcm>
     <comments>
       <comment>My comment 1</comment>
+      <comment><![CDATA[<div>My comment 2</div>]]></comment>
     </comments>
   </test>
 </Exercise>

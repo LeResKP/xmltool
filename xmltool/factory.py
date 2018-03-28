@@ -37,7 +37,8 @@ def load(filename, validate=True):
     :return: the generated python object
     :rtype: :class:`Element`
     """
-    tree = etree.parse(filename)
+    parser = etree.XMLParser(strip_cdata=False)
+    tree = etree.parse(filename, parser=parser)
     dtd_url = tree.docinfo.system_url
     path = (os.path.dirname(filename)
             if isinstance(filename, basestring) else None)

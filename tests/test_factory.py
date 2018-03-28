@@ -16,6 +16,11 @@ class TestFactory(BaseTest):
     def test_load(self):
         obj = factory.load('tests/exercise.xml')
         self.assertEqual(obj.tagname, 'Exercise')
+        comment = obj['test'][1]['comments']['comment'][1]
+        self.assertEqual(comment.text, '<div>My comment 2</div>')
+        self.assertEqual(
+            etree.tostring(comment.to_xml()),
+            '<comment><![CDATA[<div>My comment 2</div>]]></comment>')
         try:
             obj = factory.load('tests/exercise-notvalid.xml')
             assert 0

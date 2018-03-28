@@ -27,6 +27,9 @@ def escape_attr(s):
 def update_eol(text):
     """We only want EOL as end of line
     """
+    if isinstance(text, etree.CDATA):
+        # Don't treat CDATA
+        return text
     return eol_regex.sub(EOL, text)
 
 
@@ -734,6 +737,7 @@ class ContainerElement(Element):
 
 class TextElement(Element):
     text = None
+    cdata = False
 
     def __repr__(self):
         return '<TextElement %s "%s">' % (
@@ -770,10 +774,16 @@ class TextElement(Element):
                 if s in comments:
                     comments.remove(s)
                     continue
+                # Don't support CDATA here, since it's a bit strange, we
+                # already have comments with the text
                 self.text += s
-            self.text = self.text
         else:
+            # Didn't find any other way to detect CDATA. This way is not ideal
+            # but it's working for simple case. Also it doesn't support mixed
+            # content (text + CDATA) in the same element
             self.text = xml.text
+            if etree.tostring(xml).split('>')[1].startswith('<![CDATA['):
+                self.cdata = True
 
         # We should have text != None to be sure we keep the existing empty tag.
         self.text = self.text or ''
@@ -797,6 +807,8 @@ class TextElement(Element):
             # We never set self.text to None to make sure when we export as string
             # we get a HTML format (no autoclose tag)
             xml.text = update_eol(self.text or '')
+            if self.cdata:
+                xml.text = etree.CDATA(xml.text)
         return xml
 
     def _get_html_attrs(self, rows):

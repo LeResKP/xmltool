@@ -1221,6 +1221,18 @@ class TestTextElement(BaseTest):
         self.assertTrue(xml.attrib, {'attr': 'value'})
 
         obj = self.cls()
+        obj.text = etree.CDATA('<div>HTML</div>')
+        xml = obj.to_xml()
+        self.assertEqual(etree.tostring(xml),
+                         '<tag><![CDATA[<div>HTML</div>]]></tag>')
+
+        obj = self.cls()
+        obj.text = '<div>HTML</div>'
+        xml = obj.to_xml()
+        self.assertEqual(etree.tostring(xml),
+                         '<tag>&lt;div&gt;HTML&lt;/div&gt;</tag>')
+
+        obj = self.cls()
         obj._is_empty = True
         obj.text = 'text'
         try:
@@ -1230,9 +1242,10 @@ class TestTextElement(BaseTest):
             self.assertEqual(str(e),
                              'It\'s forbidden to have a value to an EMPTY tag')
         obj.text = None
-        self.assertTrue(xml.tag, 'tag')
-        self.assertTrue(xml.text, None)
-        self.assertTrue(xml.attrib, {})
+        xml = obj.to_xml()
+        self.assertEqual(xml.tag, 'tag')
+        self.assertEqual(xml.text, None)
+        self.assertEqual(xml.attrib, {})
 
     def test__get_html_attrs(self):
         obj = self.cls(self.root_obj)
