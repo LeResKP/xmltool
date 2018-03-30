@@ -791,6 +791,7 @@ class TextElement(Element):
     def load_from_dict(self, dic, skip_extra=False):
         data = dic[self.tagname]
         self._load_extra_from_dict(data, skip_extra=skip_extra)
+        self.cdata = '_cdata' in data
         self.text = data.get('_value')
 
     def to_xml(self):

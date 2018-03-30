@@ -1201,6 +1201,7 @@ class TestTextElement(BaseTest):
         obj = self.cls()
         obj.load_from_dict(dic)
         self.assertEqual(obj.text, 'text')
+        self.assertEqual(obj.cdata, False)
         self.assertEqual(obj.comment, 'comment')
         self.assertEqual(obj.attributes, {'attr': 'value'})
 
@@ -1209,6 +1210,20 @@ class TestTextElement(BaseTest):
         self.assertEqual(obj.text, 'text')
         self.assertEqual(obj.comment, None)
         self.assertEqual(obj.attributes, None)
+
+        dic = {'tag': {'_value': 'text',
+                       '_cdata': '',
+                       '_comment': 'comment',
+                       '_attrs':{
+                            'attr': 'value'
+                       }}
+              }
+        obj = self.cls()
+        obj.load_from_dict(dic)
+        self.assertEqual(obj.text, 'text')
+        self.assertEqual(obj.cdata, True)
+        self.assertEqual(obj.comment, 'comment')
+        self.assertEqual(obj.attributes, {'attr': 'value'})
 
     def test_to_xml(self):
         obj = self.cls()
