@@ -3,9 +3,9 @@
 import os
 from lxml import etree
 from StringIO import StringIO
-import dtd_parser
 import utils
-import elements
+from . import elements
+from . import dtd
 
 
 def create(root_tag, dtd_url=None, dtd_str=None):
@@ -15,13 +15,14 @@ def create(root_tag, dtd_url=None, dtd_str=None):
     :param dtd_url: The dtd url
     :param dtd_str: The dtd as string
     """
-    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    url = dtd_url if dtd_url else StringIO(dtd_str)
+    dtd_obj = dtd.DTD(url)
+    dic = dtd_obj.parse()
     if root_tag not in dic:
         raise Exception('Bad root_tag %s, '
                         'it\'s not supported by the dtd' % root_tag)
     obj = dic[root_tag]()
     obj.dtd_url = dtd_url
-    obj.dtd_str = dtd_str
     obj.encoding = elements.DEFAULT_ENCODING
     return obj
 
@@ -36,15 +37,17 @@ def load(filename, validate=True):
     :return: the generated python object
     :rtype: :class:`Element`
     """
-    tree = etree.parse(filename)
+    parser = etree.XMLParser(strip_cdata=False)
+    tree = etree.parse(filename, parser=parser)
     dtd_url = tree.docinfo.system_url
-    path = isinstance(filename, basestring) and os.path.dirname(filename) or None
-    dtd_str = utils.get_dtd_content(dtd_url, path)
-    if validate:
-        utils.validate_xml(tree, dtd_str)
+    path = (os.path.dirname(filename)
+            if isinstance(filename, basestring) else None)
 
-    dic = dtd_parser.parse(dtd_str=dtd_str,
-                           cache_key='xmltool.parse.%s' % dtd_url)
+    dtd_obj = dtd.DTD(dtd_url, path)
+    if validate:
+        dtd_obj.validate_xml(tree)
+
+    dic = dtd_obj.parse()
     root = tree.getroot()
     obj = dic[root.tag]()
     obj.load_from_xml(root)
@@ -140,7 +143,8 @@ def update(filename, data, validate=True, transform=None):
         raise Exception('Bad data')
 
     root_tag = data.keys()[0]
-    dic = dtd_parser.parse(dtd_url=dtd_url, path=os.path.dirname(filename))
+
+    dic = dtd.DTD(dtd_url, path=os.path.dirname(filename)).parse()
     obj = dic[root_tag]()
 
     obj.load_from_dict(data)
@@ -150,7 +154,7 @@ def update(filename, data, validate=True, transform=None):
 
 
 def new(dtd_url, root_tag, form_action=None, form_attrs=None):
-    dic = dtd_parser.parse(dtd_url=dtd_url)
+    dic = dtd.DTD(dtd_url).parse()
     obj = dic[root_tag]()
 
     # Merge the following line with the function which generate the form!
@@ -204,8 +208,8 @@ def _get_obj_from_str_id(str_id, dtd_url=None, dtd_str=None, data=None):
 
     ..note:: If data is passed load the data to this object
     """
-    # Will raise an exception if both dtd_url or dtd_str are None or set
-    dic = dtd_parser.parse(dtd_url=dtd_url, dtd_str=dtd_str)
+    url = dtd_url if dtd_url else StringIO(dtd_str)
+    dic = dtd.DTD(url).parse()
     splitted = str_id.split(':')
     s = splitted.pop(0)
     cls = dic[s]
@@ -234,10 +238,16 @@ def _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=None, dtd_str=None):
                                       data=data)
 
     if target_obj.is_addable(tagname):
-        return target_obj
-    if target_obj._parent_obj.is_addable(tagname):
-        return target_obj._parent_obj
-    return None
+        return target_obj, 0
+
+    if target_obj._parent_obj and target_obj._parent_obj.is_addable(tagname):
+        index = target_obj.position
+        if index is not None:
+            index += 1
+        else:
+            index = None
+        return target_obj._parent_obj, index
+    return None, None
 
 
 def _get_data_for_html_display(obj):
@@ -262,12 +272,12 @@ def _add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
     keys = clipboard_data.keys()
     assert(len(keys) == 1)
     tagname = keys[0]
-    parentobj = _get_parent_to_add_obj(elt_id, tagname, data, dtd_url=dtd_url,
-                                       dtd_str=dtd_str)
+    parentobj, index = _get_parent_to_add_obj(
+        elt_id, tagname, data, dtd_url=dtd_url, dtd_str=dtd_str)
     if not parentobj:
         return None
 
-    obj = parentobj.add(tagname)
+    obj = parentobj.add(tagname, index=index)
     obj.load_from_dict(clipboard_data, skip_extra=skip_extra)
     return obj
 
@@ -276,15 +286,21 @@ def get_new_element_data_for_html_display(*args, **kw):
     """Create new sub object according to the given params and returns the data
     to display it.
     """
+    html_renderer = kw.pop('html_renderer', None)
     obj = _add_new_element_from_id(*args, **kw)
     if not obj:
         return None
+    obj.root.html_renderer = html_renderer
     return _get_data_for_html_display(obj)
 
 
-def get_data_from_str_id_for_html_display(str_id, dtd_url=None, dtd_str=None):
+def get_data_from_str_id_for_html_display(str_id, dtd_url=None, dtd_str=None,
+                                          html_renderer=None):
     """Get the sub object corresponding to the given str_id and returns the
     data to display it.
     """
     obj = _get_obj_from_str_id(str_id, dtd_url, dtd_str)
+    if not obj:
+        return None
+    obj.root.html_renderer = html_renderer
     return _get_data_for_html_display(obj)

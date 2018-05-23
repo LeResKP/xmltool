@@ -3,7 +3,7 @@
 from xmltool.testbase import BaseTest
 from lxml import etree
 import os.path
-from xmltool import factory, dtd_parser, elements
+from xmltool import factory, dtd_parser, elements, dtd
 from xmltool.elements import escape_attr
 
 
@@ -16,6 +16,11 @@ class TestFactory(BaseTest):
     def test_load(self):
         obj = factory.load('tests/exercise.xml')
         self.assertEqual(obj.tagname, 'Exercise')
+        comment = obj['test'][1]['comments']['comment'][1]
+        self.assertEqual(comment.text, '<div>My comment 2</div>')
+        self.assertEqual(
+            etree.tostring(comment.to_xml()),
+            '<comment><![CDATA[<div>My comment 2</div>]]></comment>')
         try:
             obj = factory.load('tests/exercise-notvalid.xml')
             assert 0
@@ -96,7 +101,7 @@ class TestFactory(BaseTest):
 
         # Empty object
         dtd_url = 'tests/exercise.dtd'
-        dic = dtd_parser.parse(dtd_url=dtd_url)
+        dic = dtd.DTD(dtd_url).parse()
         obj = dic['Exercise']()
         html = factory.generate_form_from_obj(obj)
         self.assertTrue('<form method="POST" id="xmltool-form">' in html)
@@ -167,7 +172,7 @@ class TestFactory(BaseTest):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn-add" data-elt-id="choice">'
+                    '<a class="btn-add btn-add-choice" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -182,7 +187,7 @@ class TestFactory(BaseTest):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn-add" data-elt-id="choice">'
+                    '<a class="btn-add btn-add-choice" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -199,7 +204,7 @@ class TestFactory(BaseTest):
                     '/>'
                     '<input type="hidden" name="_xml_encoding" '
                     'id="_xml_encoding" value="UTF-8" />'
-                    '<a class="btn-add" data-elt-id="choice">'
+                    '<a class="btn-add btn-add-choice" data-elt-id="choice">'
                     'Add choice</a>'
                     '</form>')
         self.assertEqual(result, expected)
@@ -248,8 +253,10 @@ class TestFactory(BaseTest):
         obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
         html = obj.to_html()
         expected = (
-            '<div id="texts:text">'
+            '<div id="texts:text" class="xt-container-text">'
             '<label>text</label>'
+            '<span class="btn-external-editor" '
+            'ng-click="externalEditor(this)"></span>'
             '<a data-comment-name="texts:text:_comment" '
             'class="btn-comment" title="Add comment"></a>'
             '<textarea class="form-control text" name="texts:text:_value" '
@@ -266,10 +273,12 @@ class TestFactory(BaseTest):
         obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
         html = obj.to_html()
         expected = (
-            '<a class="btn-add btn-list" '
+            '<a class="btn-add btn-add-text btn-list" '
             'data-elt-id="texts:list__text:0:text">New text</a>'
-            '<div id="texts:list__text:0:text">'
+            '<div id="texts:list__text:0:text" class="xt-container-text">'
             '<label>text</label>'
+            '<span class="btn-external-editor" '
+            'ng-click="externalEditor(this)"></span>'
             '<a class="btn-delete btn-list" '
             'data-target="#texts:list__text:0:text" title="Delete"></a>'
             '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -290,8 +299,11 @@ class TestFactory(BaseTest):
         obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
         html = obj.to_html()
         expected = (
-            '<div id="texts:list__list:0:list:text">'
+            '<div id="texts:list__list:0:list:text" class="xt-container-text">'
             '<label>text</label>'
+            '<span class="btn-external-editor" '
+            'ng-click="externalEditor(this)">'
+            '</span>'
             '<a data-comment-name="texts:list__list:0:list:text:_comment" '
             'class="btn-comment" title="Add comment"></a>'
             '<textarea class="form-control text" name="texts:list__list:0:list:text:_value" '
@@ -517,8 +529,10 @@ class TestFactory(BaseTest):
                 ('after', escape_attr('.tree_texts:list__list') + ':last'),
                 ('after', escape_attr('.tree_texts:tag1') + ':last'),
                 ('inside', escape_attr('#tree_texts'))],
-            'html': ('<div id="texts:tag2">'
+            'html': ('<div id="texts:tag2" class="xt-container-tag2">'
                      '<label>tag2</label>'
+                     '<span class="btn-external-editor" '
+                     'ng-click="externalEditor(this)"></span>'
                      '<a data-comment-name="texts:tag2:_comment" '
                      'class="btn-comment" title="Add comment"></a>'
                      '<textarea class="form-control tag2" name="texts:tag2:_value" '
@@ -565,8 +579,12 @@ class TestFactory(BaseTest):
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
             'html': (
-                '<div id="texts:list__list:0:list:text1">'
+                '<div id="texts:list__list:0:list:text1" '
+                'class="xt-container-text1">'
                 '<label>text1</label>'
+                '<span class="btn-external-editor" '
+                'ng-click="externalEditor(this)">'
+                '</span>'
                 '<a data-comment-name="texts:list__list:0:list:text1:_comment" '
                 'class="btn-comment" title="Add comment"></a>'
                 '<textarea class="form-control text1" '
@@ -610,7 +628,7 @@ class TestFactory(BaseTest):
         expected = {
             'elt_id': 'texts:list__list:0:list',
             'html': (
-                '<a class="btn-add btn-list" '
+                '<a class="btn-add btn-add-list btn-list" '
                 'data-elt-id="texts:list__list:0:list">New list</a>'
                 '<div class="panel panel-default list" '
                 'id="texts:list__list:0:list">'
@@ -625,8 +643,12 @@ class TestFactory(BaseTest):
                 '</div>'
                 '<div class="panel-body panel-collapse collapse in" '
                 'id="collapse-texts:list__list:0:list">'
-                '<div id="texts:list__list:0:list:text1">'
+                '<div id="texts:list__list:0:list:text1" '
+                'class="xt-container-text1">'
                 '<label>text1</label>'
+                '<span class="btn-external-editor" '
+                'ng-click="externalEditor(this)">'
+                '</span>'
                 '<a data-comment-name="texts:list__list:0:list:text1:_comment"'
                 ' class="btn-comment" title="Add comment"></a>'
                 '<textarea class="form-control text1" '
@@ -693,12 +715,18 @@ class TestFactory(BaseTest):
         expected = {
             'elt_id': 'texts:list__list:0:list:text1',
             'html': (
-                '<div id="texts:list__list:0:list:text1">'
+                '<div id="texts:list__list:0:list:text1" '
+                'class="xt-container-text1">'
                 '<label>text1</label>'
+                '<span class="btn-external-editor" '
+                'ng-click="externalEditor(this)">'
+                '</span>'
                 '<select class="btn-add hidden">'
                 '<option>New text1/text2</option>'
-                '<option value="texts:list__list:0:list:text1">text1</option>'
-                '<option value="texts:list__list:0:list:text2">text2</option>'
+                '<option class="xt-option-text1" '
+                'value="texts:list__list:0:list:text1">text1</option>'
+                '<option class="xt-option-text2" '
+                'value="texts:list__list:0:list:text2">text2</option>'
                 '</select>'
                 '<a class="btn-delete" '
                 'data-target="#texts:list__list:0:list:text1" title="Delete">'
@@ -746,15 +774,17 @@ class TestFactory(BaseTest):
                 ]
             }
         }
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         # The 'text' element can be pasted here.
         self.assertEqual(parentobj, None)
+        self.assertEqual(index, None)
 
         str_id = 'texts:list__list:0:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'list', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'list', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
+        self.assertEqual(index, 1)
 
         # Remove the 'text' element from 'list'
         data = {
@@ -767,9 +797,10 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:0:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
+        self.assertEqual(index, 0)
 
         # Try with missing element
         data = {
@@ -778,9 +809,10 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:10:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'list', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'list', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list__list')
+        self.assertEqual(index, 11)
 
         # Try with empty element
         # The str_id has no value so didn't exist, we want to make sure we
@@ -806,11 +838,12 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:1:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                    dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         self.assertEqual(parentobj.tagname, 'list')
         lis = parentobj._parent_obj
         self.assertEqual(lis[1], parentobj)
+        self.assertEqual(index, 0)
 
         data = {
             'texts': {
@@ -828,10 +861,11 @@ class TestFactory(BaseTest):
             }
         }
         str_id = 'texts:list__list:1:list'
-        parentobj = factory._get_parent_to_add_obj(str_id, 'text', data,
-                                                   dtd_str=dtd_str)
+        parentobj, index = factory._get_parent_to_add_obj(
+            str_id, 'text', data, dtd_str=dtd_str)
         # text already exists, can't add it
         self.assertEqual(parentobj, None)
+        self.assertEqual(index, None)
 
     def test__add_new_element_from_id(self):
         dtd_str = '''

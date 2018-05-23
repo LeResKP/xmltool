@@ -102,8 +102,9 @@ class TestContenteditableRender(TestCase):
         expected = (
             '<textarea class="form-control hidden test">'
             'Hello world</textarea>'
-            '<div class="contenteditable form-control" contenteditable="true" '
-            'spellcheck="false">Hello world</div>')
+            '<div class="contenteditable form-control subsub" '
+            'contenteditable="true" spellcheck="false" '
+            'id="subsub:_contenteditable">Hello world</div>')
         self.assertEqual(res, expected)
 
         r = ContenteditableRender(
@@ -117,8 +118,9 @@ class TestContenteditableRender(TestCase):
         expected = (
             '<textarea class="form-control hidden test">'
             'Hello world</textarea>'
-            '<div class="contenteditable form-control plop" contenteditable="true" '
-            'spellcheck="false">Hello world</div>')
+            '<div class="contenteditable form-control subsub plop" '
+            'contenteditable="true" spellcheck="false" '
+            'id="subsub:_contenteditable">Hello world</div>')
         self.assertEqual(res, expected)
 
         value = 'Hello world\nNew line'
@@ -126,8 +128,9 @@ class TestContenteditableRender(TestCase):
         expected = (
             '<textarea class="form-control hidden test">'
             'Hello world\nNew line</textarea>'
-            '<div class="contenteditable form-control plop" contenteditable="true" '
-            'spellcheck="false">Hello world<br />New line</div>')
+            '<div class="contenteditable form-control subsub plop" '
+            'contenteditable="true" spellcheck="false" '
+            'id="subsub:_contenteditable">Hello world<br />New line</div>')
         self.assertEqual(res, expected)
 
 
@@ -144,6 +147,8 @@ class TestCKeditorRender(TestCase):
         expected = (
             '<textarea class="form-control hidden test">'
             '  Hello world\nNew line</textarea>'
-            '<div class="contenteditable form-control" contenteditable="true" '
-            'spellcheck="false"> &nbsp;Hello world<br />New line</div>')
+            '<div class="contenteditable form-control subsub" '
+            'contenteditable="true" spellcheck="false" '
+            'id="subsub:_contenteditable"> &nbsp;Hello world<br />New line'
+            '</div>')
         self.assertEqual(res, expected)

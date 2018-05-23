@@ -7,7 +7,7 @@
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
-          <a class="btn-add" data-elt-id="texts:text">Add text</a>
+          <a class="btn-add btn-add-text" data-elt-id="texts:text">Add text</a>
         </div>
       </div>
     </div>
@@ -18,9 +18,10 @@
           <span data-toggle="collapse" href="#collapse-texts">texts<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"/></span>
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
-          <div id="texts:text">
+          <div id="texts:text" class="xt-container-text">
             <label>text</label>
-            <a class="btn-add hidden" data-elt-id="texts:text">Add text</a>
+            <span class="btn-external-editor" ng-click="externalEditor(this)"/>
+            <a class="btn-add btn-add-text hidden" data-elt-id="texts:text">Add text</a>
             <a class="btn-delete" data-target="#texts:text" title="Delete"/>
             <a data-comment-name="texts:text:_comment" class="btn-comment" title="Add comment"/>
             <textarea class="form-control text" name="texts:text:_value" rows="1"/>
@@ -39,8 +40,8 @@
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <select class="btn-add">
             <option>New text1/text2</option>
-            <option value="texts:text1">text1</option>
-            <option value="texts:text2">text2</option>
+            <option class="xt-option-text1" value="texts:text1">text1</option>
+            <option class="xt-option-text2" value="texts:text2">text2</option>
           </select>
         </div>
       </div>
@@ -54,11 +55,12 @@
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <div class="panel panel-default text1" id="texts:text1">
             <div class="panel-heading">
-              <span data-toggle="collapse" href="#collapse-texts\:text1">text1<select class="btn-add hidden"><option>New text1/text2</option><option value="texts:text1">text1</option><option value="texts:text2">text2</option></select><a class="btn-delete" data-target="#texts:text1" title="Delete"/><a data-comment-name="texts:text1:_comment" class="btn-comment" title="Add comment"/></span>
+              <span data-toggle="collapse" href="#collapse-texts\:text1">text1<select class="btn-add hidden"><option>New text1/text2</option><option class="xt-option-text1" value="texts:text1">text1</option><option class="xt-option-text2" value="texts:text2">text2</option></select><a class="btn-delete" data-target="#texts:text1" title="Delete"/><a data-comment-name="texts:text1:_comment" class="btn-comment" title="Add comment"/></span>
             </div>
             <div class="panel-body panel-collapse collapse in" id="collapse-texts:text1">
-              <div id="texts:text1:subtext">
+              <div id="texts:text1:subtext" class="xt-container-subtext">
                 <label>subtext</label>
+                <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                 <a data-comment-name="texts:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                 <textarea class="form-control subtext" name="texts:text1:subtext:_value" rows="1"/>
               </div>
@@ -79,16 +81,17 @@
           <div class="list-container">
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:0:text1">text1</option>
-              <option value="texts:list__text1_text2:0:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:0:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:0\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:0:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:0:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:0:text1">
-                <div id="texts:list__text1_text2:0:text1:subtext">
+                <div id="texts:list__text1_text2:0:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:0:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:0:text1:subtext:_value" rows="1">Tag 1</textarea>
                 </div>
@@ -96,16 +99,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:1:text1">text1</option>
-              <option value="texts:list__text1_text2:1:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>
             </select>
             <div class="panel panel-default text2" id="texts:list__text1_text2:1:text2">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:1\:text2">text2<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:1:text2" title="Delete"/><a data-comment-name="texts:list__text1_text2:1:text2:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:1:text2">
-                <div id="texts:list__text1_text2:1:text2:subtext">
+                <div id="texts:list__text1_text2:1:text2:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:1:text2:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:1:text2:subtext:_value" rows="1">Tag 2</textarea>
                 </div>
@@ -113,8 +117,8 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:2:text1">text1</option>
-              <option value="texts:list__text1_text2:2:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>
             </select>
           </div>
         </div>
@@ -130,16 +134,17 @@
           <div class="list-container">
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:0:text1">text1</option>
-              <option value="texts:list__text1_text2:0:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:0:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:0\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:0:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:0:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:0:text1">
-                <div id="texts:list__text1_text2:0:text1:subtext">
+                <div id="texts:list__text1_text2:0:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:0:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:0:text1:subtext:_value" rows="1"/>
                 </div>
@@ -147,16 +152,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:1:text1">text1</option>
-              <option value="texts:list__text1_text2:1:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:1:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:1\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:1:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:1:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:1:text1">
-                <div id="texts:list__text1_text2:1:text1:subtext">
+                <div id="texts:list__text1_text2:1:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:1:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:1:text1:subtext:_value" rows="1">Tag 1</textarea>
                 </div>
@@ -164,16 +170,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:2:text1">text1</option>
-              <option value="texts:list__text1_text2:2:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>
             </select>
             <div class="panel panel-default text2" id="texts:list__text1_text2:2:text2">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:2\:text2">text2<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:2:text2" title="Delete"/><a data-comment-name="texts:list__text1_text2:2:text2:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:2:text2">
-                <div id="texts:list__text1_text2:2:text2:subtext">
+                <div id="texts:list__text1_text2:2:text2:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:2:text2:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:2:text2:subtext:_value" rows="1">Tag 2</textarea>
                 </div>
@@ -181,8 +188,8 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:3:text1">text1</option>
-              <option value="texts:list__text1_text2:3:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:3:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:3:text2">text2</option>
             </select>
           </div>
         </div>
@@ -200,16 +207,17 @@
           <div class="list-container">
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:0:text1">text1</option>
-              <option value="texts:list__text1_text2:0:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:0:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:0\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:0:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:0:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:0:text1">
-                <div id="texts:list__text1_text2:0:text1:subtext">
+                <div id="texts:list__text1_text2:0:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:0:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:0:text1:subtext:_value" rows="1">Tag 1</textarea>
                 </div>
@@ -217,16 +225,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:1:text1">text1</option>
-              <option value="texts:list__text1_text2:1:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>
             </select>
             <div class="panel panel-default text2" id="texts:list__text1_text2:1:text2">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:1\:text2">text2<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:1:text2" title="Delete"/><a data-comment-name="texts:list__text1_text2:1:text2:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:1:text2">
-                <div id="texts:list__text1_text2:1:text2:subtext">
+                <div id="texts:list__text1_text2:1:text2:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:1:text2:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:1:text2:subtext:_value" rows="1">Tag 2</textarea>
                 </div>
@@ -234,8 +243,8 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:2:text1">text1</option>
-              <option value="texts:list__text1_text2:2:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>
             </select>
           </div>
         </div>
@@ -251,16 +260,17 @@
           <div class="list-container">
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:0:text1">text1</option>
-              <option value="texts:list__text1_text2:0:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:0:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:0\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:0:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:0:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:0:text1">
-                <div id="texts:list__text1_text2:0:text1:subtext">
+                <div id="texts:list__text1_text2:0:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:0:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:0:text1:subtext:_value" rows="1">Tag 1</textarea>
                 </div>
@@ -268,16 +278,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:1:text1">text1</option>
-              <option value="texts:list__text1_text2:1:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:1:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:1\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:1:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:1:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:1:text1">
-                <div id="texts:list__text1_text2:1:text1:subtext">
+                <div id="texts:list__text1_text2:1:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:1:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:1:text1:subtext:_value" rows="1"/>
                 </div>
@@ -285,16 +296,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:2:text1">text1</option>
-              <option value="texts:list__text1_text2:2:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>
             </select>
             <div class="panel panel-default text2" id="texts:list__text1_text2:2:text2">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:2\:text2">text2<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:2:text2" title="Delete"/><a data-comment-name="texts:list__text1_text2:2:text2:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:2:text2">
-                <div id="texts:list__text1_text2:2:text2:subtext">
+                <div id="texts:list__text1_text2:2:text2:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:2:text2:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:2:text2:subtext:_value" rows="1">Tag 2</textarea>
                 </div>
@@ -302,8 +314,8 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:3:text1">text1</option>
-              <option value="texts:list__text1_text2:3:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:3:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:3:text2">text2</option>
             </select>
           </div>
         </div>
@@ -321,16 +333,17 @@
           <div class="list-container">
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:0:text1">text1</option>
-              <option value="texts:list__text1_text2:0:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:0:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:0\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:0:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:0:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:0:text1">
-                <div id="texts:list__text1_text2:0:text1:subtext">
+                <div id="texts:list__text1_text2:0:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:0:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:0:text1:subtext:_value" rows="1">Tag 1</textarea>
                 </div>
@@ -338,16 +351,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:1:text1">text1</option>
-              <option value="texts:list__text1_text2:1:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>
             </select>
             <div class="panel panel-default text2" id="texts:list__text1_text2:1:text2">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:1\:text2">text2<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:1:text2" title="Delete"/><a data-comment-name="texts:list__text1_text2:1:text2:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:1:text2">
-                <div id="texts:list__text1_text2:1:text2:subtext">
+                <div id="texts:list__text1_text2:1:text2:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:1:text2:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:1:text2:subtext:_value" rows="1">Tag 2</textarea>
                 </div>
@@ -355,8 +369,8 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:2:text1">text1</option>
-              <option value="texts:list__text1_text2:2:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>
             </select>
           </div>
         </div>
@@ -372,16 +386,17 @@
           <div class="list-container">
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:0:text1">text1</option>
-              <option value="texts:list__text1_text2:0:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:0:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:0\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:0:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:0:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:0:text1">
-                <div id="texts:list__text1_text2:0:text1:subtext">
+                <div id="texts:list__text1_text2:0:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:0:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:0:text1:subtext:_value" rows="1">Tag 1</textarea>
                 </div>
@@ -389,16 +404,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:1:text1">text1</option>
-              <option value="texts:list__text1_text2:1:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>
             </select>
             <div class="panel panel-default text2" id="texts:list__text1_text2:1:text2">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:1\:text2">text2<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:1:text2" title="Delete"/><a data-comment-name="texts:list__text1_text2:1:text2:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:1:text2">
-                <div id="texts:list__text1_text2:1:text2:subtext">
+                <div id="texts:list__text1_text2:1:text2:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:1:text2:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:1:text2:subtext:_value" rows="1">Tag 2</textarea>
                 </div>
@@ -406,16 +422,17 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:2:text1">text1</option>
-              <option value="texts:list__text1_text2:2:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>
             </select>
             <div class="panel panel-default text1" id="texts:list__text1_text2:2:text1">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text1_text2\:2\:text1">text1<a class="btn-delete btn-list" data-target="#texts:list__text1_text2:2:text1" title="Delete"/><a data-comment-name="texts:list__text1_text2:2:text1:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1_text2:2:text1">
-                <div id="texts:list__text1_text2:2:text1:subtext">
+                <div id="texts:list__text1_text2:2:text1:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text1_text2:2:text1:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text1_text2:2:text1:subtext:_value" rows="1"/>
                 </div>
@@ -423,8 +440,8 @@
             </div>
             <select class="btn-add btn-list">
               <option>New text1/text2</option>
-              <option value="texts:list__text1_text2:3:text1">text1</option>
-              <option value="texts:list__text1_text2:3:text2">text2</option>
+              <option class="xt-option-text1" value="texts:list__text1_text2:3:text1">text1</option>
+              <option class="xt-option-text2" value="texts:list__text1_text2:3:text2">text2</option>
             </select>
           </div>
         </div>
@@ -440,33 +457,35 @@
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <div class="list-container">
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:0:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:0:text" title="Delete"/><a data-comment-name="texts:list__text:0:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">
-                <div id="texts:list__text:0:text:subtext">
+                <div id="texts:list__text:0:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:0:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" rows="1">Hello</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:1:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:1:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:1:text" title="Delete"/><a data-comment-name="texts:list__text:1:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">
-                <div id="texts:list__text:1:text:subtext">
+                <div id="texts:list__text:1:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:1:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:1:text:subtext:_value" rows="1">World</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:2:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:2:text">New text</a>
           </div>
         </div>
       </div>
@@ -479,46 +498,49 @@
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <div class="list-container">
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:0:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:0:text" title="Delete"/><a data-comment-name="texts:list__text:0:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">
-                <div id="texts:list__text:0:text:subtext">
+                <div id="texts:list__text:0:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:0:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" rows="1"/>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:1:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:1:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:1:text" title="Delete"/><a data-comment-name="texts:list__text:1:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">
-                <div id="texts:list__text:1:text:subtext">
+                <div id="texts:list__text:1:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:1:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:1:text:subtext:_value" rows="1">Hello</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:2:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:2:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:2:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:2\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:2:text" title="Delete"/><a data-comment-name="texts:list__text:2:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:2:text">
-                <div id="texts:list__text:2:text:subtext">
+                <div id="texts:list__text:2:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:2:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:2:text:subtext:_value" rows="1">World</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:3:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:3:text">New text</a>
           </div>
         </div>
       </div>
@@ -533,33 +555,35 @@
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <div class="list-container">
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:0:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:0:text" title="Delete"/><a data-comment-name="texts:list__text:0:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">
-                <div id="texts:list__text:0:text:subtext">
+                <div id="texts:list__text:0:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:0:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" rows="1">Hello</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:1:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:1:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:1:text" title="Delete"/><a data-comment-name="texts:list__text:1:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">
-                <div id="texts:list__text:1:text:subtext">
+                <div id="texts:list__text:1:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:1:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:1:text:subtext:_value" rows="1">World</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:2:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:2:text">New text</a>
           </div>
         </div>
       </div>
@@ -572,46 +596,49 @@
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <div class="list-container">
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:0:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:0:text" title="Delete"/><a data-comment-name="texts:list__text:0:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">
-                <div id="texts:list__text:0:text:subtext">
+                <div id="texts:list__text:0:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:0:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" rows="1">Hello</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:1:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:1:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:1:text" title="Delete"/><a data-comment-name="texts:list__text:1:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">
-                <div id="texts:list__text:1:text:subtext">
+                <div id="texts:list__text:1:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:1:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:1:text:subtext:_value" rows="1"/>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:2:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:2:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:2:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:2\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:2:text" title="Delete"/><a data-comment-name="texts:list__text:2:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:2:text">
-                <div id="texts:list__text:2:text:subtext">
+                <div id="texts:list__text:2:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:2:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:2:text:subtext:_value" rows="1">World</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:3:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:3:text">New text</a>
           </div>
         </div>
       </div>
@@ -626,33 +653,35 @@
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <div class="list-container">
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:0:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:0:text" title="Delete"/><a data-comment-name="texts:list__text:0:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">
-                <div id="texts:list__text:0:text:subtext">
+                <div id="texts:list__text:0:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:0:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" rows="1">Hello</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:1:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:1:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:1:text" title="Delete"/><a data-comment-name="texts:list__text:1:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">
-                <div id="texts:list__text:1:text:subtext">
+                <div id="texts:list__text:1:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:1:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:1:text:subtext:_value" rows="1">World</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:2:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:2:text">New text</a>
           </div>
         </div>
       </div>
@@ -665,46 +694,49 @@
         </div>
         <div class="panel-body panel-collapse collapse in" id="collapse-texts">
           <div class="list-container">
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:0:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:0\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:0:text" title="Delete"/><a data-comment-name="texts:list__text:0:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">
-                <div id="texts:list__text:0:text:subtext">
+                <div id="texts:list__text:0:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:0:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" rows="1">Hello</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:1:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:1:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:1\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:1:text" title="Delete"/><a data-comment-name="texts:list__text:1:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">
-                <div id="texts:list__text:1:text:subtext">
+                <div id="texts:list__text:1:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:1:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:1:text:subtext:_value" rows="1">World</textarea>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:2:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:2:text">New text</a>
             <div class="panel panel-default text" id="texts:list__text:2:text">
               <div class="panel-heading">
                 <span data-toggle="collapse" href="#collapse-texts\:list__text\:2\:text">text<a class="btn-delete btn-list" data-target="#texts:list__text:2:text" title="Delete"/><a data-comment-name="texts:list__text:2:text:_comment" class="btn-comment" title="Add comment"/></span>
               </div>
               <div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:2:text">
-                <div id="texts:list__text:2:text:subtext">
+                <div id="texts:list__text:2:text:subtext" class="xt-container-subtext">
                   <label>subtext</label>
+                  <span class="btn-external-editor" ng-click="externalEditor(this)"/>
                   <a data-comment-name="texts:list__text:2:text:subtext:_comment" class="btn-comment" title="Add comment"/>
                   <textarea class="form-control subtext" name="texts:list__text:2:text:subtext:_value" rows="1"/>
                 </div>
               </div>
             </div>
-            <a class="btn-add btn-list" data-elt-id="texts:list__text:3:text">New text</a>
+            <a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:3:text">New text</a>
           </div>
         </div>
       </div>

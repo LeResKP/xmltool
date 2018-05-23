@@ -367,7 +367,7 @@ xmltool.jstree = {};
      * @memberof xmltool.jstree.core
      * @method load
      */
-    this.load = function($tree, data, $form, $formContainer) {
+    this.load = function($tree, data, $form, $formContainer, $treeContainer) {
         // TODO: make sure we need all this plugins
         var that = this;
         $tree.removeClass('jstree').empty();
@@ -559,14 +559,14 @@ xmltool.jstree = {};
         $form.on('focus', 'textarea.form-control', transitionDecorator(function(){
             var $elt = that.utils.getTreeElementFromTextarea($(this));
             $tree.jstree('deselect_all').jstree('select_node', $elt);
-            xmltool.utils.scrollToElement($elt, $tree);
+            xmltool.utils.scrollToElement($elt, $treeContainer);
         }))
 
         .on('focus', '.contenteditable', transitionDecorator(function(){
             var $textarea = $(this).data('contenteditablesync').$target;
             var $elt = that.utils.getTreeElementFromTextarea($textarea);
             $tree.jstree('deselect_all').jstree('select_node', $elt);
-            xmltool.utils.scrollToElement($elt, $tree);
+            xmltool.utils.scrollToElement($elt, $treeContainer);
         }))
 
         /**

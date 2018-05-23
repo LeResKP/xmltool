@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
+import StringIO
 import os
 import re
 from lxml import etree
-import dtd_parser
 import utils
+from utils import prefixes_to_str
 from distutils.version import StrictVersion
 from . import render
 
@@ -17,10 +18,6 @@ EOL = '\n'
 eol_regex = re.compile(r'\r?\n|\r\n?')
 
 
-def prefixes_to_str(lis):
-    return ':'.join(lis)
-
-
 def escape_attr(s):
     """Escape attributes ':' and '.' since it's not supported by jQuery
     """
@@ -30,6 +27,9 @@ def escape_attr(s):
 def update_eol(text):
     """We only want EOL as end of line
     """
+    if isinstance(text, etree.CDATA):
+        # Don't treat CDATA
+        return text
     return eol_regex.sub(EOL, text)
 
 
@@ -62,7 +62,7 @@ class Element(object):
 
     # The render used to make HTML rendering.
     # See render.py for more details
-    html_render = None
+    html_renderer = None
 
     def __init__(self, parent_obj=None, parent=None, auto_added=False, *args, **kw):
         super(Element, self).__init__(*args, **kw)
@@ -134,11 +134,11 @@ class Element(object):
         """If the parent is a list, returns the position of self.
         Otherwise returns None
         """
-        if not self.parent:
+        if not self._parent_obj:
             return None
-        if not isinstance(self.parent, ListElement):
+        if not isinstance(self._parent_obj, ListElement):
             return None
-        return self.parent.index(self)
+        return self._parent_obj.index(self)
 
     @classmethod
     def _get_creatable_class_by_tagnames(cls):
@@ -453,7 +453,7 @@ class Element(object):
 
     def _get_html_add_button(self, css_class=None):
         ident = prefixes_to_str(self.prefixes_no_cache)
-        css_classes = ['btn-add']
+        css_classes = ['btn-add btn-add-%s' % self.tagname]
         if css_class:
             css_classes += [css_class]
         return '<a class="%s" data-elt-id="%s">Add %s</a>' % (
@@ -466,19 +466,19 @@ class Element(object):
         return ('<a class="btn-delete" '
                 'data-target="#%s" title="Delete"></a>') % ident
 
-    def get_html_render(self):
+    def get_html_renderer(self):
         """Render uses to make the textarea as HTML and a first decision about
         adding buttons and comments.
         """
-        if self.root.html_render is None:
+        if self.root.html_renderer is None:
             # Set a default renderer
-            self.root.html_render = render.Render()
-        return self.root.html_render
+            self.root.html_renderer = render.Render()
+        return self.root.html_renderer
 
     def _add_html_add_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_add_button():
             return False
         return not self._required
@@ -486,7 +486,7 @@ class Element(object):
     def _add_html_delete_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_delete_button():
             return False
         return not self._required
@@ -591,10 +591,9 @@ class Element(object):
         encoding = encoding or self.encoding or DEFAULT_ENCODING
         xml = self.to_xml()
         if validate:
-            if not dtd_str:
-                dtd_str = utils.get_dtd_content(dtd_url,
-                                                os.path.dirname(filename))
-            utils.validate_xml(xml, dtd_str)
+            url = dtd_url if dtd_url else StringIO.StringIO(dtd_str)
+            from . import dtd
+            dtd.DTD(url, os.path.dirname(filename)).validate_xml(xml)
 
         doctype = '<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
             'root_tag': self.tagname,
@@ -684,7 +683,7 @@ class Element(object):
 class ContainerElement(Element):
 
     def _to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         # TODO: remove self._parent_obj condition. When we want to render an
         # HTML we should call to_html
         if not self._has_value() and not self._required and self._parent_obj:
@@ -695,7 +694,7 @@ class ContainerElement(Element):
         return self.to_html()
 
     def to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         sub_html = [self._attributes_to_html()]
 
         for obj in self._full_children:
@@ -738,6 +737,7 @@ class ContainerElement(Element):
 
 class TextElement(Element):
     text = None
+    cdata = False
 
     def __repr__(self):
         return '<TextElement %s "%s">' % (
@@ -774,10 +774,16 @@ class TextElement(Element):
                 if s in comments:
                     comments.remove(s)
                     continue
+                # Don't support CDATA here, since it's a bit strange, we
+                # already have comments with the text
                 self.text += s
-            self.text = self.text
         else:
+            # Didn't find any other way to detect CDATA. This way is not ideal
+            # but it's working for simple case. Also it doesn't support mixed
+            # content (text + CDATA) in the same element
             self.text = xml.text
+            if etree.tostring(xml).split('>')[1].startswith('<![CDATA['):
+                self.cdata = True
 
         # We should have text != None to be sure we keep the existing empty tag.
         self.text = self.text or ''
@@ -785,6 +791,7 @@ class TextElement(Element):
     def load_from_dict(self, dic, skip_extra=False):
         data = dic[self.tagname]
         self._load_extra_from_dict(data, skip_extra=skip_extra)
+        self.cdata = '_cdata' in data
         self.text = data.get('_value')
 
     def to_xml(self):
@@ -801,6 +808,8 @@ class TextElement(Element):
             # We never set self.text to None to make sure when we export as string
             # we get a HTML format (no autoclose tag)
             xml.text = update_eol(self.text or '')
+            if self.cdata:
+                xml.text = etree.CDATA(xml.text)
         return xml
 
     def _get_html_attrs(self, rows):
@@ -817,7 +826,7 @@ class TextElement(Element):
         return attrs
 
     def _to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
 
         if self.text is None and not self._required:
             if not renderer.add_add_button():
@@ -826,7 +835,7 @@ class TextElement(Element):
         return self.to_html()
 
     def to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         add_button = ''
         if self._add_html_add_button():
             add_button = self._get_html_add_button(css_class='hidden')
@@ -842,7 +851,7 @@ class TextElement(Element):
             cnt += 1
         rows = max(cnt, 1)
         attrs = self._get_html_attrs(rows)
-        render = self.get_html_render()
+        render = self.get_html_renderer()
         textarea = render.text_element_to_html(self, attrs, value)
 
         comment = ''
@@ -850,7 +859,9 @@ class TextElement(Element):
             comment = self._comment_to_html()
         ident = prefixes_to_str(self.prefixes_no_cache)
         return (
-            u'<div id="{ident}"><label>{label}</label>'
+            u'<div id="{ident}" class="xt-container-{label}"><label>{label}</label>'
+            u'<span class="btn-external-editor" '
+            u'ng-click="externalEditor(this)"></span>'
             u'{add_button}'
             u'{delete_button}'
             u'{comment}'
@@ -903,7 +914,7 @@ class InChoiceMixin(object):
     def _add_html_add_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_add_button():
             return False
         return True
@@ -914,7 +925,7 @@ class InChoiceMixin(object):
     def _add_html_delete_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_delete_button():
             return False
         return True
@@ -957,7 +968,7 @@ class InListMixin(object):
     def _add_html_delete_button(self):
         """
         """
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         if not renderer.add_delete_button():
             return False
         return True
@@ -968,7 +979,7 @@ class InListMixin(object):
                 'data-target="#%s" title="Delete"></a>') % ident
 
     def to_html(self):
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         lis = []
         if renderer.add_add_button():
             index = self._parent_obj.index(self)
@@ -1126,7 +1137,7 @@ class BaseListElement(list, Element):
         assert self.attributes is None
 
         self._before_render()
-        renderer = self.get_html_render()
+        renderer = self.get_html_renderer()
         i = 0
         lis = []
         for e in self:
@@ -1168,7 +1179,9 @@ class ListElement(BaseListElement):
 
     def _get_html_add_button(self, index):
         assert(index is not None)
-        css_classes = ['btn-add btn-list']
+        css_classes = ['btn-add btn-add-%s btn-list' % (
+            self._children_class.tagname
+        )]
 
         ident = prefixes_to_str(self.prefixes_no_cache + [
             str(index), self._children_class.tagname])
@@ -1236,10 +1249,12 @@ class ChoiceListElement(MultipleMixin, BaseListElement):
             str(index)])
 
         for e in self._choice_classes:
-            button += '<option value="%s:%s">%s</option>' % (
-                ident,
-                e.tagname,
-                e.tagname)
+            button += (
+                '<option class="xt-option-%s" value="%s:%s">%s</option>' % (
+                    e.tagname,
+                    ident,
+                    e.tagname,
+                    e.tagname))
         button += '</select>'
         return button
 
@@ -1311,10 +1326,12 @@ class ChoiceElement(MultipleMixin, Element):
         button = '<select class="%s">' % ' '.join(css_classes)
         button += '<option>New %s</option>' % '/'.join([e.tagname for e in self._choice_classes])
         for e in self._choice_classes:
-            button += '<option value="%s:%s">%s</option>' % (
-                ident,
-                e.tagname,
-                e.tagname)
+            button += (
+                '<option class="xt-option-%s" value="%s:%s">%s</option>' % (
+                    e.tagname,
+                    ident,
+                    e.tagname,
+                    e.tagname))
         button += '</select>'
         return button
 

@@ -10,7 +10,6 @@ from elements import (
     InChoiceMixin,
 )
 from dogpile.cache.api import NO_VALUE
-from . import cache
 
 
 comment_regex_compile = re.compile(r'<!--(.*?)-->', re.DOTALL)
@@ -231,38 +230,3 @@ def _create_classes(dtd_dict):
             cls.children_classes += [sub_cls]
 
     return class_dict
-
-
-def _parse(dtd_str=None, dtd_url=None, path=None):
-    if not dtd_str and not dtd_url:
-        raise ValueError('You didn\'t provide dtd_str nor dtd_url')
-
-    if dtd_str and dtd_url:
-        raise ValueError('You should provide either dtd_str or dtd_url')
-
-    if dtd_url:
-        dtd_str = utils.get_dtd_content(dtd_url, path)
-
-    dtd_dict = dtd_to_dict_v2(dtd_str)
-    return _create_classes(dtd_dict)
-
-
-def parse(dtd_str=None, dtd_url=None, path=None, cache_key=None):
-    def perform():
-        return _parse(dtd_str=dtd_str, dtd_url=dtd_url, path=path)
-
-    if cache.CACHE_TIMEOUT is None:
-        return perform()
-
-    if not cache_key and dtd_url:
-        cache_key = 'xmltool.parse.%s' % dtd_url
-
-    if not cache_key:
-        return perform()
-
-    v = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
-    if v is not NO_VALUE:
-        return v
-    v = perform()
-    cache.region.set(cache_key, v)
-    return v

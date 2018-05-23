@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+import StringIO
 from unittest import TestCase
 from xmltool.testbase import BaseTest
 import json
 from lxml import etree, html
 import tw2.core as twc
 import os.path
-from xmltool import dtd_parser, factory, render
+from xmltool import dtd_parser, factory, render, dtd
 from xmltool.elements import (
     EmptyElement,
     escape_attr,
@@ -37,7 +38,7 @@ class ElementTester(BaseTest):
         if self.__class__ == ElementTester:
             return
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         tree = obj.to_xml()
@@ -58,7 +59,7 @@ class ElementTester(BaseTest):
         if self.expected_html is None:
             return
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual_(obj._to_html(), self.expected_html)
@@ -68,7 +69,7 @@ class ElementTester(BaseTest):
             return
         data = twc.validation.unflatten_params(self.submit_data)
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_dict(data)
         tree = obj.to_xml()
@@ -129,8 +130,10 @@ class TestElementPCDATA(ElementTester):
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-        '<div id="texts:text">'
+        '<div id="texts:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment" '
         'title="Add comment"></a>'
         '<textarea class="form-control text" name="texts:text:_value" rows="1">'
@@ -146,8 +149,10 @@ class TestElementPCDATA(ElementTester):
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '<textarea class="form-control text" name="texts:text:_value" rows="1"></textarea>'
@@ -155,8 +160,10 @@ class TestElementPCDATA(ElementTester):
          '</div></div>'
         ),
         ('texts:text',
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '<textarea class="form-control text" name="texts:text:_value" rows="1"></textarea>'
@@ -171,7 +178,7 @@ class TestElementPCDATA(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -219,8 +226,10 @@ class TestElementPCDATAEmpty(ElementTester):
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-        '<div id="texts:text">'
+        '<div id="texts:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment" '
         'title="Add comment"></a>'
         '<textarea class="form-control text" name="texts:text:_value" rows="1">'
@@ -236,8 +245,10 @@ class TestElementPCDATAEmpty(ElementTester):
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '<textarea class="form-control text" name="texts:text:_value" rows="1"></textarea>'
@@ -245,8 +256,10 @@ class TestElementPCDATAEmpty(ElementTester):
          '</div></div>'
         ),
         ('texts:text',
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '<textarea class="form-control text" name="texts:text:_value" rows="1"></textarea>'
@@ -275,9 +288,11 @@ class TestElementPCDATANotRequired(ElementTester):
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-        '<div id="texts:text">'
+        '<div id="texts:text" class="xt-container-text">'
         '<label>text</label>'
-        '<a class="btn-add hidden" data-elt-id="texts:text">Add text</a>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
+        '<a class="btn-add btn-add-text hidden" data-elt-id="texts:text">Add text</a>'
         '<a class="btn-delete" data-target="#texts:text" title="Delete"></a>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment" '
         'title="Add comment"></a>'
@@ -294,13 +309,15 @@ class TestElementPCDATANotRequired(ElementTester):
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-         '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
+         '<a class="btn-add btn-add-text" data-elt-id="texts:text">Add text</a>'
          '</div></div>'
         ),
         ('texts:text',
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
-         '<a class="btn-add hidden" data-elt-id="texts:text">Add text</a>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
+         '<a class="btn-add btn-add-text hidden" data-elt-id="texts:text">Add text</a>'
          '<a class="btn-delete" data-target="#texts:text" title="Delete"></a>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
@@ -328,7 +345,7 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-        '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
+        '<a class="btn-add btn-add-text" data-elt-id="texts:text">Add text</a>'
         '</div></div>'
     )
     submit_data = {}
@@ -339,13 +356,15 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-         '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
+         '<a class="btn-add btn-add-text" data-elt-id="texts:text">Add text</a>'
          '</div></div>'
         ),
         ('texts:text',
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
-         '<a class="btn-add hidden" data-elt-id="texts:text">Add text</a>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
+         '<a class="btn-add btn-add-text hidden" data-elt-id="texts:text">Add text</a>'
          '<a class="btn-delete" data-target="#texts:text" title="Delete"></a>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
@@ -375,9 +394,11 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-        '<div id="texts:text">'
+        '<div id="texts:text" class="xt-container-text">'
         '<label>text</label>'
-        '<a class="btn-add hidden" data-elt-id="texts:text">Add text</a>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
+        '<a class="btn-add btn-add-text hidden" data-elt-id="texts:text">Add text</a>'
         '<a class="btn-delete" data-target="#texts:text" title="Delete"></a>'
         '<a data-comment-name="texts:text:_comment" class="btn-comment" '
         'title="Add comment"></a>'
@@ -394,13 +415,15 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-         '<a class="btn-add" data-elt-id="texts:text">Add text</a>'
+         '<a class="btn-add btn-add-text" data-elt-id="texts:text">Add text</a>'
          '</div></div>'
         ),
         ('texts:text',
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
-         '<a class="btn-add hidden" data-elt-id="texts:text">Add text</a>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
+         '<a class="btn-add btn-add-text hidden" data-elt-id="texts:text">Add text</a>'
          '<a class="btn-delete" data-target="#texts:text" title="Delete"></a>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
@@ -432,10 +455,12 @@ class TestListElement(ElementTester):
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
-        '<div id="texts:list__text:0:text">'
+        '<div id="texts:list__text:0:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text:0:text" title="Delete"></a>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -444,10 +469,12 @@ class TestListElement(ElementTester):
         'rows="1">'
         'Tag 1</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:1:text">New text</a>'
-        '<div id="texts:list__text:1:text">'
+        '<div id="texts:list__text:1:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text:1:text" title="Delete"></a>'
         '<a data-comment-name="texts:list__text:1:text:_comment" '
@@ -456,7 +483,7 @@ class TestListElement(ElementTester):
         'rows="1">'
         'Tag 2</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:2:text">New text</a>'
         '</div>'
         '</div></div>'
@@ -474,10 +501,12 @@ class TestListElement(ElementTester):
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
-         '<div id="texts:list__text:0:text">'
+         '<div id="texts:list__text:0:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -485,16 +514,18 @@ class TestListElement(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:1:text">New text</a>'
          '</div>'
          '</div></div>'
         ),
         ('texts:list__text:0:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
-         '<div id="texts:list__text:0:text">'
+         '<div id="texts:list__text:0:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -504,10 +535,12 @@ class TestListElement(ElementTester):
          '</div>'
         ),
         ('texts:list__text:10:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:10:text">New text</a>'
-         '<div id="texts:list__text:10:text">'
+         '<div id="texts:list__text:10:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:10:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
@@ -541,7 +574,7 @@ class TestListElement(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -572,10 +605,12 @@ class TestListElementEmpty(ElementTester):
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
-        '<div id="texts:list__text:0:text">'
+        '<div id="texts:list__text:0:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text:0:text" title="Delete"></a>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -584,7 +619,7 @@ class TestListElementEmpty(ElementTester):
         'rows="1">'
         '</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:1:text">New text</a>'
         '</div>'
         '</div></div>'
@@ -599,10 +634,12 @@ class TestListElementEmpty(ElementTester):
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
-         '<div id="texts:list__text:0:text">'
+         '<div id="texts:list__text:0:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -610,16 +647,18 @@ class TestListElementEmpty(ElementTester):
          '<textarea class="form-control text" name="texts:list__text:0:text:_value" '
          'rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:1:text">New text</a>'
          '</div>'
          '</div></div>'
         ),
         ('texts:list__text:0:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
-         '<div id="texts:list__text:0:text">'
+         '<div id="texts:list__text:0:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -629,10 +668,12 @@ class TestListElementEmpty(ElementTester):
          '</div>'
         ),
         ('texts:list__text:10:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:10:text">New text</a>'
-         '<div id="texts:list__text:10:text">'
+         '<div id="texts:list__text:10:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:10:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
@@ -667,10 +708,12 @@ class TestListElementNotRequired(ElementTester):
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
-        '<div id="texts:list__text:0:text">'
+        '<div id="texts:list__text:0:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text:0:text" title="Delete"></a>'
         '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -679,10 +722,12 @@ class TestListElementNotRequired(ElementTester):
         'rows="1">'
         'Tag 1</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:1:text">New text</a>'
-        '<div id="texts:list__text:1:text">'
+        '<div id="texts:list__text:1:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text:1:text" title="Delete"></a>'
         '<a data-comment-name="texts:list__text:1:text:_comment" '
@@ -691,7 +736,7 @@ class TestListElementNotRequired(ElementTester):
         'rows="1">'
         'Tag 2</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:2:text">New text</a>'
         '</div>'
         '</div></div>'
@@ -709,16 +754,18 @@ class TestListElementNotRequired(ElementTester):
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
          '</div>'
          '</div></div>'
         ),
         ('texts:list__text:0:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
-         '<div id="texts:list__text:0:text">'
+         '<div id="texts:list__text:0:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -728,10 +775,12 @@ class TestListElementNotRequired(ElementTester):
          '</div>'
         ),
         ('texts:list__text:10:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:10:text">New text</a>'
-         '<div id="texts:list__text:10:text">'
+         '<div id="texts:list__text:10:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:10:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
@@ -763,7 +812,7 @@ class TestListElementEmptyNotRequired(ElementTester):
         'class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text btn-list" '
         'data-elt-id="texts:list__text:0:text">New text</a>'
         '</div>'
         '</div></div>'
@@ -778,16 +827,18 @@ class TestListElementEmptyNotRequired(ElementTester):
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
          '</div>'
          '</div></div>'
         ),
         ('texts:list__text:0:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:0:text">New text</a>'
-         '<div id="texts:list__text:0:text">'
+         '<div id="texts:list__text:0:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:0:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:0:text:_comment" '
@@ -797,10 +848,12 @@ class TestListElementEmptyNotRequired(ElementTester):
          '</div>'
         ),
         ('texts:list__text:10:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:10:text">New text</a>'
-         '<div id="texts:list__text:10:text">'
+         '<div id="texts:list__text:10:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text:10:text" title="Delete"></a>'
          '<a data-comment-name="texts:list__text:10:text:_comment" '
@@ -841,7 +894,7 @@ class TestListElementElementEmpty(ElementTester):
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">'
+        '<a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">'
         'New text</a>'
         '<div class="panel panel-default text" '
         'id="texts:list__text:0:text">'
@@ -851,15 +904,17 @@ class TestListElementElementEmpty(ElementTester):
         '<a data-comment-name="texts:list__text:0:text:_comment" '
         'class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
-        '<div id="texts:list__text:0:text:subtext">'
+        '<div id="texts:list__text:0:text:subtext" class="xt-container-subtext">'
         '<label>subtext</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a data-comment-name="texts:list__text:0:text:subtext:_comment" '
         'class="btn-comment" title="Add comment"></a>'
         '<textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" '
         'rows="1"></textarea>'
         '</div>'
         '</div></div>'
-        '<a class="btn-add btn-list" data-elt-id="texts:list__text:1:text">'
+        '<a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:1:text">'
         'New text</a>'
         '</div>'
         '</div></div>'
@@ -875,7 +930,7 @@ class TestListElementElementEmpty(ElementTester):
          'title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" data-elt-id="texts:list__text:0:text">'
+         '<a class="btn-add btn-add-text btn-list" data-elt-id="texts:list__text:0:text">'
          'New text</a>'
          '<div class="panel panel-default text" '
          'id="texts:list__text:0:text">'
@@ -885,22 +940,24 @@ class TestListElementElementEmpty(ElementTester):
          '<a data-comment-name="texts:list__text:0:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:0:text">'
-         '<div id="texts:list__text:0:text:subtext">'
+         '<div id="texts:list__text:0:text:subtext" class="xt-container-subtext">'
          '<label>subtext</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a data-comment-name="texts:list__text:0:text:subtext:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '<textarea class="form-control subtext" name="texts:list__text:0:text:subtext:_value" '
          'rows="1"></textarea>'
          '</div>'
          '</div></div>'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:1:text">'
          'New text</a>'
          '</div>'
          '</div></div>'
         ),
         ('texts:list__text:1:text',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text btn-list" '
          'data-elt-id="texts:list__text:1:text">'
          'New text</a>'
          '<div class="panel panel-default text" id="texts:list__text:1:text">'
@@ -910,8 +967,10 @@ class TestListElementElementEmpty(ElementTester):
          '<a data-comment-name="texts:list__text:1:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text:1:text">'
-         '<div id="texts:list__text:1:text:subtext">'
+         '<div id="texts:list__text:1:text:subtext" class="xt-container-subtext">'
          '<label>subtext</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a data-comment-name="texts:list__text:1:text:subtext:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '<textarea class="form-control subtext" name="texts:list__text:1:text:subtext:_value" '
@@ -936,18 +995,20 @@ choice_str_to_html = [
      '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
      '<select class="btn-add">'
      '<option>New text1/text2</option>'
-     '<option value="texts:text1">text1</option>'
-     '<option value="texts:text2">text2</option>'
+     '<option class="xt-option-text1" value="texts:text1">text1</option>'
+     '<option class="xt-option-text2" value="texts:text2">text2</option>'
      '</select>'
      '</div></div>'
     ),
     ('texts:text1',
-     '<div id="texts:text1">'
+     '<div id="texts:text1" class="xt-container-text1">'
      '<label>text1</label>'
+     '<span class="btn-external-editor" '
+     'ng-click="externalEditor(this)"></span>'
      '<select class="btn-add hidden">'
      '<option>New text1/text2</option>'
-     '<option value="texts:text1">text1</option>'
-     '<option value="texts:text2">text2</option>'
+     '<option class="xt-option-text1" value="texts:text1">text1</option>'
+     '<option class="xt-option-text2" value="texts:text2">text2</option>'
      '</select>'
      '<a class="btn-delete" data-target="#texts:text1" title="Delete"></a>'
      '<a data-comment-name="texts:text1:_comment" class="btn-comment" '
@@ -979,12 +1040,14 @@ class TestElementChoice(ElementTester):
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-        '<div id="texts:text1">'
+        '<div id="texts:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<select class="btn-add hidden">'
         '<option>New text1/text2</option>'
-        '<option value="texts:text1">text1</option>'
-        '<option value="texts:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:text2">text2</option>'
         '</select>'
         '<a class="btn-delete" data-target="#texts:text1" title="Delete"></a>'
         '<a data-comment-name="texts:text1:_comment" '
@@ -1013,7 +1076,7 @@ class TestElementChoice(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -1027,7 +1090,7 @@ class TestElementChoice(ElementTester):
   <text2>Tag 2</text2>
 </texts>'''
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -1054,8 +1117,8 @@ class TestElementChoiceEmpty(ElementTester):
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<select class="btn-add">'
         '<option>New text1/text2</option>'
-        '<option value="texts:text1">text1</option>'
-        '<option value="texts:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:text2">text2</option>'
         '</select>'
         '</div></div>'
     )
@@ -1063,7 +1126,6 @@ class TestElementChoiceEmpty(ElementTester):
     submit_data = {}
     str_to_html = choice_str_to_html
     js_selector = choice_js_selector
-
 
 
 class TestElementChoiceNotRequired(ElementTester):
@@ -1082,14 +1144,16 @@ class TestElementChoiceNotRequired(ElementTester):
         '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-        '<div id="texts:text1">'
+        '<div id="texts:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<select class="btn-add hidden">'
         '<option>'
         'New text1/text2</option>'
-        '<option value="texts:text1">'
+        '<option class="xt-option-text1" value="texts:text1">'
         'text1</option>'
-        '<option value="texts:text2">'
+        '<option class="xt-option-text2" value="texts:text2">'
         'text2</option>'
         '</select>'
         '<a class="btn-delete" data-target="#texts:text1" title="Delete"></a>'
@@ -1125,8 +1189,8 @@ class TestElementChoiceEmptyNotRequired(ElementTester):
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<select class="btn-add">'
         '<option>New text1/text2</option>'
-        '<option value="texts:text1">text1</option>'
-        '<option value="texts:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:text2">text2</option>'
         '</select>'
         '</div></div>'
     )
@@ -1145,8 +1209,8 @@ choicelist_str_to_html = [
      '<div class="list-container">'
      '<select class="btn-add btn-list">'
      '<option>New text1/text2</option>'
-     '<option value="texts:list__text1_text2:0:text1">text1</option>'
-     '<option value="texts:list__text1_text2:0:text2">text2</option>'
+     '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
+     '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
      '</select>'
      '</div>'
      '</div></div>'
@@ -1154,11 +1218,13 @@ choicelist_str_to_html = [
     ('texts:list__text1_text2:0:text1',
      '<select class="btn-add btn-list">'
      '<option>New text1/text2</option>'
-     '<option value="texts:list__text1_text2:0:text1">text1</option>'
-     '<option value="texts:list__text1_text2:0:text2">text2</option>'
+     '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
+     '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
      '</select>'
-     '<div id="texts:list__text1_text2:0:text1">'
+     '<div id="texts:list__text1_text2:0:text1" class="xt-container-text1">'
      '<label>text1</label>'
+     '<span class="btn-external-editor" '
+     'ng-click="externalEditor(this)"></span>'
      '<a class="btn-delete btn-list" '
      'data-target="#texts:list__text1_text2:0:text1" title="Delete"></a>'
      '<a data-comment-name="texts:list__text1_text2:0:text1:_comment" '
@@ -1170,11 +1236,13 @@ choicelist_str_to_html = [
     ('texts:list__text1_text2:10:text1',
      '<select class="btn-add btn-list">'
      '<option>New text1/text2</option>'
-     '<option value="texts:list__text1_text2:10:text1">text1</option>'
-     '<option value="texts:list__text1_text2:10:text2">text2</option>'
+     '<option class="xt-option-text1" value="texts:list__text1_text2:10:text1">text1</option>'
+     '<option class="xt-option-text2" value="texts:list__text1_text2:10:text2">text2</option>'
      '</select>'
-     '<div id="texts:list__text1_text2:10:text1">'
+     '<div id="texts:list__text1_text2:10:text1" class="xt-container-text1">'
      '<label>text1</label>'
+     '<span class="btn-external-editor" '
+     'ng-click="externalEditor(this)"></span>'
      '<a class="btn-delete btn-list" '
      'data-target="#texts:list__text1_text2:10:text1" title="Delete"></a>'
      '<a data-comment-name="texts:list__text1_text2:10:text1:_comment" '
@@ -1211,11 +1279,13 @@ class TestElementChoiceList(ElementTester):
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:0:text1">text1</option>'
-        '<option value="texts:list__text1_text2:0:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
         '</select>'
-        '<div id="texts:list__text1_text2:0:text1">'
+        '<div id="texts:list__text1_text2:0:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1_text2:0:text1" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1_text2:0:text1:_comment" '
@@ -1225,11 +1295,13 @@ class TestElementChoiceList(ElementTester):
         '</div>'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:1:text1">text1</option>'
-        '<option value="texts:list__text1_text2:1:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>'
         '</select>'
-        '<div id="texts:list__text1_text2:1:text2">'
+        '<div id="texts:list__text1_text2:1:text2" class="xt-container-text2">'
         '<label>text2</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1_text2:1:text2" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1_text2:1:text2:_comment" '
@@ -1239,11 +1311,13 @@ class TestElementChoiceList(ElementTester):
         '</div>'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:2:text1">text1</option>'
-        '<option value="texts:list__text1_text2:2:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>'
         '</select>'
-        '<div id="texts:list__text1_text2:2:text1">'
+        '<div id="texts:list__text1_text2:2:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1_text2:2:text1" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1_text2:2:text1:_comment" '
@@ -1253,8 +1327,8 @@ class TestElementChoiceList(ElementTester):
         '</div>'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:3:text1">text1</option>'
-        '<option value="texts:list__text1_text2:3:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:3:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:3:text2">text2</option>'
         '</select>'
         '</div>'
         '</div></div>'
@@ -1280,7 +1354,7 @@ class TestElementChoiceList(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -1310,8 +1384,8 @@ class TestElementChoiceListEmpty(ElementTester):
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:0:text1">text1</option>'
-        '<option value="texts:list__text1_text2:0:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
         '</select>'
         '</div>'
         '</div></div>'
@@ -1343,11 +1417,13 @@ class TestElementChoiceListNotRequired(ElementTester):
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:0:text1">text1</option>'
-        '<option value="texts:list__text1_text2:0:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
         '</select>'
-        '<div id="texts:list__text1_text2:0:text1">'
+        '<div id="texts:list__text1_text2:0:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1_text2:0:text1" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1_text2:0:text1:_comment" '
@@ -1357,11 +1433,13 @@ class TestElementChoiceListNotRequired(ElementTester):
         '</div>'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:1:text1">text1</option>'
-        '<option value="texts:list__text1_text2:1:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:1:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:1:text2">text2</option>'
         '</select>'
-        '<div id="texts:list__text1_text2:1:text2">'
+        '<div id="texts:list__text1_text2:1:text2" class="xt-container-text2">'
         '<label>text2</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1_text2:1:text2" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1_text2:1:text2:_comment" '
@@ -1371,11 +1449,13 @@ class TestElementChoiceListNotRequired(ElementTester):
         '</div>'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:2:text1">text1</option>'
-        '<option value="texts:list__text1_text2:2:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:2:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:2:text2">text2</option>'
         '</select>'
-        '<div id="texts:list__text1_text2:2:text1">'
+        '<div id="texts:list__text1_text2:2:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1_text2:2:text1" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1_text2:2:text1:_comment" '
@@ -1385,8 +1465,8 @@ class TestElementChoiceListNotRequired(ElementTester):
         '</div>'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:3:text1">text1</option>'
-        '<option value="texts:list__text1_text2:3:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:3:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:3:text2">text2</option>'
         '</select>'
         '</div>'
         '</div></div>'
@@ -1419,8 +1499,8 @@ class TestElementChoiceListEmptyNotRequired(ElementTester):
         '<div class="list-container">'
         '<select class="btn-add btn-list">'
         '<option>New text1/text2</option>'
-        '<option value="texts:list__text1_text2:0:text1">text1</option>'
-        '<option value="texts:list__text1_text2:0:text2">text2</option>'
+        '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
+        '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
         '</select>'
         '</div>'
         '</div></div>'
@@ -1454,7 +1534,7 @@ class TestListElementOfList(ElementTester):
         '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text1 btn-list" '
         'data-elt-id="texts:list__text1:0:text1">New text1</a>'
         '<div class="panel panel-default text1" '
         'id="texts:list__text1:0:text1">'
@@ -1465,10 +1545,13 @@ class TestListElementOfList(ElementTester):
         'class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1:0:text1">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text2 btn-list" '
         'data-elt-id="texts:list__text1:0:text1:list__text2:0:text2">New text2</a>'
-        '<div id="texts:list__text1:0:text1:list__text2:0:text2">'
+        '<div id="texts:list__text1:0:text1:list__text2:0:text2" '
+        'class="xt-container-text2">'
         '<label>text2</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1:0:text1:list__text2:0:text2"'
         ' title="Delete"></a>'
@@ -1477,10 +1560,13 @@ class TestListElementOfList(ElementTester):
         '<textarea class="form-control text2" name="texts:list__text1:0:text1:list__text2:0:text2:_value" '
         'rows="1">text2-1</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text2 btn-list" '
         'data-elt-id="texts:list__text1:0:text1:list__text2:1:text2">New text2</a>'
-        '<div id="texts:list__text1:0:text1:list__text2:1:text2">'
+        '<div id="texts:list__text1:0:text1:list__text2:1:text2" '
+        'class="xt-container-text2">'
         '<label>text2</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1:0:text1:list__text2:1:text2"'
         ' title="Delete"></a>'
@@ -1489,11 +1575,11 @@ class TestListElementOfList(ElementTester):
         '<textarea class="form-control text2" name="texts:list__text1:0:text1:list__text2:1:text2:_value" '
         'rows="1">text2-2</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text2 btn-list" '
         'data-elt-id="texts:list__text1:0:text1:list__text2:2:text2">New text2</a>'
         '</div>'
         '</div></div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text1 btn-list" '
         'data-elt-id="texts:list__text1:1:text1">New text1</a>'
         '<div class="panel panel-default text1" '
         'id="texts:list__text1:1:text1">'
@@ -1504,10 +1590,13 @@ class TestListElementOfList(ElementTester):
         'class="btn-comment" title="Add comment"></a>'
         '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1:1:text1">'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" data-elt-id="texts:list__text1:1:text1:'
+        '<a class="btn-add btn-add-text2 btn-list" data-elt-id="texts:list__text1:1:text1:'
         'list__text2:0:text2">New text2</a>'
-        '<div id="texts:list__text1:1:text1:list__text2:0:text2">'
+        '<div id="texts:list__text1:1:text1:list__text2:0:text2" '
+        'class="xt-container-text2">'
         '<label>text2</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1:1:text1:list__text2:0:text2"'
         ' title="Delete"></a>'
@@ -1516,11 +1605,11 @@ class TestListElementOfList(ElementTester):
         '<textarea class="form-control text2" name="texts:list__text1:1:text1:list__text2:0:text2:_value" '
         'rows="1">text2-3</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text2 btn-list" '
         'data-elt-id="texts:list__text1:1:text1:list__text2:1:text2">New text2</a>'
         '</div>'
         '</div></div>'
-        '<a class="btn-add btn-list" '
+        '<a class="btn-add btn-add-text1 btn-list" '
         'data-elt-id="texts:list__text1:2:text1">New text1</a>'
         '</div>'
         '</div></div>'
@@ -1538,13 +1627,13 @@ class TestListElementOfList(ElementTester):
          '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text1 btn-list" '
          'data-elt-id="texts:list__text1:0:text1">New text1</a>'
          '</div>'
          '</div></div>'
         ),
         ('texts:list__text1:0:text1',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text1 btn-list" '
          'data-elt-id="texts:list__text1:0:text1">New text1</a>'
          '<div class="panel panel-default text1" id="texts:list__text1:0:text1">'
          '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts\:list__text1\:0\:text1">'
@@ -1555,10 +1644,13 @@ class TestListElementOfList(ElementTester):
          'class="btn-comment" title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts:list__text1:0:text1">'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text2 btn-list" '
          'data-elt-id="texts:list__text1:0:text1:list__text2:0:text2">New text2</a>'
-         '<div id="texts:list__text1:0:text1:list__text2:0:text2">'
+         '<div id="texts:list__text1:0:text1:list__text2:0:text2" '
+         'class="xt-container-text2">'
          '<label>text2</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text1:0:text1:list__text2:0:text2"'
          ' title="Delete"></a>'
@@ -1567,17 +1659,20 @@ class TestListElementOfList(ElementTester):
          '<textarea class="form-control text2" name="texts:list__text1:0:text1:list__text2:0:text2:'
          '_value" rows="1"></textarea>'
          '</div>'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text2 btn-list" '
          'data-elt-id="texts:list__text1:0:text1:list__text2:1:text2">'
          'New text2</a>'
          '</div>'
          '</div></div>'
         ),
         ('texts:list__text1:0:text1:list__text2:3:text2',
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text2 btn-list" '
          'data-elt-id="texts:list__text1:0:text1:list__text2:3:text2">New text2</a>'
-         '<div id="texts:list__text1:0:text1:list__text2:3:text2">'
+         '<div id="texts:list__text1:0:text1:list__text2:3:text2" '
+         'class="xt-container-text2">'
          '<label>text2</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a class="btn-delete btn-list" '
          'data-target="#texts:list__text1:0:text1:list__text2:3:text2"'
          ' title="Delete"></a>'
@@ -1605,9 +1700,9 @@ class TestElementWithAttributes(ElementTester):
         <!ELEMENT text1 (#PCDATA)>
 
         <!ATTLIST texts idtexts ID #IMPLIED>
-        <!ATTLIST texts name ID #IMPLIED>
+        <!ATTLIST texts name CDATA "">
         <!ATTLIST text idtext ID #IMPLIED>
-        <!ATTLIST text1 idtext1 ID #IMPLIED>
+        <!ATTLIST text1 idtext1 CDATA "">
         '''
     xml = '''<?xml version='1.0' encoding='UTF-8'?>
 <texts idtexts="id_texts" name="my texts">
@@ -1627,8 +1722,10 @@ class TestElementWithAttributes(ElementTester):
         '<a name="name=my texts"></a>'
         '<input value="my texts" name="texts:_attrs:name" '
         'id="texts:_attrs:name" class="_attrs" />'
-        '<div id="texts:text">'
+        '<div id="texts:text" class="xt-container-text">'
         '<label>text</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a data-comment-name="texts:text:_comment" '
         'class="btn-comment" title="Add comment"></a>'
         '<a name="idtext=id_text"></a>'
@@ -1637,10 +1734,12 @@ class TestElementWithAttributes(ElementTester):
         '<textarea class="form-control text" name="texts:text:_value" rows="1">Hello world</textarea>'
         '</div>'
         '<div class="list-container">'
-        '<a class="btn-add btn-list" data-elt-id="texts:list__text1:0:text1">'
+        '<a class="btn-add btn-add-text1 btn-list" data-elt-id="texts:list__text1:0:text1">'
         'New text1</a>'
-        '<div id="texts:list__text1:0:text1">'
+        '<div id="texts:list__text1:0:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1:0:text1" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1:0:text1:_comment" '
@@ -1653,10 +1752,12 @@ class TestElementWithAttributes(ElementTester):
         '<textarea class="form-control text1" name="texts:list__text1:0:text1:_value" rows="1">'
         'My text 1</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" data-elt-id="texts:list__text1:1:text1">'
+        '<a class="btn-add btn-add-text1 btn-list" data-elt-id="texts:list__text1:1:text1">'
         'New text1</a>'
-        '<div id="texts:list__text1:1:text1">'
+        '<div id="texts:list__text1:1:text1" class="xt-container-text1">'
         '<label>text1</label>'
+        '<span class="btn-external-editor" '
+        'ng-click="externalEditor(this)"></span>'
         '<a class="btn-delete btn-list" '
         'data-target="#texts:list__text1:1:text1" title="Delete"></a>'
         '<a data-comment-name="texts:list__text1:1:text1:_comment" '
@@ -1664,7 +1765,7 @@ class TestElementWithAttributes(ElementTester):
         '<textarea class="form-control text1" name="texts:list__text1:1:text1:_value" rows="1">'
         'My text 2</textarea>'
         '</div>'
-        '<a class="btn-add btn-list" data-elt-id="texts:list__text1:2:text1">'
+        '<a class="btn-add btn-add-text1 btn-list" data-elt-id="texts:list__text1:2:text1">'
         'New text1</a>'
         '</div>'
         '</div></div>'
@@ -1677,14 +1778,16 @@ class TestElementWithAttributes(ElementTester):
          '<a data-comment-name="texts:_comment" class="btn-comment" '
          'title="Add comment"></a>'
          '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-         '<div id="texts:text">'
+         '<div id="texts:text" class="xt-container-text">'
          '<label>text</label>'
+         '<span class="btn-external-editor" '
+         'ng-click="externalEditor(this)"></span>'
          '<a data-comment-name="texts:text:_comment" '
          'class="btn-comment" title="Add comment"></a>'
          '<textarea class="form-control text" name="texts:text:_value" rows="1"></textarea>'
          '</div>'
          '<div class="list-container">'
-         '<a class="btn-add btn-list" '
+         '<a class="btn-add btn-add-text1 btn-list" '
          'data-elt-id="texts:list__text1:0:text1">New text1</a>'
          '</div>'
          '</div></div>')
@@ -1706,7 +1809,7 @@ class TestElementWithAttributes(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj._attribute_names, ['idtexts', 'name'])
@@ -1727,7 +1830,7 @@ class TestElementWithAttributes(ElementTester):
 
     def test_walk(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         lis = [e for e in obj.walk()]
@@ -1780,7 +1883,7 @@ class TestElementComments(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.sourceline, 3)
@@ -1864,7 +1967,7 @@ class TestWalk(TestCase):
 
     def test_walk(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         lis = [e for e in obj.walk()]
@@ -1884,7 +1987,7 @@ class TestWalk(TestCase):
 
     def test_findall(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         lis = obj.findall('text11')
@@ -1915,7 +2018,7 @@ class TestXPath(TestCase):
 
     def test_xpath(self):
         root = etree.fromstring(self.xml)
-        dic = dtd_parser.parse(dtd_str=self.dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
 
         try:
@@ -1959,11 +2062,11 @@ def generate_html_block(html, css_class, attrs=''):
 
 def generate_javascript_unittest(xml, dtd_str, tagname):
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        obj.root.html_render = render.Render()
-        obj.root.html_render.add_add_button = lambda: False
+        obj.root.html_renderer = render.Render()
+        obj.root.html_renderer.add_add_button = lambda: False
         obj = obj[tagname]
 
         input_html = generate_html_block(
@@ -2077,7 +2180,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2123,9 +2226,8 @@ class TestJavascript(TestCase):
 <texts></texts>'''
 
         lis = []
-        jstree_list = []
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2175,7 +2277,7 @@ class TestJavascript(TestCase):
         xml = '''<?xml version='1.0' encoding='UTF-8'?>
 <texts></texts>'''
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2233,7 +2335,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2348,7 +2450,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2480,7 +2582,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2639,7 +2741,7 @@ class TestJavascript(TestCase):
 </text>
 </texts>'''
         root = etree.fromstring(xml)
-        dic = dtd_parser.parse(dtd_str=dtd_str)
+        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
