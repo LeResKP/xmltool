@@ -1,6 +1,9 @@
 Changelog
 =========
 
+0.5:
+   * Add CDATA support
+   * Improve dtd validation
 
 O.4:
     * Rewrite javascript and add unittest
