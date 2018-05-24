@@ -32,20 +32,27 @@ class DTD(object):
             self.path = path
             self._content = None
 
+    def _get_dtd_url(self):
+        if self.url.startswith('http://') or self.url.startswith('https://'):
+            return self.url
+
+        url = self.url
+        if (self.path and
+                not self.url.startswith('/') and
+                not self.url.startswith(self.path)):
+            url = os.path.join(self.path, self.url)
+        return url
+
     def _fetch(self):
         """Fetch the dtd content
         """
-        if self.url.startswith('http://') or self.url.startswith('https://'):
-            res = requests.get(self.url, timeout=5)
+        url = self._get_dtd_url()
+        if url.startswith('http://') or url.startswith('https://'):
+            res = requests.get(url, timeout=5)
             # Use res.content instead of res.text because we want string. If we
             # get unicode, it fails when creating classes with type().
             self._content = res.content
         else:
-            url = self.url
-            if (self.path and
-                    not self.url.startswith('/') and
-                    not self.url.startswith(self.path)):
-                url = os.path.join(self.path, self.url)
             self._content = open(url, 'r').read()
         return self._content
 
@@ -59,7 +66,7 @@ class DTD(object):
             return self._fetch()
 
         assert(self.url)
-        cache_key = 'xmltool.get_dtd_content.%s.%s' % (self.url, self.path)
+        cache_key = 'xmltool.get_dtd_content.%s' % (self._get_dtd_url())
         value = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
         if value is not NO_VALUE:
             return value
