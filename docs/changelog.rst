@@ -1,6 +1,9 @@
 Changelog
 =========
 
+0.5.2:
+   * Close correctly temporary file
+
 0.5.1:
    * Fix dtd cache
 

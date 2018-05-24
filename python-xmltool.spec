@@ -1,6 +1,6 @@
 %define modname xmltool
-%define version 0.5
-%define unmangled_version 0.5
+%define version 0.5.2
+%define unmangled_version 0.5.2
 %define release 1
 
 Summary: Tool to manipulate XML files
@@ -29,6 +29,9 @@ xmltool is a python package to manipulate XML files. It's very useful to update 
 
 Changelog
 =========
+
+0.5.2:
+   * Close correctly temporary file
 
 0.5.1:
    * Fix dtd cache
