@@ -85,12 +85,18 @@ class DTD(object):
         # since we validate the dtd when getting it. But we also want to be
         # able to validate a dtd before we fetch the content.
         content = self._content if self._content else self.content
-        __, filename = tempfile.mkstemp()
+        f, filename = tempfile.mkstemp()
         # Don't know why but the validation doesn't work using a StringIO so we
         # write a temporary file
-        with open(filename, 'w') as f:
-            f.write(content)
-        dtd_obj = etree.DTD(filename)
+        try:
+            try:
+                os.write(f, content)
+            finally:
+                os.close(f)
+            dtd_obj = etree.DTD(filename)
+        finally:
+            os.remove(filename)
+
         if dtd_obj.error_log:
             raise ValidationError(dtd_obj.error_log)
         # It can raise an exception if something is wrong in the dtd
