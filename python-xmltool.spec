@@ -30,6 +30,9 @@ xmltool is a python package to manipulate XML files. It's very useful to update 
 Changelog
 =========
 
+0.5.1:
+   * Fix dtd cache
+
 0.5:
    * Add CDATA support
    * Improve dtd validation
