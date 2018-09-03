@@ -121,7 +121,7 @@ class Element(object):
         if self._cache_prefixes is None:
             prefixes = []
             if self._parent_obj:
-                prefixes = self._parent_obj.prefixes
+                prefixes = self._parent_obj.prefixes[:]
                 if isinstance(self._parent_obj, BaseListElement):
                     prefixes += [str(self._parent_obj.index(self))]
             if not isinstance(self, ChoiceElement):
