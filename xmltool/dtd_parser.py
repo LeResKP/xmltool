@@ -1,6 +1,5 @@
 import re
-import utils
-from elements import (
+from .elements import (
     ContainerElement,
     TextElement,
     ListElement,

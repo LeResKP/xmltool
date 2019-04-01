@@ -183,7 +183,7 @@ class TestElement(BaseTest):
         try:
             obj = self.cls._create('tag', self.root_obj, 'my value')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
         obj = self.cls._create('tag', self.root_obj)
@@ -218,7 +218,7 @@ class TestElement(BaseTest):
         self.assertTrue(newobj)
         try:
             obj.add('unexisting')
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid child unexisting')
 
         root_obj = root_cls()
@@ -226,14 +226,14 @@ class TestElement(BaseTest):
         try:
             newobj = obj.add('subtag', 'my value')
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
     def test_delete(self):
         try:
             self.root_obj.delete()
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Can\'t delete the root Element')
 
         obj = self.cls(self.root_obj)
@@ -255,7 +255,7 @@ class TestElement(BaseTest):
 
         try:
             obj.add_attribute('unexisting', 'newvalue2')
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid attribute name: unexisting')
 
     def test__load_attributes_from_xml(self):
@@ -282,7 +282,7 @@ class TestElement(BaseTest):
         dic = {'_attrs': {'unexisting': 'value'}}
         try:
             obj._load_attributes_from_dict(dic)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid attribute name: unexisting')
 
     def test__attributes_to_xml(self):
@@ -837,7 +837,7 @@ class TestElement(BaseTest):
         try:
             self.assertEqual(obj['unexisting'], 'Hello world')
             assert 0
-        except KeyError, e:
+        except KeyError as e:
             self.assertEqual(str(e), "'unexisting'")
 
     def test___contains__(self):
@@ -851,7 +851,7 @@ class TestElement(BaseTest):
         try:
             obj.get_or_add('unexisting')
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid child unexisting')
         subtag = obj.get_or_add('subtag')
         self.assertTrue(subtag)
@@ -904,14 +904,14 @@ class TestElement(BaseTest):
             try:
                 obj.write()
                 assert 0
-            except Exception, e:
+            except Exception as e:
                 self.assertEqual(str(e), 'No filename given')
 
             obj.dtd_url = None
             try:
                 obj.write(filename)
                 assert 0
-            except Exception, e:
+            except Exception as e:
                 self.assertEqual(str(e), 'No dtd given')
 
             with patch('xmltool.dtd.DTD.validate_xml', return_value=True):
@@ -1253,7 +1253,7 @@ class TestTextElement(BaseTest):
         try:
             xml = obj.to_xml()
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e),
                              'It\'s forbidden to have a value to an EMPTY tag')
         obj.text = None
@@ -1590,7 +1590,7 @@ class TestListElement(BaseTest):
         try:
             obj1 = self.cls._create('tag', self.root_obj, 'my value')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
         obj1 = self.cls._create('tag', self.root_obj)
@@ -1607,7 +1607,7 @@ class TestListElement(BaseTest):
         try:
             self.cls._create('unexisting', self.root_obj)
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Unsupported tagname unexisting')
 
     def test_add_list_of_list(self):
@@ -1810,7 +1810,7 @@ class TestListElement(BaseTest):
         try:
             obj.get_or_add('unexisting')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Parameter index is required')
 
         subobj = obj.get_or_add('subtag', index=1)
@@ -2152,7 +2152,7 @@ class TestChoiceElement(BaseTest):
 
         try:
             obj.add('test')
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid child test')
 
         obj1 = obj.add('subtag1')
@@ -2172,14 +2172,14 @@ class TestChoiceElement(BaseTest):
         try:
             choice_obj.add('subtag1')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e),
                              'subtag1 is already defined')
 
         try:
             choice_obj.add('subtag2')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e),
                              'subtag1 is defined so you can\'t add subtag2')
 
@@ -2202,7 +2202,7 @@ class TestChoiceElement(BaseTest):
         try:
             obj1 = self.cls._create('tag', self.root_obj, 'my value')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "Can't set value to non TextElement")
 
         obj1 = self.cls._create('tag', self.root_obj)

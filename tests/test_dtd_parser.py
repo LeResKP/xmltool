@@ -277,14 +277,14 @@ class DtdParser(TestCase):
         try:
             dtd_parser.parse_element(element)
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual( str(e), 'Unbalanced parenthesis %s' % element)
 
     def test_parse_element_exception_empty(self):
         try:
             dtd_parser.parse_element('')
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Error parsing element ')
 
     def test_parse_entity(self):
@@ -530,7 +530,7 @@ class DtdParser(TestCase):
                 class_dic, 'tag1_tag2', required=True, islist=False,
                 conditionals=[])
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(
                 str(e),
                 'You should provide a base_cls or conditionals for tag1_tag2')

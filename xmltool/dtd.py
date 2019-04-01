@@ -6,8 +6,8 @@ import requests
 import tempfile
 
 
-import dtd_parser
-import cache
+from . import dtd_parser
+from . import cache
 
 
 class ValidationError(Exception):

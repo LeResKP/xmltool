@@ -24,7 +24,7 @@ class TestFactory(BaseTest):
         try:
             obj = factory.load('tests/exercise-notvalid.xml')
             assert 0
-        except etree.DocumentInvalid, e:
+        except etree.DocumentInvalid as e:
             self.assertEqual(
                 str(e),
                 'Element comments content does not follow the DTD, expecting '
@@ -44,7 +44,7 @@ class TestFactory(BaseTest):
             xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
             obj = factory.load_string(xml_str)
             assert 0
-        except etree.DocumentInvalid, e:
+        except etree.DocumentInvalid as e:
             self.assertEqual(
                 str(e),
                 'Element comments content does not follow the DTD, expecting '
@@ -135,7 +135,7 @@ class TestFactory(BaseTest):
             try:
                 obj = factory.update(filename, data)
                 assert 0
-            except Exception, e:
+            except Exception as e:
                 self.assertEqual(str(e), 'Bad data')
 
             data = {
@@ -246,7 +246,7 @@ class TestFactory(BaseTest):
             obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
             html = obj.to_html()
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid child unexisting')
 
         str_id = 'texts:text'

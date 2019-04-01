@@ -12,7 +12,7 @@ from xmltool.elements import (
     Element,
 )
 
-from test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
+from .test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
 
 
 def fake_fetch(self, content):

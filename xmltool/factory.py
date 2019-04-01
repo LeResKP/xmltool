@@ -3,7 +3,7 @@
 import os
 from lxml import etree
 from StringIO import StringIO
-import utils
+from . import utils
 from . import elements
 from . import dtd
 

@@ -1,4 +1,4 @@
-from utils import prefixes_to_str
+from .utils import prefixes_to_str
 
 def attrs_to_str(attrs):
     """Create string from the given attrs

@@ -204,7 +204,7 @@ class TestElementPCDATA(ElementTester):
         try:
             obj.add('unexisiting')
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid child unexisiting')
 
 
@@ -2024,7 +2024,7 @@ class TestXPath(TestCase):
         try:
             res = obj.xpath('Movie')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(
                 str(e),
                 'The xpath is only supported '

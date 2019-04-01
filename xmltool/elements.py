@@ -4,8 +4,8 @@ import StringIO
 import os
 import re
 from lxml import etree
-import utils
-from utils import prefixes_to_str
+from . import utils
+from .utils import prefixes_to_str
 from distutils.version import StrictVersion
 from . import render
 
