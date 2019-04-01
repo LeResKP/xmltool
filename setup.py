@@ -42,12 +42,6 @@ setup(name='xmltool',
       test_suite='nose.collector',
       tests_require=[
           'nose',
-          'BeautifulSoup',
-          'strainer',
-          'FormEncode',
-          'tw2.core',
-          'WebTest',
-          'sieve>=0.1.9',
           'mock',
       ],
       entry_points="""

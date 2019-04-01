@@ -5,7 +5,6 @@ from unittest import TestCase
 from xmltool.testbase import BaseTest
 import json
 from lxml import etree, html
-import tw2.core as twc
 import os.path
 from xmltool import dtd_parser, factory, render, dtd
 from xmltool.elements import (
@@ -16,6 +15,7 @@ from xmltool.factory import (
     get_data_from_str_id_for_html_display,
     _get_data_for_html_display,
 )
+from xmltool.utils import unflatten_params
 from ..test_dtd_parser import (
     MOVIE_DTD,
     MOVIE_XML_TITANIC_COMMENTS,
@@ -67,7 +67,7 @@ class ElementTester(BaseTest):
     def test_load_from_dict(self):
         if self.__class__ == ElementTester:
             return
-        data = twc.validation.unflatten_params(self.submit_data)
+        data = unflatten_params(self.submit_data)
         root = etree.fromstring(self.xml)
         dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
