@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-import StringIO
+from io import StringIO, open
 import os
 import re
 from lxml import etree
+import six
+
 from . import utils
 from .utils import prefixes_to_str
 from distutils.version import StrictVersion
@@ -41,6 +43,7 @@ class EmptyElement(object):
         self._auto_added = False
 
 
+@six.python_2_unicode_compatible
 class Element(object):
     """After reading a dtd file we construct some Element
     """
@@ -421,7 +424,7 @@ class Element(object):
                         lis.append(elt)
                     else:
                         assert(len(d) == 1)
-                        obj = self.add(d.keys()[0])
+                        obj = self.add(list(d.keys())[0])
                         obj.load_from_dict(d, skip_extra=skip_extra)
             else:
                 obj = self.add(key)
@@ -445,11 +448,12 @@ class Element(object):
                 v._comment_to_xml(e)
         return xml
 
-    def __unicode__(self):
-        return etree.tostring(self.to_xml(), pretty_print=True)
-
     def __str__(self):
-        return unicode(self)
+        xml = self.to_xml()
+        if xml is not None:
+            #  encoding='unicode' will force lxml to return a unicode string
+            return etree.tostring(xml, pretty_print=True, encoding='unicode')
+        return xml
 
     def _get_html_add_button(self, css_class=None):
         ident = prefixes_to_str(self.prefixes_no_cache)
@@ -591,7 +595,7 @@ class Element(object):
         encoding = encoding or self.encoding or DEFAULT_ENCODING
         xml = self.to_xml()
         if validate:
-            url = dtd_url if dtd_url else StringIO.StringIO(dtd_str)
+            url = dtd_url if dtd_url else StringIO(dtd_str)
             from . import dtd
             dtd.DTD(url, os.path.dirname(filename)).validate_xml(xml)
 
@@ -618,9 +622,11 @@ class Element(object):
                 xml_declaration=True,
                 encoding=encoding,
                 doctype=doctype)
+
         if transform:
-            xml_str = transform(xml_str)
-        open(filename, 'w').write(xml_str)
+            xml_str = transform(xml_str.decode(encoding)).encode(encoding)
+
+        open(filename, 'wb').write(xml_str)
 
     def xpath(self, xpath):
         lxml_elt = getattr(self, '_lxml_elt', None)
@@ -782,7 +788,7 @@ class TextElement(Element):
             # but it's working for simple case. Also it doesn't support mixed
             # content (text + CDATA) in the same element
             self.text = xml.text
-            if etree.tostring(xml).split('>')[1].startswith('<![CDATA['):
+            if etree.tostring(xml).split(b'>')[1].startswith(b'<![CDATA['):
                 self.cdata = True
 
         # We should have text != None to be sure we keep the existing empty tag.
@@ -1022,12 +1028,20 @@ class InListMixin(object):
         return self._parent_obj.get_previous_js_selectors()
 
 
+@six.python_2_unicode_compatible
 class BaseListElement(list, Element):
 
     def __init__(self, *args, **kw):
         # We only want to call the __init__ from Element since the __init__
         # with parameter from list wants to append an element to self
         Element.__init__(self, *args, **kw)
+
+    def __str__(self):
+        xml_lis = self.to_xml()
+        return '\n'.join(
+            etree.tostring(xml, pretty_print=True, encoding='unicode')
+            for xml in xml_lis)
+
 
     @classmethod
     def _get_creatable_class_by_tagnames(cls):

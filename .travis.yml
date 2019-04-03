@@ -1,16 +1,12 @@
+dist: xenial
 language: python
 python:
- - "2.6"
  - "2.7"
-node_js:
- - 0.8
- - 0.6
+ - "3.5"
+ - "3.6"
+ - "3.7"
+ - "3.8"
 install:
     - python setup.py install
-    - cd webmedia
-    - npm install grunt-cli
-    - npm install
-    - cd ..
 script:
     - python setup.py test;
-    - cd webmedia; npm test

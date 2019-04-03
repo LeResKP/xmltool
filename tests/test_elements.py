@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import StringIO
+import six
+from io import StringIO
 from mock import patch
 from unittest import TestCase
 from xmltool.testbase import BaseTest
@@ -22,7 +23,7 @@ from xmltool.elements import (
 )
 from xmltool import render, factory
 import xmltool.elements as elements
-from test_dtd_parser import (
+from .test_dtd_parser import (
     BOOK_XML,
     BOOK_DTD,
     EXERCISE_XML_2,
@@ -1239,13 +1240,13 @@ class TestTextElement(BaseTest):
         obj.text = etree.CDATA('<div>HTML</div>')
         xml = obj.to_xml()
         self.assertEqual(etree.tostring(xml),
-                         '<tag><![CDATA[<div>HTML</div>]]></tag>')
+                         b'<tag><![CDATA[<div>HTML</div>]]></tag>')
 
         obj = self.cls()
         obj.text = '<div>HTML</div>'
         xml = obj.to_xml()
         self.assertEqual(etree.tostring(xml),
-                         '<tag>&lt;div&gt;HTML&lt;/div&gt;</tag>')
+                         b'<tag>&lt;div&gt;HTML&lt;/div&gt;</tag>')
 
         obj = self.cls()
         obj._is_empty = True
@@ -1611,12 +1612,12 @@ class TestListElement(BaseTest):
             self.assertEqual(str(e), 'Unsupported tagname unexisting')
 
     def test_add_list_of_list(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (text+)>
         <!ELEMENT text (subtext+)>
         <!ELEMENT subtext (#PCDATA)>
         '''
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic['texts']()
         text = obj.add('text')
         subtext = text.add('subtext', 'value')
@@ -2330,7 +2331,7 @@ class TestFunctions(BaseTest):
         self.assertEqual(res, 'Hello\r\n')
 
     def test_get_previous_js_selectors(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
         <!ELEMENT text (#PCDATA)>
