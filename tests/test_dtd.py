@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from dogpile.cache.api import NO_VALUE
-import StringIO
+from io import StringIO
 from lxml import etree
 import mock
 from unittest import TestCase
+import six
 
 from xmltool import cache, dtd
 from xmltool.elements import (
@@ -12,7 +13,7 @@ from xmltool.elements import (
     Element,
 )
 
-from test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
+from .test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
 
 
 def fake_fetch(self, content):
@@ -82,22 +83,22 @@ class TestDTD(TestCase):
         self.assertRaises(dtd.ValidationError, dtd_obj.validate)
 
     def test__parse(self):
-        dtd_str = '''
+        dtd_str = u'''
             <!ELEMENT Exercise (question)>
             <!ELEMENT question (#PCDATA)>
         '''
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         self.assertEqual(len(dic), 2)
         self.assertTrue(issubclass(dic['Exercise'], Element))
         self.assertTrue(issubclass(dic['question'], TextElement))
 
     def test_parse(self):
-        dtd_str = '''
+        dtd_str = u'''
             <!ELEMENT Exercise (question)>
             <!ELEMENT question (#PCDATA)>
         '''
 
-        dtd_obj = dtd.DTD(StringIO.StringIO(dtd_str))
+        dtd_obj = dtd.DTD(StringIO(dtd_str))
         dic = dtd_obj.parse()
         self.assertEqual(sorted(dic.keys()), sorted(['question', 'Exercise']))
 
@@ -110,10 +111,10 @@ class TestDTD(TestCase):
             dtd_obj._parsed_dict = None
             dtd_obj.url = 'my url'
             dic = dtd_obj.parse()
-            dtd_str = '''
+            dtd_str = u'''
                 <!ELEMENT question (#PCDATA)>
             '''
-            dtd_obj = dtd.DTD(StringIO.StringIO(dtd_str))
+            dtd_obj = dtd.DTD(StringIO(dtd_str))
             dtd_obj._parsed_dict = None
             dtd_obj.url = 'my url'
             dic = dtd_obj.parse()
@@ -122,10 +123,10 @@ class TestDTD(TestCase):
 
             dtd_obj.url = None
             dic = dtd_obj.parse()
-            self.assertEqual(dic.keys(), ['question'])
+            self.assertEqual(list(dic.keys()), ['question'])
 
     def test_validate_xml(self):
-        dtd_obj = dtd.DTD(StringIO.StringIO(EXERCISE_DTD))
+        dtd_obj = dtd.DTD(StringIO(EXERCISE_DTD))
         root = etree.fromstring(EXERCISE_XML)
         res = dtd_obj.validate_xml(root)
         self.assertTrue(res)

@@ -1,13 +1,14 @@
-import StringIO
+from io import StringIO, open
 from dogpile.cache.api import NO_VALUE
 from lxml import etree
 import os
 import requests
+import six
 import tempfile
 
 
-import dtd_parser
-import cache
+from . import dtd_parser
+from . import cache
 
 
 class ValidationError(Exception):
@@ -22,9 +23,10 @@ class DTD(object):
         path is used in case the dtd use relative filesystem path
         """
         self._parsed_dict = None
-        if isinstance(url, StringIO.StringIO):
+        if isinstance(url, StringIO):
             self.url = None
             # set _content and validation
+            # self_content should be str
             self._content = url.getvalue()
             self.validate()
         else:
@@ -49,10 +51,10 @@ class DTD(object):
         url = self._get_dtd_url()
         if url.startswith('http://') or url.startswith('https://'):
             res = requests.get(url, timeout=5)
-            # Use res.content instead of res.text because we want string. If we
-            # get unicode, it fails when creating classes with type().
-            self._content = res.content
+            # Use res.text to have str
+            self._content = res.text
         else:
+            # TODO: Get encoding from the dtd file (xml tag).
             self._content = open(url, 'r').read()
         return self._content
 
@@ -90,7 +92,8 @@ class DTD(object):
         # write a temporary file
         try:
             try:
-                os.write(f, content)
+                # TODO: Get encoding from the dtd file (xml tag).
+                os.write(f, content.encode('utf-8'))
             finally:
                 os.close(f)
             dtd_obj = etree.DTD(filename)
@@ -141,6 +144,6 @@ class DTD(object):
         # Make sure the dtd is valid
         self.validate()
         # We should cache the etree.DTD in the object
-        dtd_obj = etree.DTD(StringIO.StringIO(self.content))
+        dtd_obj = etree.DTD(StringIO(self.content))
         dtd_obj.assertValid(xml_obj)
         return True

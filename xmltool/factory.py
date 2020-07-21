@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
+import six
 import os
 from lxml import etree
-from StringIO import StringIO
-import utils
+from io import StringIO, BytesIO, IOBase
+from . import utils
 from . import elements
 from . import dtd
 
@@ -30,7 +31,7 @@ def create(root_tag, dtd_url=None, dtd_str=None):
 def load(filename, validate=True):
     """Generate a python object
 
-    :param filename: the XML filename we should load
+    :param filename: XML filename or Byte like object we should load
     :param validate: validate the XML before generating the python object.
     :type filename: str
     :type validate: bool
@@ -41,7 +42,7 @@ def load(filename, validate=True):
     tree = etree.parse(filename, parser=parser)
     dtd_url = tree.docinfo.system_url
     path = (os.path.dirname(filename)
-            if isinstance(filename, basestring) else None)
+            if not isinstance(filename, BytesIO) else None)
 
     dtd_obj = dtd.DTD(dtd_url, path)
     if validate:
@@ -67,9 +68,10 @@ def load_string(xml_str, validate=True):
     :return: the generated python object
     :rtype: :class:`Element`
     """
-    if type(xml_str) == unicode:
-        xml_str = xml_str.encode('utf-8')
-    return load(StringIO(xml_str), validate)
+    if not isinstance(xml_str, BytesIO):
+        # TODO: Get encoding from the dtd file (xml tag).
+        xml_str = BytesIO(xml_str.encode('utf-8'))
+    return load(xml_str, validate)
 
 
 def generate_form(filename, form_action=None, form_filename=None, validate=True):
@@ -112,7 +114,7 @@ def generate_form_from_obj(obj, form_action=None, form_filename=None,
     if form_action:
         attrs['action'] = form_action
 
-    attrs_str = ' '.join(['%s="%s"' % tple for tple in attrs.items()])
+    attrs_str = ' '.join(sorted(['%s="%s"' % tple for tple in attrs.items()]))
     html = ['<form method="POST" %s>' % attrs_str]
     html += [hidden_inputs]
     html += [obj._to_html()]
@@ -142,7 +144,7 @@ def update(filename, data, validate=True, transform=None):
     if len(data) != 1:
         raise Exception('Bad data')
 
-    root_tag = data.keys()[0]
+    root_tag = list(data.keys())[0]
 
     dic = dtd.DTD(dtd_url, path=os.path.dirname(filename)).parse()
     obj = dic[root_tag]()
@@ -178,7 +180,7 @@ def new(dtd_url, root_tag, form_action=None, form_attrs=None):
     if form_action:
         attrs['action'] = form_action
 
-    attrs_str = ' '.join(['%s="%s"' % tple for tple in attrs.items()])
+    attrs_str = ' '.join(sorted(['%s="%s"' % tple for tple in attrs.items()]))
     html = ['<form method="POST" %s>' % attrs_str]
     html += [hidden_inputs]
     html += [obj._to_html()]
@@ -269,7 +271,7 @@ def _add_new_element_from_id(elt_id, data, clipboard_data, dtd_url=None,
     :param skip_extra: If True we don't load the attributes nor the comments
     :type skip_extra: bool
     """
-    keys = clipboard_data.keys()
+    keys = list(clipboard_data.keys())
     assert(len(keys) == 1)
     tagname = keys[0]
     parentobj, index = _get_parent_to_add_obj(

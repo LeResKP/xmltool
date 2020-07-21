@@ -1,4 +1,4 @@
-from factory import (
+from .factory import (
     create,
     load,
     load_string,
@@ -8,4 +8,4 @@ from factory import (
     new,
 )
 
-from elements import EOL
+from .elements import EOL

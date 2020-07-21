@@ -20,11 +20,11 @@ class TestFactory(BaseTest):
         self.assertEqual(comment.text, '<div>My comment 2</div>')
         self.assertEqual(
             etree.tostring(comment.to_xml()),
-            '<comment><![CDATA[<div>My comment 2</div>]]></comment>')
+            b'<comment><![CDATA[<div>My comment 2</div>]]></comment>')
         try:
             obj = factory.load('tests/exercise-notvalid.xml')
             assert 0
-        except etree.DocumentInvalid, e:
+        except etree.DocumentInvalid as e:
             self.assertEqual(
                 str(e),
                 'Element comments content does not follow the DTD, expecting '
@@ -44,7 +44,7 @@ class TestFactory(BaseTest):
             xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
             obj = factory.load_string(xml_str)
             assert 0
-        except etree.DocumentInvalid, e:
+        except etree.DocumentInvalid as e:
             self.assertEqual(
                 str(e),
                 'Element comments content does not follow the DTD, expecting '
@@ -59,7 +59,6 @@ class TestFactory(BaseTest):
 
     def test_load_string_unicode(self):
         xml_str = open('tests/exercise-notvalid.xml', 'r').read()
-        xml_str = unicode(xml_str)
         xml_str = xml_str.replace('exercise.dtd', 'tests/exercise.dtd')
         obj = factory.load_string(xml_str,
                                   validate=False)
@@ -135,7 +134,7 @@ class TestFactory(BaseTest):
             try:
                 obj = factory.update(filename, data)
                 assert 0
-            except Exception, e:
+            except Exception as e:
                 self.assertEqual(str(e), 'Bad data')
 
             data = {
@@ -237,7 +236,7 @@ class TestFactory(BaseTest):
         self.assertEqual(res, {'text': {'_value': 'world'}})
 
     def test__get_obj_from_str_id_html(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (text)>
         <!ELEMENT text (#PCDATA)>
         '''
@@ -246,7 +245,7 @@ class TestFactory(BaseTest):
             obj = factory._get_obj_from_str_id(str_id, dtd_str=dtd_str)
             html = obj.to_html()
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid child unexisting')
 
         str_id = 'texts:text'
@@ -265,7 +264,7 @@ class TestFactory(BaseTest):
         self.assertEqual(html, expected)
 
     def test__get_obj_from_str_id_list(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (text*)>
         <!ELEMENT text (#PCDATA)>
         '''
@@ -290,7 +289,7 @@ class TestFactory(BaseTest):
         )
         self.assertEqual_(html, expected)
 
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (list*)>
         <!ELEMENT list (text)>
         <!ELEMENT text (#PCDATA)>
@@ -312,7 +311,7 @@ class TestFactory(BaseTest):
         self.assertEqual(html, expected)
 
     def test__get_obj_from_str_id(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
         <!ELEMENT text (#PCDATA)>
@@ -448,7 +447,7 @@ class TestFactory(BaseTest):
         self.assertEqual(list_obj[1], obj._parent_obj)
 
     def test__get_obj_from_str_id_choices(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts ((tag1|tag2)*)>
         <!ELEMENT tag1 (#PCDATA)>
         <!ELEMENT tag2 (#PCDATA)>
@@ -477,7 +476,7 @@ class TestFactory(BaseTest):
         self.assertEqual(obj.text, 'Hello world')
         self.assertEqual(obj._parent_obj.tagname, 'list__tag1_tag2')
 
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1|tag2)>
         <!ELEMENT tag1 (#PCDATA)>
         <!ELEMENT tag2 (#PCDATA)>
@@ -515,7 +514,7 @@ class TestFactory(BaseTest):
         self.assertEqual(obj.parent.tagname, 'texts')
 
     def test_get_data_from_str_id_for_html_display(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
         <!ELEMENT text (#PCDATA)>
@@ -553,7 +552,7 @@ class TestFactory(BaseTest):
         self.assertEqual(result, expected)
 
     def test__get_data_for_html_display(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text1)>
         <!ELEMENT text1 (#PCDATA)>
@@ -688,7 +687,7 @@ class TestFactory(BaseTest):
         self.assertEqual(res, expected)
 
         # Test with a choice
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text1|text2)>
         <!ELEMENT text1 (#PCDATA)>
@@ -755,7 +754,7 @@ class TestFactory(BaseTest):
         self.assertEqual(res, expected)
 
     def test__get_parent_to_add_obj(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
         <!ELEMENT text (#PCDATA)>
@@ -817,7 +816,7 @@ class TestFactory(BaseTest):
         # Try with empty element
         # The str_id has no value so didn't exist, we want to make sure we
         # create it correctly
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*)>
         <!ELEMENT list (text)>
         <!ELEMENT text (tag2)>
@@ -868,7 +867,7 @@ class TestFactory(BaseTest):
         self.assertEqual(index, None)
 
     def test__add_new_element_from_id(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (tag1, list*, tag2)>
         <!ELEMENT list (text)>
         <!ELEMENT text (#PCDATA)>

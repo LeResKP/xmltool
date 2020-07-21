@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import StringIO
+import six
+from io import StringIO
 from unittest import TestCase
 from xmltool.testbase import BaseTest
 import json
 from lxml import etree, html
-import tw2.core as twc
 import os.path
 from xmltool import dtd_parser, factory, render, dtd
 from xmltool.elements import (
@@ -16,6 +16,7 @@ from xmltool.factory import (
     get_data_from_str_id_for_html_display,
     _get_data_for_html_display,
 )
+from xmltool.utils import unflatten_params
 from ..test_dtd_parser import (
     MOVIE_DTD,
     MOVIE_XML_TITANIC_COMMENTS,
@@ -38,7 +39,7 @@ class ElementTester(BaseTest):
         if self.__class__ == ElementTester:
             return
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         tree = obj.to_xml()
@@ -59,7 +60,7 @@ class ElementTester(BaseTest):
         if self.expected_html is None:
             return
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual_(obj._to_html(), self.expected_html)
@@ -67,9 +68,9 @@ class ElementTester(BaseTest):
     def test_load_from_dict(self):
         if self.__class__ == ElementTester:
             return
-        data = twc.validation.unflatten_params(self.submit_data)
+        data = unflatten_params(self.submit_data)
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_dict(data)
         tree = obj.to_xml()
@@ -116,11 +117,11 @@ class ElementTester(BaseTest):
 
 
 class TestElementPCDATA(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>Hello world</text>
 </texts>
@@ -178,7 +179,7 @@ class TestElementPCDATA(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -204,19 +205,19 @@ class TestElementPCDATA(ElementTester):
         try:
             obj.add('unexisiting')
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Invalid child unexisiting')
 
 
 class TestElementPCDATAEmpty(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
-    expected_xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    expected_xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text></text>
 </texts>
@@ -274,11 +275,11 @@ class TestElementPCDATAEmpty(ElementTester):
 
 
 class TestElementPCDATANotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text?)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>Hello world</text>
 </texts>
@@ -333,11 +334,11 @@ class TestElementPCDATANotRequired(ElementTester):
 
 
 class TestElementPCDATAEmptyNotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text?)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
     expected_html = (
@@ -380,11 +381,11 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
 
 
 class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text?)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text></text>
 </texts>
@@ -439,11 +440,11 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
 
 
 class TestListElement(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text+)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>Tag 1</text>
   <text>Tag 2</text>
@@ -574,7 +575,7 @@ class TestListElement(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -586,14 +587,14 @@ class TestListElement(ElementTester):
 
 
 class TestListElementEmpty(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text+)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
-    expected_xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    expected_xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text></text>
 </texts>
@@ -692,11 +693,11 @@ class TestListElementEmpty(ElementTester):
 
 
 class TestListElementNotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text*)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>Tag 1</text>
   <text>Tag 2</text>
@@ -798,11 +799,11 @@ class TestListElementNotRequired(ElementTester):
 
 
 class TestListElementEmptyNotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text*)>
         <!ELEMENT text (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
     expected_html = (
@@ -872,15 +873,15 @@ class TestListElementEmptyNotRequired(ElementTester):
 
 
 class TestListElementElementEmpty(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text+)>
         <!ELEMENT text (subtext)>
         <!ELEMENT subtext (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
-    expected_xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    expected_xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>
     <subtext></subtext>
@@ -1025,12 +1026,12 @@ choice_js_selector = [
 
 
 class TestElementChoice(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text1|text2)>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>Tag 1</text1>
 </texts>
@@ -1076,7 +1077,7 @@ class TestElementChoice(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -1085,12 +1086,12 @@ class TestElementChoice(ElementTester):
         self.assertEqual(obj['text1'].sourceline, 3)
         self.assertFalse(hasattr(obj, 'text2'))
 
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text2>Tag 2</text2>
 </texts>'''
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -1101,12 +1102,12 @@ class TestElementChoice(ElementTester):
 
 
 class TestElementChoiceEmpty(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text1|text2)>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
     expected_html = (
@@ -1129,12 +1130,12 @@ class TestElementChoiceEmpty(ElementTester):
 
 
 class TestElementChoiceNotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text1|text2)?>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>Tag 1</text1>
 </texts>
@@ -1173,12 +1174,12 @@ class TestElementChoiceNotRequired(ElementTester):
 
 
 class TestElementChoiceEmptyNotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text1|text2)?>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
     expected_html = (
@@ -1259,12 +1260,12 @@ choice_list_js_selector = [
     ]
 
 class TestElementChoiceList(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts ((text1|text2)+)>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>Tag 1</text1>
   <text2>Tag 2</text2>
@@ -1354,7 +1355,7 @@ class TestElementChoiceList(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.tagname, 'texts')
@@ -1368,12 +1369,12 @@ class TestElementChoiceList(ElementTester):
 
 
 class TestElementChoiceListEmpty(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts ((text1|text2)+)>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
     expected_html = (
@@ -1397,12 +1398,12 @@ class TestElementChoiceListEmpty(ElementTester):
 
 
 class TestElementChoiceListNotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts ((text1|text2)+)>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>Tag 1</text1>
   <text2>Tag 2</text2>
@@ -1483,12 +1484,12 @@ class TestElementChoiceListNotRequired(ElementTester):
 
 
 class TestElementChoiceListEmptyNotRequired(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts ((text1|text2)*)>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
     expected_html = (
@@ -1512,12 +1513,12 @@ class TestElementChoiceListEmptyNotRequired(ElementTester):
 
 
 class TestListElementOfList(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text1*)>
         <!ELEMENT text1 (text2+)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>
     <text2>text2-1</text2>
@@ -1694,7 +1695,7 @@ class TestListElementOfList(ElementTester):
 
 
 class TestElementWithAttributes(ElementTester):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text, text1*)>
         <!ELEMENT text (#PCDATA)>
         <!ELEMENT text1 (#PCDATA)>
@@ -1704,7 +1705,7 @@ class TestElementWithAttributes(ElementTester):
         <!ATTLIST text idtext ID #IMPLIED>
         <!ATTLIST text1 idtext1 CDATA "">
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts idtexts="id_texts" name="my texts">
   <text idtext="id_text">Hello world</text>
   <text1 idtext1="id_text1_1">My text 1</text1>
@@ -1809,7 +1810,7 @@ class TestElementWithAttributes(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj._attribute_names, ['idtexts', 'name'])
@@ -1830,7 +1831,7 @@ class TestElementWithAttributes(ElementTester):
 
     def test_walk(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         lis = [e for e in obj.walk()]
@@ -1883,7 +1884,7 @@ class TestElementComments(ElementTester):
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         self.assertEqual(obj.sourceline, 3)
@@ -1936,7 +1937,7 @@ class TestElementComments(ElementTester):
 
 
 class TestWalk(TestCase):
-    dtd_str = '''
+    dtd_str = u'''
         <!ELEMENT texts (text, text1*)>
         <!ELEMENT text (t1|t2)>
         <!ELEMENT text1 (text11, text)>
@@ -1945,7 +1946,7 @@ class TestWalk(TestCase):
         <!ELEMENT text11 (#PCDATA)>
 
         '''
-    xml = '''<?xml version='1.0' encoding='UTF-8'?>
+    xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>
     <t1>t1</t1>
@@ -1967,7 +1968,7 @@ class TestWalk(TestCase):
 
     def test_walk(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         lis = [e for e in obj.walk()]
@@ -1987,7 +1988,7 @@ class TestWalk(TestCase):
 
     def test_findall(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         lis = obj.findall('text11')
@@ -2018,13 +2019,13 @@ class TestXPath(TestCase):
 
     def test_xpath(self):
         root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO.StringIO(self.dtd_str)).parse()
+        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
 
         try:
             res = obj.xpath('Movie')
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(
                 str(e),
                 'The xpath is only supported '
@@ -2062,7 +2063,7 @@ def generate_html_block(html, css_class, attrs=''):
 
 def generate_javascript_unittest(xml, dtd_str, tagname):
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
         obj.root.html_renderer = render.Render()
@@ -2108,23 +2109,23 @@ class TestJavascript(TestCase):
 
     def test_updatePrefixAttrs(self):
         lis = []
-        dtd_str = '''
+        dtd_str = u'''
             <!ELEMENT texts (text+)>
             <!ELEMENT text (#PCDATA)>
             '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>Tag 1</text>
 </texts>
 '''
         lis += [generate_javascript_unittest(xml, dtd_str, 'text')]
 
-        dtd_str = '''
+        dtd_str = u'''
             <!ELEMENT texts (text+)>
             <!ELEMENT text (subtext)>
             <!ELEMENT subtext (#PCDATA)>
             '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>
     <subtext>Hello</subtext>
@@ -2133,25 +2134,25 @@ class TestJavascript(TestCase):
 '''
         lis += [generate_javascript_unittest(xml, dtd_str, 'text')]
 
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts ((text1|text2)+)>
         <!ELEMENT text1 (#PCDATA)>
         <!ELEMENT text2 (#PCDATA)>
         '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>Tag 1</text1>
 </texts>
 '''
         lis += [generate_javascript_unittest(xml, dtd_str, 'list__text1_text2')]
 
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts ((text1|text2)+)>
         <!ELEMENT text1 (subtext)>
         <!ELEMENT text2 (subtext)>
         <!ELEMENT subtext (#PCDATA)>
         '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>
     <subtext>Tag 1</subtext>
@@ -2167,12 +2168,12 @@ class TestJavascript(TestCase):
         open(filename, 'w').write(h)
 
     def test_jstree_utils(self):
-        dtd_str = '''
+        dtd_str = u'''
             <!ELEMENT texts (text+)>
             <!ELEMENT text (subtext)>
             <!ELEMENT subtext (#PCDATA)>
             '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>
     <subtext>Hello</subtext>
@@ -2180,7 +2181,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2218,16 +2219,16 @@ class TestJavascript(TestCase):
         open(filename, 'w').write(js)
 
     def test_add_element(self):
-        dtd_str = '''
+        dtd_str = u'''
             <!ELEMENT texts (text?)>
             <!ELEMENT text (#PCDATA)>
             '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts></texts>'''
 
         lis = []
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2268,16 +2269,16 @@ class TestJavascript(TestCase):
         )
         lis += [test_html]
 
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (text1|text2)?>
         <!ELEMENT text1 (subtext)>
         <!ELEMENT text2 (subtext)>
         <!ELEMENT subtext (#PCDATA)>
         '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts></texts>'''
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2318,13 +2319,13 @@ class TestJavascript(TestCase):
         )
         lis += [test_html]
 
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts ((text1|text2)+)>
         <!ELEMENT text1 (subtext)>
         <!ELEMENT text2 (subtext)>
         <!ELEMENT subtext (#PCDATA)>
         '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>
     <subtext>Tag 1</subtext>
@@ -2335,7 +2336,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2434,12 +2435,12 @@ class TestJavascript(TestCase):
         )
         lis += [test_html]
 
-        dtd_str = '''
+        dtd_str = u'''
             <!ELEMENT texts (text+)>
             <!ELEMENT text (subtext)>
             <!ELEMENT subtext (#PCDATA)>
             '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text>
     <subtext>Hello</subtext>
@@ -2450,7 +2451,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2559,13 +2560,13 @@ class TestJavascript(TestCase):
         open(filename, 'w').write(h)
 
     def test_remove_element(self):
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts ((text1|text2)+)>
         <!ELEMENT text1 (subtext)>
         <!ELEMENT text2 (subtext?)>
         <!ELEMENT subtext (#PCDATA)>
         '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
   <text1>
     <subtext>Tag 1</subtext>
@@ -2582,7 +2583,7 @@ class TestJavascript(TestCase):
 </texts>
 '''
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 
@@ -2713,7 +2714,7 @@ class TestJavascript(TestCase):
 
     def test_move_element(self):
         lis = []
-        dtd_str = '''
+        dtd_str = u'''
         <!ELEMENT texts (text)>
         <!ELEMENT text (block, (subtext1|subtext2)*)>
         <!ELEMENT subtext1 (minitext*)>
@@ -2721,7 +2722,7 @@ class TestJavascript(TestCase):
         <!ELEMENT block (#PCDATA)>
         <!ELEMENT minitext (#PCDATA)>
         '''
-        xml = '''<?xml version='1.0' encoding='UTF-8'?>
+        xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts>
 <text>
   <block>tag 0</block>
@@ -2741,7 +2742,7 @@ class TestJavascript(TestCase):
 </text>
 </texts>'''
         root = etree.fromstring(xml)
-        dic = dtd.DTD(StringIO.StringIO(dtd_str)).parse()
+        dic = dtd.DTD(StringIO(dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
 

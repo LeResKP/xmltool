@@ -3,7 +3,7 @@
 from unittest import TestCase
 from lxml import etree
 from xmltool import utils
-from test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
+from .test_dtd_parser import EXERCISE_XML, EXERCISE_DTD, INVALID_EXERCISE_XML
 import webob
 
 

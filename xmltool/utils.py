@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import re
+import six
 import webob
 
 
@@ -20,7 +21,7 @@ def truncate(s, limit=30):
     limit += 1
     if len(s) > limit:
         s = s[:limit]
-        for i in xrange(len(s), 0, -1):
+        for i in range(len(s), 0, -1):
             if s[i-1] == ' ':
                 return s.rstrip() + '...'
             s = s[:-1]
@@ -43,7 +44,7 @@ def unflatten_params(params):
     # TODO: the encoding can be in the given params, use it!
     enc = 'utf-8'
     for p in params:
-        if isinstance(params[p], str):
+        if isinstance(params[p], str) and six.PY2:
             # Can raise an exception!
             params[p] = params[p].decode(enc)
 

@@ -13,7 +13,7 @@ from xmltool.elements import (
 )
 
 
-MOVIE_DTD = '''
+MOVIE_DTD = u'''
 <!ELEMENT Movie (is-publish?, name, year, directors, actors, resume?, critique*)>
 
 <!-- My comment
@@ -33,7 +33,7 @@ that should be removed
 <!ELEMENT critique (#PCDATA)>
 '''
 
-MOVIE_XML_TITANIC = '''<?xml version='1.0' encoding='UTF-8'?>
+MOVIE_XML_TITANIC = b'''<?xml version='1.0' encoding='UTF-8'?>
 <Movie>
   <name>Titanic</name>
   <year>1997</year>
@@ -65,7 +65,7 @@ MOVIE_XML_TITANIC = '''<?xml version='1.0' encoding='UTF-8'?>
 </Movie>
 '''
 
-MOVIE_XML_TITANIC_COMMENTS = '''<?xml version='1.0' encoding='UTF-8'?>
+MOVIE_XML_TITANIC_COMMENTS = b'''<?xml version='1.0' encoding='UTF-8'?>
 <!-- Movie comment -->
 <Movie>
   <!-- name comment -->
@@ -117,7 +117,7 @@ MOVIE_XML_TITANIC_COMMENTS = '''<?xml version='1.0' encoding='UTF-8'?>
 </Movie>
 '''
 
-EXERCISE_DTD = '''
+EXERCISE_DTD = u'''
 <!ELEMENT Exercise (question, test)>
 <!ELEMENT question (#PCDATA)>
 <!ELEMENT test (qcm|mqm)>
@@ -127,7 +127,7 @@ EXERCISE_DTD = '''
 '''
 
 
-EXERCISE_XML = '''<?xml version='1.0' encoding='UTF-8'?>
+EXERCISE_XML = b'''<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Exercise SYSTEM "test.dtd">
 <Exercise>
   <question>What is your favorite color?</question>
@@ -141,7 +141,7 @@ EXERCISE_XML = '''<?xml version='1.0' encoding='UTF-8'?>
 </Exercise>
 '''
 
-INVALID_EXERCISE_XML = '''<?xml version='1.0' encoding='UTF-8'?>
+INVALID_EXERCISE_XML = b'''<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Exercise SYSTEM "test.dtd">
 <Exercise>
   <question>What is your favorite color?</question>
@@ -152,7 +152,7 @@ INVALID_EXERCISE_XML = '''<?xml version='1.0' encoding='UTF-8'?>
 </Exercise>
 '''
 
-EXERCISE_DTD_2 = '''
+EXERCISE_DTD_2 = u'''
 <!ELEMENT Exercise (number, test*)>
 <!ELEMENT test (question, (qcm|mqm)*, comments?)>
 <!ELEMENT qcm (choice+)>
@@ -174,7 +174,7 @@ EXERCISE_DTD_2 = '''
 <!ATTLIST choice idchoice ID #IMPLIED>
 '''
 
-EXERCISE_XML_2 = '''<?xml version='1.0' encoding='UTF-8'?>
+EXERCISE_XML_2 = b'''<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Exercise SYSTEM "test.dtd">
 <Exercise idexercise="1">
   <number>1</number>
@@ -209,7 +209,7 @@ EXERCISE_XML_2 = '''<?xml version='1.0' encoding='UTF-8'?>
 </Exercise>
 '''
 
-EXERCISE_DTD_3 = '''
+EXERCISE_DTD_3 = u'''
 <!ELEMENT Exercise (number, test+)>
 <!ELEMENT test (question, (qcm|mqm), comments?)>
 <!ELEMENT qcm (choice+)>
@@ -221,7 +221,7 @@ EXERCISE_DTD_3 = '''
 <!ELEMENT choice (#PCDATA)>
 '''
 
-EXERCISE_DTD_4 = '''
+EXERCISE_DTD_4 = u'''
 <!ELEMENT Exercise (number, test+)>
 <!ELEMENT test (question, (qcm|mqm), (positive-comments|negative-comments)*)>
 <!ELEMENT qcm (choice+)>
@@ -234,7 +234,7 @@ EXERCISE_DTD_4 = '''
 <!ELEMENT choice (#PCDATA)>
 '''
 
-BOOK_DTD = '''
+BOOK_DTD = u'''
 <!ELEMENT Book (ISBN, book-title, book-resume, comments)>
 <!ELEMENT ISBN (#PCDATA)>
 <!ELEMENT book-title (#PCDATA)>
@@ -243,7 +243,7 @@ BOOK_DTD = '''
 <!ELEMENT comment (#PCDATA)>
 '''
 
-BOOK_XML = '''<?xml version='1.0' encoding='UTF-8'?>
+BOOK_XML = b'''<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Book SYSTEM "test.dtd">
 <Book>
   <ISBN>JFJEFBQN</ISBN>
@@ -277,14 +277,14 @@ class DtdParser(TestCase):
         try:
             dtd_parser.parse_element(element)
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual( str(e), 'Unbalanced parenthesis %s' % element)
 
     def test_parse_element_exception_empty(self):
         try:
             dtd_parser.parse_element('')
             assert 0
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'Error parsing element ')
 
     def test_parse_entity(self):
@@ -530,7 +530,7 @@ class DtdParser(TestCase):
                 class_dic, 'tag1_tag2', required=True, islist=False,
                 conditionals=[])
             assert(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(
                 str(e),
                 'You should provide a base_cls or conditionals for tag1_tag2')
