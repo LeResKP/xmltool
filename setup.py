@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-version = '1.0.0'
+version = '1.0.1'
 
 setup(name='xmltool',
       version=version,
@@ -42,7 +42,6 @@ setup(name='xmltool',
           'requests',
           'dogpile.cache<=0.9.2',
           'six',
-          'future',
       ],
       test_suite='nose.collector',
       tests_require=[
