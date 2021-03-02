@@ -1,4 +1,3 @@
-from future.utils import native_str
 
 import re
 from .elements import (
@@ -135,13 +134,13 @@ def _create_new_class(class_dict, name, required, islist, conditionals,
     if conditionals:
         assert name
         if not islist:
-            parent_cls = type(native_str('%sChoice' % name), (ChoiceElement,), {
+            parent_cls = type('%sChoice' % name, (ChoiceElement,), {
                 '_choice_classes': [],
                 'tagname': 'choice__%s' % name,
                 '_required': required
             })
         else:
-            parent_cls = type(native_str('%sChoiceList' % name), (ChoiceListElement,), {
+            parent_cls = type('%sChoiceList' % name, (ChoiceListElement,), {
                 '_choice_classes': [],
                 'tagname': 'list__%s' % name,
                 '_required': required,
@@ -206,7 +205,7 @@ def _create_class_dict(dtd_dict):
             dic['elts'] = dic['elts'][1:-2] + '?' # Remove the '*' at the end
         else:
             c = ContainerElement
-        cls = type(native_str(tagname), (c,), {
+        cls = type(tagname, (c,), {
             'tagname': tagname,
             '_attribute_names': [tple[0] for tple in dic['attrs']],
             'children_classes': [],
