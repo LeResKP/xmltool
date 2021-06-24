@@ -3,7 +3,6 @@ from dogpile.cache.api import NO_VALUE
 from lxml import etree
 import os
 import requests
-import six
 import tempfile
 
 

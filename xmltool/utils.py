@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import re
-import six
 import webob
 
 
@@ -41,12 +40,6 @@ def unflatten_params(params):
     """
     if isinstance(params, webob.MultiDict):
         params = params.mixed()
-    # TODO: the encoding can be in the given params, use it!
-    enc = 'utf-8'
-    for p in params:
-        if isinstance(params[p], str) and six.PY2:
-            # Can raise an exception!
-            params[p] = params[p].decode(enc)
 
     out = {}
     for pname in params:

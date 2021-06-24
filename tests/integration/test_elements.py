@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import six
 from io import StringIO
 from unittest import TestCase
 from xmltool.testbase import BaseTest

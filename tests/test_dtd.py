@@ -5,7 +5,6 @@ from io import StringIO
 from lxml import etree
 import mock
 from unittest import TestCase
-import six
 
 from xmltool import cache, dtd
 from xmltool.elements import (

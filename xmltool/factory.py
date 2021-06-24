@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import six
 import os
 from lxml import etree
 from io import StringIO, BytesIO, IOBase

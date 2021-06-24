@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import six
 from io import StringIO
 from mock import patch
 from unittest import TestCase

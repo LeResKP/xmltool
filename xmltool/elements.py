@@ -4,11 +4,9 @@ from io import StringIO, open
 import os
 import re
 from lxml import etree
-import six
 
 from . import utils
 from .utils import prefixes_to_str
-from distutils.version import StrictVersion
 from . import render
 
 
@@ -43,7 +41,6 @@ class EmptyElement(object):
         self._auto_added = False
 
 
-@six.python_2_unicode_compatible
 class Element(object):
     """After reading a dtd file we construct some Element
     """
@@ -603,25 +600,12 @@ class Element(object):
             'root_tag': self.tagname,
             'dtd_url': dtd_url}
 
-        # Some etree versions are not valid according to StrictVersion so we
-        # split it.
-        etree_version = '.'.join(etree.__version__.split('.')[:2])
-        if StrictVersion(etree_version) < StrictVersion('2.3'):
-            xml_str = etree.tostring(
-                xml.getroottree(),
-                pretty_print=True,
-                xml_declaration=True,
-                encoding=encoding,
-            )
-            xml_str = xml_str.replace('<%s' % self.tagname,
-                                      '%s\n<%s' % (doctype, self.tagname))
-        else:
-            xml_str = etree.tostring(
-                xml.getroottree(),
-                pretty_print=True,
-                xml_declaration=True,
-                encoding=encoding,
-                doctype=doctype)
+        xml_str = etree.tostring(
+            xml.getroottree(),
+            pretty_print=True,
+            xml_declaration=True,
+            encoding=encoding,
+            doctype=doctype)
 
         if transform:
             xml_str = transform(xml_str.decode(encoding)).encode(encoding)
@@ -1028,7 +1012,6 @@ class InListMixin(object):
         return self._parent_obj.get_previous_js_selectors()
 
 
-@six.python_2_unicode_compatible
 class BaseListElement(list, Element):
 
     def __init__(self, *args, **kw):
