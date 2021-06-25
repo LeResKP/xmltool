@@ -121,16 +121,6 @@ class Element(object):
         return cls._get_creatable_subclass_by_tagnames().get(tagname)
 
     @classmethod
-    def get_child_class(cls, tagname):
-        """Returns the child class where the tagname can be added. For example
-        if it's an element of list return the list class.
-        """
-        for c in cls.children_classes:
-            for tn in c._get_creatable_class_by_tagnames():
-                if tn == tagname:
-                    return c
-
-    @classmethod
     def _get_value_from_parent(cls, parent_obj):
         return parent_obj.xml_elements.get(cls.tagname)
 
@@ -643,14 +633,6 @@ class BaseListElement(list, Element):
         }
 
     @classmethod
-    def get_child_class(cls, tagname):
-        """Returns the child class where the tagname can be added. For example
-        if it's an element of list return the list class.
-        """
-        if tagname == cls._children_class.tagname:
-            return cls._children_class
-
-    @classmethod
     def _check_addable(cls, obj, tagname):
         """Check if the given tagname is addable to the given obj
         """
@@ -772,16 +754,6 @@ class MultipleMixin(object):
         for c in cls._choice_classes:
             dic.update(c._get_creatable_class_by_tagnames())
         return dic
-
-    @classmethod
-    def get_child_class(cls, tagname):
-        """Returns the child class where the tagname can be added. For example
-        if it's an element of list return the list class.
-        """
-        for c in cls._choice_classes:
-            for tn in c._get_creatable_class_by_tagnames():
-                if tn == tagname:
-                    return c
 
 
 class ChoiceListElement(MultipleMixin, BaseListElement):

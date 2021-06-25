@@ -100,10 +100,6 @@ class TestElement(BaseTest):
         }
         self.assertEqual(res, expected)
 
-    def test_get_child_class(self):
-        self.assertEqual(self.cls.get_child_class('subtag'), self.sub_cls)
-        self.assertEqual(self.cls.get_child_class('unexisting'), None)
-
     def test__get_value_from_parent(self):
         obj = self.cls(self.root_obj)
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), obj)
@@ -912,10 +908,6 @@ class TestListElement(BaseTest):
         }
         self.assertEqual(res, expected)
 
-    def test_get_child_class(self):
-        self.assertEqual(self.cls.get_child_class('subtag'), self.sub_cls)
-        self.assertEqual(self.cls.get_child_class('tag'), None)
-
     def test__get_value_from_parent(self):
         self.assertEqual(self.cls._get_value_from_parent(self.root_obj), None)
         list_obj = self.cls(self.root_obj)
@@ -1225,10 +1217,6 @@ class TestChoiceElement(BaseTest):
             'subtag2': self.sub_cls2,
         }
         self.assertEqual(res, expected)
-
-    def test_get_child_class(self):
-        self.assertEqual(self.cls.get_child_class('subtag1'), self.sub_cls1)
-        self.assertEqual(self.cls.get_child_class('subtag2'), self.sub_cls2)
 
     def test__get_value_from_parent(self):
         obj1 = self.sub_cls1()
