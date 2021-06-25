@@ -60,10 +60,6 @@ class Element(object):
     dtd_str = None
     encoding = None
 
-    # The render used to make HTML rendering.
-    # See render.py for more details
-    html_renderer = None
-
     def __init__(self, parent_obj=None, parent=None, auto_added=False, *args, **kw):
         super(Element, self).__init__(*args, **kw)
         # parent and parent_obj are differents where the element is in a list:
@@ -87,47 +83,10 @@ class Element(object):
 
         # Store the XML element here
         self.xml_elements = {}
-        # Cache
-        self._cache_prefixes = None
         # Will be set to True when we add tag to render the object.  This flag
         # is used to know the object has been added by the code so we should
         # remove it in the code.
         self._auto_added = auto_added
-
-
-    @property
-    def prefixes_no_cache(self):
-        """Same function as prefixes, but we don't want to set cache here. This
-        function is used when we construct the objects, so we can't add cache
-        during the construction is not finished
-        """
-        prefixes = []
-        if self._parent_obj:
-            prefixes = self._parent_obj.prefixes_no_cache
-            if isinstance(self._parent_obj, BaseListElement):
-                prefixes += [str(self._parent_obj.index(self))]
-        if not isinstance(self, ChoiceElement):
-            prefixes += [self.tagname]
-        return prefixes
-
-    @property
-    def _prefix_str(self):
-        return prefixes_to_str(self.prefixes_no_cache)
-
-    @property
-    def prefixes(self):
-        """Get the list of prefixes for this object
-        """
-        if self._cache_prefixes is None:
-            prefixes = []
-            if self._parent_obj:
-                prefixes = self._parent_obj.prefixes[:]
-                if isinstance(self._parent_obj, BaseListElement):
-                    prefixes += [str(self._parent_obj.index(self))]
-            if not isinstance(self, ChoiceElement):
-                prefixes += [self.tagname]
-            self._cache_prefixes = prefixes
-        return self._cache_prefixes
 
     @property
     def position(self):
@@ -301,22 +260,6 @@ class Element(object):
         for k, v in self.attributes.items():
             xml.attrib[k] = v
 
-    def _attributes_to_html(self):
-        if not self.attributes:
-            return ''
-
-        ident = prefixes_to_str(self.prefixes_no_cache)
-
-        html = []
-        for k, v in self.attributes.items():
-            html += ['<a name="%s=%s"></a>' % (k, v)]
-            html += ['<input value="%s" name="%s" id="%s" class="_attrs" />' % (
-                v,
-                '%s:_attrs:%s' % (ident, k),
-                '%s:_attrs:%s' % (ident, k),
-            )]
-        return ''.join(html)
-
     def _load_comment_from_xml(self, xml):
         previous = xml
         comments = []
@@ -351,24 +294,6 @@ class Element(object):
             return None
         elt = etree.Comment(update_eol(self.comment))
         xml.addprevious(elt)
-
-    def _comment_to_html(self):
-        ident = prefixes_to_str(self.prefixes_no_cache + ['_comment'])
-
-        if not self.comment:
-            return (
-                u'<a data-comment-name="%s" class="btn-comment" '
-                u'title="Add comment"></a>') % ident
-        else:
-            return (
-                u'<a data-comment-name="{name}" '
-                u'class="btn-comment has-comment" title="{comment}"></a>'
-                u'<textarea class="_comment" name="{name}">{comment}'
-                '</textarea>'
-            ).format(
-                name=ident,
-                comment=self.comment
-            )
 
     def _load_extra_from_xml(self, xml):
         self._load_attributes_from_xml(xml)
@@ -451,84 +376,6 @@ class Element(object):
             #  encoding='unicode' will force lxml to return a unicode string
             return etree.tostring(xml, pretty_print=True, encoding='unicode')
         return xml
-
-    def _get_html_add_button(self, css_class=None):
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        css_classes = ['btn-add btn-add-%s' % self.tagname]
-        if css_class:
-            css_classes += [css_class]
-        return '<a class="%s" data-elt-id="%s">Add %s</a>' % (
-            ' '.join(css_classes),
-            ident,
-            self.tagname)
-
-    def _get_html_delete_button(self):
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        return ('<a class="btn-delete" '
-                'data-target="#%s" title="Delete"></a>') % ident
-
-    def get_html_renderer(self):
-        """Render uses to make the textarea as HTML and a first decision about
-        adding buttons and comments.
-        """
-        if self.root.html_renderer is None:
-            # Set a default renderer
-            self.root.html_renderer = render.Render()
-        return self.root.html_renderer
-
-    def _add_html_add_button(self):
-        """
-        """
-        renderer = self.get_html_renderer()
-        if not renderer.add_add_button():
-            return False
-        return not self._required
-
-    def _add_html_delete_button(self):
-        """
-        """
-        renderer = self.get_html_renderer()
-        if not renderer.add_delete_button():
-            return False
-        return not self._required
-
-    def _get_jstree_data(self):
-        return self.tagname
-
-    def _get_jstree_attrs(self):
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        return {
-            'class': '%s %s' % (TREE_PREFIX + ident, self.tagname),
-        }
-
-    def to_jstree_dict(self):
-        data = self._get_jstree_data()
-        children = []
-
-        for o in self._children_with_required:
-            v = o.to_jstree_dict()
-            o._delete_auto_added()
-            if v:
-                if isinstance(v, list):
-                    children += v
-                else:
-                    children += [v]
-
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        return {
-            'text': data,
-            # NOTE: we put the id on the a to let jstree making the unique id
-            # on the node.
-            'a_attr': {
-                'id': TREE_PREFIX + ident,
-            },
-            'li_attr': self._get_jstree_attrs(),
-            'children': children,
-            'state': {
-                # To be sure jstree will load the tree recursively
-                'opened': True,
-            }
-        }
 
     def __setitem__(self, tagname, value):
         # TODO: Perhaps we should check the value type and if the tagname is
@@ -628,101 +475,9 @@ class Element(object):
                 o += [res]
         return o
 
-    def to_html(self, *args, **kw):
-        raise NotImplementedError
-
-    def _to_html(self, *args, **kw):
-        raise NotImplementedError
-
-    def get_previous_js_selectors(self):
-        lis = []
-
-        parent = self._parent_obj
-        if not parent:
-            # No parent it's the root tag.
-            return lis
-
-        cobj = self
-        if isinstance(self, ChoiceElement):
-            # Special case for ChoiceElement to get the good object
-            cobj = self._value
-
-        for child in parent._full_children:
-            # We can delete the child it will continue to exist, it's detached
-            child._delete_auto_added()
-            if child == cobj:
-                break
-            parent_ident = prefixes_to_str(parent.prefixes_no_cache +
-                                           [child.tagname])
-            # NOTE: we use class selector with last in case element is a list.
-            # It should be added after the last element of the list.
-            lis += [('after', escape_attr('.%s%s' % (
-                TREE_PREFIX,
-                parent_ident
-            )) + ':last')]
-
-        lis.reverse()
-        parent_ident = prefixes_to_str(parent.prefixes_no_cache)
-        lis += [('inside', escape_attr('#%s%s' % (
-            TREE_PREFIX,
-            parent_ident
-        )))]
-        return lis
-
 
 class ContainerElement(Element):
-
-    def _to_html(self):
-        renderer = self.get_html_renderer()
-        # TODO: remove self._parent_obj condition. When we want to render an
-        # HTML we should call to_html
-        if not self._has_value() and not self._required and self._parent_obj:
-            if not renderer.add_add_button():
-                return ''
-            # Add button!
-            return self._get_html_add_button()
-        return self.to_html()
-
-    def to_html(self):
-        renderer = self.get_html_renderer()
-        sub_html = [self._attributes_to_html()]
-
-        for obj in self._full_children:
-            tmp = obj._to_html()
-            obj._delete_auto_added()
-            if tmp:
-                sub_html += [tmp]
-
-        legend = self.tagname
-
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        if self._parent_obj:
-            # The root element is not deletable
-            if self._add_html_add_button():
-                legend += self._get_html_add_button(css_class='hidden')
-
-            if self._add_html_delete_button():
-                legend += self._get_html_delete_button()
-
-        if renderer.add_comment():
-            legend += self._comment_to_html()
-
-        html = [(
-            u'<div class="panel panel-default {css_class}" id="{ident}">'
-            u'<div class="panel-heading">'
-            u'<span data-toggle="collapse" '
-            u'href="#collapse-{escaped_id}">{legend}</span>'
-            u'</div>'
-            u'<div class="panel-body panel-collapse collapse in" '
-            u'id="collapse-{ident}">').format(
-                css_class=self.tagname,
-                ident=ident,
-                legend=legend,
-                escaped_id=escape_attr(ident),
-            )]
-        html.extend(sub_html)
-        html += ['</div></div>']
-        return ''.join(html)
+    pass
 
 
 class TextElement(Element):
@@ -802,78 +557,6 @@ class TextElement(Element):
                 xml.text = etree.CDATA(xml.text)
         return xml
 
-    def _get_html_attrs(self, rows):
-        """Get the HTML attributes to put on the textarea.
-
-        :return: List of tuple like [('name', 'myname'), ...]
-        """
-        name = prefixes_to_str(self.prefixes_no_cache + ['_value'])
-        attrs = [
-            ('name', name),
-            ('rows', rows),
-            ('class', self.tagname),
-        ]
-        return attrs
-
-    def _to_html(self):
-        renderer = self.get_html_renderer()
-
-        if self.text is None and not self._required:
-            if not renderer.add_add_button():
-                return ''
-            return self._get_html_add_button()
-        return self.to_html()
-
-    def to_html(self):
-        renderer = self.get_html_renderer()
-        add_button = ''
-        if self._add_html_add_button():
-            add_button = self._get_html_add_button(css_class='hidden')
-
-        delete_button = ''
-
-        if self._add_html_delete_button():
-            delete_button = self._get_html_delete_button()
-
-        value = self.text or ''
-        cnt = value.count('\n')
-        if cnt:
-            cnt += 1
-        rows = max(cnt, 1)
-        attrs = self._get_html_attrs(rows)
-        render = self.get_html_renderer()
-        textarea = render.text_element_to_html(self, attrs, value)
-
-        comment = ''
-        if renderer.add_comment():
-            comment = self._comment_to_html()
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        return (
-            u'<div id="{ident}" class="xt-container-{label}"><label>{label}</label>'
-            u'<span class="btn-external-editor" '
-            u'ng-click="externalEditor(this)"></span>'
-            u'{add_button}'
-            u'{delete_button}'
-            u'{comment}'
-            u'{xmlattrs}'
-            u'{textarea}'
-            u'</div>').format(
-            ident=ident,
-            label=self.tagname,
-            add_button=add_button,
-            delete_button=delete_button,
-            comment=comment,
-            textarea=textarea,
-            xmlattrs=self._attributes_to_html(),
-        )
-
-    def _get_jstree_data(self):
-        data = self.tagname
-        if self.text:
-            data += u' <span class="_tree_text">(%s)</span>' % (
-                utils.truncate(self.text))
-        return data
-
 
 class InChoiceMixin(object):
 
@@ -901,28 +584,6 @@ class InChoiceMixin(object):
     def delete(self):
         self._parent_obj.delete()
 
-    def _add_html_add_button(self):
-        """
-        """
-        renderer = self.get_html_renderer()
-        if not renderer.add_add_button():
-            return False
-        return True
-
-    def _get_html_add_button(self, css_class=None):
-        return self._parent_obj._get_html_add_button(css_class=css_class)
-
-    def _add_html_delete_button(self):
-        """
-        """
-        renderer = self.get_html_renderer()
-        if not renderer.add_delete_button():
-            return False
-        return True
-
-    def get_previous_js_selectors(self):
-        return self._parent_obj.get_previous_js_selectors()
-
 
 class InListMixin(object):
 
@@ -949,67 +610,6 @@ class InListMixin(object):
 
     def delete(self):
         self._parent_obj.remove(self)
-
-    def _add_html_add_button(self):
-        """The add button is added in ListElement.to_html
-        """
-        return False
-
-    def _add_html_delete_button(self):
-        """
-        """
-        renderer = self.get_html_renderer()
-        if not renderer.add_delete_button():
-            return False
-        return True
-
-    def _get_html_delete_button(self):
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        return ('<a class="btn-delete btn-list" '
-                'data-target="#%s" title="Delete"></a>') % ident
-
-    def to_html(self):
-        renderer = self.get_html_renderer()
-        lis = []
-        if renderer.add_add_button():
-            index = self._parent_obj.index(self)
-            lis += [self._parent_obj._get_html_add_button(index)]
-        lis += [super(InListMixin, self).to_html()]
-        return ''.join(lis)
-
-    def _get_jstree_attrs(self):
-        parent_ident = prefixes_to_str(self._parent_obj.prefixes_no_cache)
-        css_class = TREE_PREFIX + parent_ident
-        # TODO: see if we really need this
-        # index = self._parent_obj.index(self)
-        # css_class += ' ' + TREE_PREFIX + parent_ident + ':%s' % index
-        return {
-            'class': '%s %s' % (css_class, self.tagname),
-        }
-
-    def get_previous_js_selectors(self):
-        lis = []
-        index = self._parent_obj.index(self)
-        if index > 0:
-            index -= 1
-            tagnames = [self.tagname]
-            if isinstance(self._parent_obj, ChoiceListElement):
-                # Since we don't know which element is the previous we add all
-                # the possibilities
-                tagnames = [c.tagname
-                            for c in self._parent_obj._choice_classes]
-            for tagname in tagnames:
-                parent_ident = prefixes_to_str(
-                    self._parent_obj.prefixes_no_cache +
-                    [str(index), tagname])
-                lis += [
-                    ('after', escape_attr('#%s%s' % (
-                        TREE_PREFIX,
-                        parent_ident
-                    )))]
-            return lis
-
-        return self._parent_obj.get_previous_js_selectors()
 
 
 class BaseListElement(list, Element):
@@ -1126,41 +726,6 @@ class BaseListElement(list, Element):
         self._after_render()
         return lis
 
-    def _to_html(self, *args, **kw):
-        return self.to_html(*args, **kw)
-
-    def to_html(self):
-        # We should not have the following parameter for this object
-        assert self.attributes is None
-
-        self._before_render()
-        renderer = self.get_html_renderer()
-        i = 0
-        lis = []
-        for e in self:
-            i += 1
-            if isinstance(e, EmptyElement):
-                continue
-            lis += [e.to_html()]
-
-        if renderer.add_add_button():
-            lis += [self._get_html_add_button(i)]
-
-        self._after_render()
-        return '<div class="list-container">%s</div>' % ''.join(lis)
-
-    def to_jstree_dict(self, index=None, offset=0):
-        self._before_render()
-        lis = []
-        for i, e in enumerate(self):
-            if isinstance(e, EmptyElement):
-                continue
-            v = e.to_jstree_dict()
-            if v:
-                lis += [v]
-        self._after_render()
-        return lis
-
 
 class ListElement(BaseListElement):
 
@@ -1173,21 +738,6 @@ class ListElement(BaseListElement):
         super(ListElement, self).delete()
         # delete the shortcut
         del self._parent_obj[self._children_class.tagname]
-
-    def _get_html_add_button(self, index):
-        assert(index is not None)
-        css_classes = ['btn-add btn-add-%s btn-list' % (
-            self._children_class.tagname
-        )]
-
-        ident = prefixes_to_str(self.prefixes_no_cache + [
-            str(index), self._children_class.tagname])
-        button = ('<a class="%s" '
-                  'data-elt-id="%s">New %s</a>') % (
-                      ' '.join(css_classes),
-                      ident,
-                      self._children_class.tagname)
-        return button
 
     def _before_render(self):
         super(ListElement, self)._before_render()
@@ -1235,25 +785,7 @@ class MultipleMixin(object):
 
 
 class ChoiceListElement(MultipleMixin, BaseListElement):
-
-    def _get_html_add_button(self, index):
-        assert(index is not None)
-        button = '<select class="btn-add btn-list">'
-        options = '/'.join([e.tagname for e in self._choice_classes])
-        button += '<option>New %s</option>' % options
-
-        ident = prefixes_to_str(self.prefixes_no_cache + [
-            str(index)])
-
-        for e in self._choice_classes:
-            button += (
-                '<option class="xt-option-%s" value="%s:%s">%s</option>' % (
-                    e.tagname,
-                    ident,
-                    e.tagname,
-                    e.tagname))
-        button += '</select>'
-        return button
+    pass
 
 
 class ChoiceElement(MultipleMixin, Element):
@@ -1310,45 +842,12 @@ class ChoiceElement(MultipleMixin, Element):
                                                                   tagname)
                 raise Exception(err)
 
-    def _get_html_add_button(self, css_class=None):
-        """
-        ..note:: index is not used here since we never have list of this
-        element.
-        """
-        css_classes = ['btn-add']
-        if css_class:
-            css_classes += [css_class]
-
-        ident = prefixes_to_str(self.prefixes_no_cache)
-        button = '<select class="%s">' % ' '.join(css_classes)
-        button += '<option>New %s</option>' % '/'.join([e.tagname for e in self._choice_classes])
-        for e in self._choice_classes:
-            button += (
-                '<option class="xt-option-%s" value="%s:%s">%s</option>' % (
-                    e.tagname,
-                    ident,
-                    e.tagname,
-                    e.tagname))
-        button += '</select>'
-        return button
-
     @classmethod
     def _get_value_from_parent(cls, parent_obj):
         obj = parent_obj.xml_elements.get(cls.tagname)
         if obj:
             return obj._value
 
-    def _to_html(self, index=None):
-        if self._value:
-            return self._value.to_html()
-        return self._get_html_add_button()
-
     def to_xml(self):
         if self._value:
             return self._value.to_xml()
-
-    def to_jstree_dict(self, index=None):
-        if self._value:
-            return self._value.to_jstree_dict()
-
-

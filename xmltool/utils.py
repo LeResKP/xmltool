@@ -27,10 +27,6 @@ def truncate(s, limit=30):
     return s
 
 
-def prefixes_to_str(lis):
-    return ':'.join(lis)
-
-
 # Basically the same function as in tw2.core.validation.
 # We don't want to have a lot of dependancies just for this function.
 def unflatten_params(params):
