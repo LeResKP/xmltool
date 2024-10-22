@@ -6,16 +6,15 @@ import re
 from lxml import etree
 
 
-DEFAULT_ENCODING = 'UTF-8'
+DEFAULT_ENCODING = "UTF-8"
 
 # We expect just '\n' in the XML output
-EOL = '\n'
-eol_regex = re.compile(r'\r?\n|\r\n?')
+EOL = "\n"
+eol_regex = re.compile(r"\r?\n|\r\n?")
 
 
 def update_eol(text):
-    """We only want EOL as end of line
-    """
+    """We only want EOL as end of line"""
     if isinstance(text, etree.CDATA):
         # Don't treat CDATA
         return text
@@ -23,16 +22,16 @@ def update_eol(text):
 
 
 class EmptyElement(object):
-    """This object is used in the ListElement to keep the good index.
-    """
+    """This object is used in the ListElement to keep the good index."""
+
     def __init__(self, parent_obj):
         self._parent_obj = parent_obj
         self._auto_added = False
 
 
 class Element(object):
-    """After reading a dtd file we construct some Element
-    """
+    """After reading a dtd file we construct some Element"""
+
     tagname = None
     _attribute_names = None
     attributes = None
@@ -90,14 +89,12 @@ class Element(object):
 
     @classmethod
     def _get_creatable_class_by_tagnames(cls):
-        """Returns the possible classes addable for this class
-        """
+        """Returns the possible classes addable for this class"""
         return {cls.tagname: cls}
 
     @classmethod
     def _get_creatable_subclass_by_tagnames(cls):
-        """Returns the possible sub classes addable to this class
-        """
+        """Returns the possible sub classes addable to this class"""
         dic = {}
         for c in cls.children_classes:
             dic.update(c._get_creatable_class_by_tagnames())
@@ -105,8 +102,7 @@ class Element(object):
 
     @classmethod
     def get_class_to_create(cls, tagname):
-        """Returns the class to create according to the given tagname
-        """
+        """Returns the class to create according to the given tagname"""
         return cls._get_creatable_subclass_by_tagnames().get(tagname)
 
     @classmethod
@@ -133,8 +129,7 @@ class Element(object):
 
     @property
     def children(self):
-        """Iterator to get the children defined of an object.
-        """
+        """Iterator to get the children defined of an object."""
         for cls in self.children_classes:
             v = cls._get_value_from_parent(self)
             if v:
@@ -174,14 +169,12 @@ class Element(object):
 
     @classmethod
     def _check_addable(cls, obj, tagname):
-        """Check if the given tagname is addable to the given obj
-        """
+        """Check if the given tagname is addable to the given obj"""
         if tagname in obj:
-            raise Exception('%s is already defined' % tagname)
+            raise Exception("%s is already defined" % tagname)
 
     def is_addable(self, tagname):
-        """Check if the given tagname can be added to the object
-        """
+        """Check if the given tagname can be added to the object"""
         cls = self.get_class_to_create(tagname)
         if cls is None:
             return False
@@ -195,7 +188,7 @@ class Element(object):
     def add(self, tagname, value=None, index=None):
         cls = self.get_class_to_create(tagname)
         if cls is None:
-            raise Exception('Invalid child %s' % tagname)
+            raise Exception("Invalid child %s" % tagname)
 
         # May raise an exception
         cls._check_addable(self, tagname)
@@ -204,7 +197,7 @@ class Element(object):
 
     def delete(self):
         if self._parent_obj is None:
-            raise Exception('Can\'t delete the root Element')
+            raise Exception("Can't delete the root Element")
         del self._parent_obj[self.tagname]
 
     def _delete_auto_added(self):
@@ -216,7 +209,7 @@ class Element(object):
 
     def add_attribute(self, name, value):
         if name not in self._attribute_names:
-            raise Exception('Invalid attribute name: %s' % name)
+            raise Exception("Invalid attribute name: %s" % name)
         self.attributes = self.attributes or {}
         self.attributes[name] = value
 
@@ -254,7 +247,7 @@ class Element(object):
                 break
             end_comments += [nextelt.text]
         comments += end_comments
-        self.comment = '\n'.join(comments) or None
+        self.comment = "\n".join(comments) or None
 
     def _comment_to_xml(self, xml):
         if not self.comment:
@@ -269,7 +262,7 @@ class Element(object):
 
     def set_lxml_elt(self, xml):
         self._lxml_elt = xml
-        d = getattr(self.root, '_cached_lxml_elts', None)
+        d = getattr(self.root, "_cached_lxml_elts", None)
         if not d:
             d = {}
             self.root._cached_lxml_elts = d
@@ -307,7 +300,7 @@ class Element(object):
         xml = self.to_xml()
         if xml is not None:
             #  encoding='unicode' will force lxml to return a unicode string
-            return etree.tostring(xml, pretty_print=True, encoding='unicode')
+            return etree.tostring(xml, pretty_print=True, encoding="unicode")
         return xml
 
     def __setitem__(self, tagname, value):
@@ -359,45 +352,54 @@ class Element(object):
                 lis += [elt]
         return lis
 
-    def write(self, filename=None, encoding=None, dtd_url=None, dtd_str=None,
-              validate=True,
-              transform=None):
+    def write(
+        self,
+        filename=None,
+        encoding=None,
+        dtd_url=None,
+        dtd_str=None,
+        validate=True,
+        transform=None,
+    ):
         filename = filename or self.filename
         if not filename:
-            raise Exception('No filename given')
+            raise Exception("No filename given")
         dtd_url = dtd_url or self.dtd_url
         dtd_str = dtd_str or self.dtd_str
         if not dtd_url and not dtd_str:
-            raise Exception('No dtd given')
+            raise Exception("No dtd given")
         encoding = encoding or self.encoding or DEFAULT_ENCODING
         xml = self.to_xml()
         if validate:
             url = dtd_url if dtd_url else StringIO(dtd_str)
             from . import dtd
+
             dtd.DTD(url, os.path.dirname(filename)).validate_xml(xml)
 
         doctype = '<!DOCTYPE %(root_tag)s SYSTEM "%(dtd_url)s">' % {
-            'root_tag': self.tagname,
-            'dtd_url': dtd_url}
+            "root_tag": self.tagname,
+            "dtd_url": dtd_url,
+        }
 
         xml_str = etree.tostring(
             xml.getroottree(),
             pretty_print=True,
             xml_declaration=True,
             encoding=encoding,
-            doctype=doctype)
+            doctype=doctype,
+        )
 
         if transform:
             xml_str = transform(xml_str.decode(encoding)).encode(encoding)
 
-        open(filename, 'wb').write(xml_str)
+        open(filename, "wb").write(xml_str)
 
     def xpath(self, xpath):
-        lxml_elt = getattr(self, '_lxml_elt', None)
+        lxml_elt = getattr(self, "_lxml_elt", None)
         if lxml_elt is None:
             raise Exception(
-                'The xpath is only supported '
-                'when the object is loaded from XML')
+                "The xpath is only supported " "when the object is loaded from XML"
+            )
         lis = self._lxml_elt.xpath(xpath)
         o = []
         for res in lis:
@@ -418,9 +420,7 @@ class TextElement(Element):
     cdata = False
 
     def __repr__(self):
-        return '<TextElement %s "%s">' % (
-            self.tagname,
-            (self.text or '').strip())
+        return '<TextElement %s "%s">' % (self.tagname, (self.text or "").strip())
 
     def set_text(self, value):
         self.text = value
@@ -435,7 +435,7 @@ class TextElement(Element):
             # Special case: we have comments in the text element
             # Since on iteration we only get comment elements, we parse in 2
             # steps.
-            self.text = ''
+            self.text = ""
 
             # Get the comments
             comments = []
@@ -443,10 +443,10 @@ class TextElement(Element):
                 if isinstance(e, etree._Comment):
                     comments += [e.text]
             if comments:
-                self.comment = self.comment or ''
+                self.comment = self.comment or ""
                 if self.comment:
-                    self.comment += '\n'
-                self.comment += '\n'.join(comments)
+                    self.comment += "\n"
+                self.comment += "\n".join(comments)
 
             for s in xml.itertext():
                 if s in comments:
@@ -460,11 +460,11 @@ class TextElement(Element):
             # but it's working for simple case. Also it doesn't support mixed
             # content (text + CDATA) in the same element
             self.text = xml.text
-            if etree.tostring(xml).split(b'>')[1].startswith(b'<![CDATA['):
+            if etree.tostring(xml).split(b">")[1].startswith(b"<![CDATA["):
                 self.cdata = True
 
         # We should have text != None to be sure we keep the existing empty tag.
-        self.text = self.text or ''
+        self.text = self.text or ""
 
     def to_xml(self):
         xml = etree.Element(self.tagname)
@@ -473,20 +473,18 @@ class TextElement(Element):
         self._attributes_to_xml(xml)
         if self._is_empty:
             if self.text:
-                raise Exception(
-                    'It\'s forbidden to have a value to an EMPTY tag')
+                raise Exception("It's forbidden to have a value to an EMPTY tag")
             xml.text = None
         else:
             # We never set self.text to None to make sure when we export as string
             # we get a HTML format (no autoclose tag)
-            xml.text = update_eol(self.text or '')
+            xml.text = update_eol(self.text or "")
             if self.cdata:
                 xml.text = etree.CDATA(xml.text)
         return xml
 
 
 class InChoiceMixin(object):
-
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
         choice_parent_obj = parent_obj.get_or_add(cls._parent_cls.tagname)
@@ -504,8 +502,7 @@ class InChoiceMixin(object):
 
     @classmethod
     def _check_addable(cls, obj, tagname):
-        """Check if the given tagname is addable to the given obj
-        """
+        """Check if the given tagname is addable to the given obj"""
         cls._parent_cls._check_addable(obj, tagname)
 
     def delete(self):
@@ -513,7 +510,6 @@ class InChoiceMixin(object):
 
 
 class InListMixin(object):
-
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
         # Make sure the parent list is create and get it.
@@ -529,8 +525,7 @@ class InListMixin(object):
 
     @classmethod
     def _check_addable(cls, obj, tagname):
-        """Check if the given tagname is addable to the given obj
-        """
+        """Check if the given tagname is addable to the given obj"""
         # TODO: perhaps we have some check to do here
         # We can always add an element to a list.
         pass
@@ -540,7 +535,6 @@ class InListMixin(object):
 
 
 class BaseListElement(list, Element):
-
     def __init__(self, *args, **kw):
         # We only want to call the __init__ from Element since the __init__
         # with parameter from list wants to append an element to self
@@ -548,10 +542,10 @@ class BaseListElement(list, Element):
 
     def __str__(self):
         xml_lis = self.to_xml()
-        return '\n'.join(
-            etree.tostring(xml, pretty_print=True, encoding='unicode')
-            for xml in xml_lis)
-
+        return "\n".join(
+            etree.tostring(xml, pretty_print=True, encoding="unicode")
+            for xml in xml_lis
+        )
 
     @classmethod
     def _get_creatable_class_by_tagnames(cls):
@@ -563,16 +557,12 @@ class BaseListElement(list, Element):
 
     @classmethod
     def _get_creatable_subclass_by_tagnames(cls):
-        """Returns the possible sub classes addable to this class
-        """
-        return {
-            cls._children_class.tagname: cls._children_class
-        }
+        """Returns the possible sub classes addable to this class"""
+        return {cls._children_class.tagname: cls._children_class}
 
     @classmethod
     def _check_addable(cls, obj, tagname):
-        """Check if the given tagname is addable to the given obj
-        """
+        """Check if the given tagname is addable to the given obj"""
         # We can always add an element to a list.
         pass
 
@@ -582,7 +572,7 @@ class BaseListElement(list, Element):
         access to object.
         """
         if tagname != cls.tagname:
-            raise Exception('Unsupported tagname %s' % tagname)
+            raise Exception("Unsupported tagname %s" % tagname)
 
         # Get the list element or create it
         lis = parent_obj.get(cls.tagname)
@@ -600,7 +590,7 @@ class BaseListElement(list, Element):
 
     def get_or_add(self, tagname, value=None, index=None):
         if index is None:
-            raise Exception('Parameter index is required')
+            raise Exception("Parameter index is required")
 
         if index < len(self):
             obj = self[index]
@@ -647,7 +637,6 @@ class BaseListElement(list, Element):
 
 
 class ListElement(BaseListElement):
-
     def __init__(self, *args, **kw):
         super(ListElement, self).__init__(*args, **kw)
         # Create a shortcut
@@ -685,8 +674,7 @@ class MultipleMixin(object):
 
     @classmethod
     def _get_creatable_subclass_by_tagnames(cls):
-        """Returns the possible sub classes addable to this class
-        """
+        """Returns the possible sub classes addable to this class"""
         dic = {}
         for c in cls._choice_classes:
             dic.update(c._get_creatable_class_by_tagnames())
@@ -698,14 +686,13 @@ class ChoiceListElement(MultipleMixin, BaseListElement):
 
 
 class ChoiceElement(MultipleMixin, Element):
-
     # TODO: we should have an init to define this attribute
     _value = None
 
     @classmethod
     def _create(cls, tagname, parent_obj, value=None, index=None):
         if tagname != cls.tagname:
-            raise Exception('Unsupported tagname %s' % tagname)
+            raise Exception("Unsupported tagname %s" % tagname)
 
         # Get the list element or create it
         choice = parent_obj.get(cls.tagname)
@@ -734,8 +721,7 @@ class ChoiceElement(MultipleMixin, Element):
 
     @classmethod
     def _check_addable(cls, obj, tagname):
-        """Check if the given tagname is addable to the given obj
-        """
+        """Check if the given tagname is addable to the given obj"""
         if tagname == cls.tagname:
             # TODO: we should be able to add existing tag: in this case it just
             # returns the existing on like the ListElement but it's not logic.
@@ -745,10 +731,9 @@ class ChoiceElement(MultipleMixin, Element):
         # anything.
         for elt in cls._choice_classes:
             if elt.tagname in obj:
-                err = '%s is already defined' % elt.tagname
+                err = "%s is already defined" % elt.tagname
                 if elt.tagname != tagname:
-                    err = '%s is defined so you can\'t add %s' % (elt.tagname,
-                                                                  tagname)
+                    err = "%s is defined so you can't add %s" % (elt.tagname, tagname)
                 raise Exception(err)
 
     @classmethod

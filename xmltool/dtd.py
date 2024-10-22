@@ -15,7 +15,6 @@ class ValidationError(Exception):
 
 
 class DTD(object):
-
     def __init__(self, url, path=None):
         """
         url: the url to get the dtd, it can be http or filesystem resources
@@ -34,40 +33,40 @@ class DTD(object):
             self._content = None
 
     def _get_dtd_url(self):
-        if self.url.startswith('http://') or self.url.startswith('https://'):
+        if self.url.startswith("http://") or self.url.startswith("https://"):
             return self.url
 
         url = self.url
-        if (self.path and
-                not self.url.startswith('/') and
-                not self.url.startswith(self.path)):
+        if (
+            self.path
+            and not self.url.startswith("/")
+            and not self.url.startswith(self.path)
+        ):
             url = os.path.join(self.path, self.url)
         return url
 
     def _fetch(self):
-        """Fetch the dtd content
-        """
+        """Fetch the dtd content"""
         url = self._get_dtd_url()
-        if url.startswith('http://') or url.startswith('https://'):
+        if url.startswith("http://") or url.startswith("https://"):
             res = requests.get(url, timeout=5)
             # Use res.text to have str
             self._content = res.text
         else:
             # TODO: Get encoding from the dtd file (xml tag).
-            self._content = open(url, 'r').read()
+            self._content = open(url, "r").read()
         return self._content
 
     @property
     def content(self):
-        """The dtd content
-        """
+        """The dtd content"""
         if self._content:
             return self._content
         if cache.CACHE_TIMEOUT is None:
             return self._fetch()
 
-        assert(self.url)
-        cache_key = 'xmltool.get_dtd_content.%s' % (self._get_dtd_url())
+        assert self.url
+        cache_key = "xmltool.get_dtd_content.%s" % (self._get_dtd_url())
         value = cache.region.get(cache_key, cache.CACHE_TIMEOUT)
         if value is not NO_VALUE:
             return value
@@ -92,7 +91,7 @@ class DTD(object):
         try:
             try:
                 # TODO: Get encoding from the dtd file (xml tag).
-                os.write(f, content.encode('utf-8'))
+                os.write(f, content.encode("utf-8"))
             finally:
                 os.close(f)
             dtd_obj = etree.DTD(filename)
@@ -118,7 +117,7 @@ class DTD(object):
         if cache.CACHE_TIMEOUT is None:
             return self._parse()
 
-        cache_key = 'xmltool.parse.%s' % self.url if self.url else None
+        cache_key = "xmltool.parse.%s" % self.url if self.url else None
 
         if not cache_key:
             return self._parse()

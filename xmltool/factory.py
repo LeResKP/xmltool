@@ -19,8 +19,7 @@ def create(root_tag, dtd_url=None, dtd_str=None):
     dtd_obj = dtd.DTD(url)
     dic = dtd_obj.parse()
     if root_tag not in dic:
-        raise Exception('Bad root_tag %s, '
-                        'it\'s not supported by the dtd' % root_tag)
+        raise Exception("Bad root_tag %s, " "it's not supported by the dtd" % root_tag)
     obj = dic[root_tag]()
     obj.dtd_url = dtd_url
     obj.encoding = elements.DEFAULT_ENCODING
@@ -40,8 +39,7 @@ def load(filename, validate=True):
     parser = etree.XMLParser(strip_cdata=False)
     tree = etree.parse(filename, parser=parser)
     dtd_url = tree.docinfo.system_url
-    path = (os.path.dirname(filename)
-            if not isinstance(filename, BytesIO) else None)
+    path = os.path.dirname(filename) if not isinstance(filename, BytesIO) else None
 
     dtd_obj = dtd.DTD(dtd_url, path)
     if validate:
@@ -69,5 +67,5 @@ def load_string(xml_str, validate=True):
     """
     if not isinstance(xml_str, BytesIO):
         # TODO: Get encoding from the dtd file (xml tag).
-        xml_str = BytesIO(xml_str.encode('utf-8'))
+        xml_str = BytesIO(xml_str.encode("utf-8"))
     return load(xml_str, validate)
