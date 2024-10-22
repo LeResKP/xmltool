@@ -41,9 +41,8 @@ setup(
         "requests",
         "dogpile.cache<=0.9.2",
     ],
-    test_suite="nose.collector",
     tests_require=[
-        "nose",
+        "pytest",
         "mock",
     ],
     entry_points="""
