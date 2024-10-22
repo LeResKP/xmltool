@@ -73,39 +73,6 @@ def load_string(xml_str, validate=True):
     return load(xml_str, validate)
 
 
-def update(filename, data, validate=True, transform=None):
-    """Update the file named filename with data.
-
-    :param filename: the XML filename we should update
-    :param data: the result of the submitted data.
-    :param validate: validate the updated XML before writing it.
-    :type filename: str
-    :type data: dict style like: dict, webob.MultiDict, ...
-    :type validate: bool
-    :param transform: function to transform the XML string just before
-        writing it.
-    :type transform: function
-    :return: the object generated from the data
-    :rtype: :class:`Element`
-    """
-    data = utils.unflatten_params(data)
-    encoding = data.pop('_xml_encoding')
-    dtd_url = data.pop('_xml_dtd_url')
-
-    if len(data) != 1:
-        raise Exception('Bad data')
-
-    root_tag = list(data.keys())[0]
-
-    dic = dtd.DTD(dtd_url, path=os.path.dirname(filename)).parse()
-    obj = dic[root_tag]()
-
-    obj.load_from_dict(data)
-    obj.write(filename, encoding, dtd_url=dtd_url, validate=validate,
-              transform=transform)
-    return obj
-
-
 def getElementData(elt_id, data):
     """Get the dic from data to load last element of elt_id
     """

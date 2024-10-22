@@ -64,58 +64,6 @@ class TestFactory(BaseTest):
                                   validate=False)
         self.assertEqual(obj.tagname, 'Exercise')
 
-    def test_update(self):
-        filename = 'tests/test.xml'
-        self.assertFalse(os.path.isfile(filename))
-        try:
-            data = {
-                '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'exercise.dtd',
-                'Exercise': {},
-            }
-            obj = factory.update(filename, data)
-            self.assertTrue(obj)
-            result = open(filename, 'r').read()
-            expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise SYSTEM "exercise.dtd">
-<Exercise>
-  <number></number>
-</Exercise>
-'''
-            self.assertEqual(result, expected)
-            data = {
-                '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'exercise.dtd',
-                'Exercise': {},
-                'fake': {},
-            }
-            try:
-                obj = factory.update(filename, data)
-                assert 0
-            except Exception as e:
-                self.assertEqual(str(e), 'Bad data')
-
-            data = {
-                '_xml_encoding': 'UTF-8',
-                '_xml_dtd_url': 'exercise.dtd',
-                'Exercise': {},
-            }
-            transform_func = lambda  txt: txt.replace('number',
-                                                      'number-updated')
-            obj = factory.update(filename, data, transform=transform_func)
-            self.assertTrue(obj)
-            result = open(filename, 'r').read()
-            expected = '''<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE Exercise SYSTEM "exercise.dtd">
-<Exercise>
-  <number-updated></number-updated>
-</Exercise>
-'''
-            self.assertEqual(result, expected)
-        finally:
-            if os.path.isfile(filename):
-                os.remove(filename)
-
     def test_getElementData(self):
         data = {}
         elt_id = 'texts:list__list:1:list:text'

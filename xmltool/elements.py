@@ -235,15 +235,6 @@ class Element(object):
         for k, v in xml.attrib.items():
             self.add_attribute(k, v)
 
-    def _load_attributes_from_dict(self, dic):
-        if not dic:
-            return
-        attrs = dic.pop('_attrs', None)
-        if not attrs:
-            return
-        for k, v in attrs.items():
-            self.add_attribute(k, v)
-
     def _attributes_to_xml(self, xml):
         if not self.attributes:
             return
@@ -276,9 +267,6 @@ class Element(object):
         comments += end_comments
         self.comment = '\n'.join(comments) or None
 
-    def _load_comment_from_dict(self, dic):
-        self.comment = dic.pop('_comment', None)
-
     def _comment_to_xml(self, xml):
         if not self.comment:
             return None
@@ -307,40 +295,6 @@ class Element(object):
                 continue
             obj = self.add(child.tag)
             obj.load_from_xml(child)
-
-    def _load_extra_from_dict(self, data, skip_extra=False):
-        if skip_extra:
-            if not data:
-                return
-            # We need to remove the attributes and comment from data since we
-            # don't want to load them as Element.
-            data.pop('_attrs', None)
-            data.pop('_comment', None)
-            return
-
-        self._load_attributes_from_dict(data)
-        self._load_comment_from_dict(data)
-
-    def load_from_dict(self, dic, skip_extra=False):
-        data = dic.get(self.tagname)
-        if not data:
-            return
-        self._load_extra_from_dict(data, skip_extra=skip_extra)
-        for key, value in data.items():
-            if isinstance(value, list):
-                for d in value:
-                    if d is None:
-                        # Add empty element to keep index in the list.
-                        lis = self.add(key)
-                        elt = EmptyElement(parent_obj=lis)
-                        lis.append(elt)
-                    else:
-                        assert(len(d) == 1)
-                        obj = self.add(list(d.keys())[0])
-                        obj.load_from_dict(d, skip_extra=skip_extra)
-            else:
-                obj = self.add(key)
-                obj.load_from_dict(data, skip_extra=skip_extra)
 
     def to_xml(self):
         xml = etree.Element(self.tagname)
@@ -522,12 +476,6 @@ class TextElement(Element):
 
         # We should have text != None to be sure we keep the existing empty tag.
         self.text = self.text or ''
-
-    def load_from_dict(self, dic, skip_extra=False):
-        data = dic[self.tagname]
-        self._load_extra_from_dict(data, skip_extra=skip_extra)
-        self.cdata = '_cdata' in data
-        self.text = data.get('_value')
 
     def to_xml(self):
         xml = etree.Element(self.tagname)

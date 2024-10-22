@@ -24,7 +24,6 @@ class ElementTester(BaseTest):
     dtd_str = None
     xml = None
     expected_xml = None
-    submit_data = None
 
     def test_to_xml(self):
         if self.__class__ == ElementTester:
@@ -33,26 +32,6 @@ class ElementTester(BaseTest):
         dic = dtd.DTD(StringIO(self.dtd_str)).parse()
         obj = dic[root.tag]()
         obj.load_from_xml(root)
-        tree = obj.to_xml()
-        xml_str = etree.tostring(
-            tree.getroottree(),
-            pretty_print=True,
-            xml_declaration=True,
-            encoding='UTF-8',
-        )
-        if self.expected_xml:
-            self.assertEqual(xml_str, self.expected_xml)
-        else:
-            self.assertEqual(xml_str, self.xml)
-
-    def test_load_from_dict(self):
-        if self.__class__ == ElementTester:
-            return
-        data = unflatten_params(self.submit_data)
-        root = etree.fromstring(self.xml)
-        dic = dtd.DTD(StringIO(self.dtd_str)).parse()
-        obj = dic[root.tag]()
-        obj.load_from_dict(data)
         tree = obj.to_xml()
         xml_str = etree.tostring(
             tree.getroottree(),
@@ -76,8 +55,6 @@ class TestElementPCDATA(ElementTester):
   <text>Hello world</text>
 </texts>
 '''
-    submit_data = {'texts:text:_value': 'Hello world'}
-
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
@@ -124,8 +101,6 @@ class TestElementPCDATAEmpty(ElementTester):
   <text></text>
 </texts>
 '''
-    submit_data = {}
-
 
 class TestElementPCDATANotRequired(ElementTester):
     dtd_str = u'''
@@ -138,8 +113,6 @@ class TestElementPCDATANotRequired(ElementTester):
 </texts>
 '''
 
-    submit_data = {'texts:text:_value': 'Hello world'}
-
 
 class TestElementPCDATAEmptyNotRequired(ElementTester):
     dtd_str = u'''
@@ -149,7 +122,6 @@ class TestElementPCDATAEmptyNotRequired(ElementTester):
     xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
-    submit_data = {}
 
 
 class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
@@ -163,8 +135,6 @@ class TestElementPCDATAEmptyNotRequiredDefined(ElementTester):
 </texts>
 '''
 
-    submit_data = {'texts:text:_value': ''}
-
 
 class TestListElement(ElementTester):
     dtd_str = u'''
@@ -177,11 +147,6 @@ class TestListElement(ElementTester):
   <text>Tag 2</text>
 </texts>
 '''
-
-    submit_data = {
-        'texts:list__text:0:text:_value': 'Tag 1',
-        'texts:list__text:1:text:_value': 'Tag 2',
-    }
 
     def test_add(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
@@ -225,8 +190,6 @@ class TestListElementEmpty(ElementTester):
 </texts>
 '''
 
-    submit_data = {}
-
 
 class TestListElementNotRequired(ElementTester):
     dtd_str = u'''
@@ -240,11 +203,6 @@ class TestListElementNotRequired(ElementTester):
 </texts>
 '''
 
-    submit_data = {
-        'texts:list__text:0:text:_value': 'Tag 1',
-        'texts:list__text:1:text:_value': 'Tag 2',
-    }
-
 
 class TestListElementEmptyNotRequired(ElementTester):
     dtd_str = u'''
@@ -254,8 +212,6 @@ class TestListElementEmptyNotRequired(ElementTester):
     xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
-
-    submit_data = {}
 
 
 class TestListElementElementEmpty(ElementTester):
@@ -274,8 +230,6 @@ class TestListElementElementEmpty(ElementTester):
   </text>
 </texts>
 '''
-
-    submit_data = {}
 
 
 choice_str_to_html = [
@@ -327,10 +281,6 @@ class TestElementChoice(ElementTester):
 </texts>
 '''
 
-    submit_data = {
-        'texts:text1:_value': 'Tag 1',
-    }
-
     def test_add(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
         classes = dtd_parser._create_classes(dtd_dict)
@@ -376,8 +326,6 @@ class TestElementChoiceEmpty(ElementTester):
 <texts/>
 '''
 
-    submit_data = {}
-
 
 class TestElementChoiceNotRequired(ElementTester):
     dtd_str = u'''
@@ -391,10 +339,6 @@ class TestElementChoiceNotRequired(ElementTester):
 </texts>
 '''
 
-    submit_data = {
-        'texts:text1:_value': 'Tag 1',
-    }
-
 
 class TestElementChoiceEmptyNotRequired(ElementTester):
     dtd_str = u'''
@@ -405,8 +349,6 @@ class TestElementChoiceEmptyNotRequired(ElementTester):
     xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
-
-    submit_data = {}
 
 
 choicelist_str_to_html = [
@@ -481,12 +423,6 @@ class TestElementChoiceList(ElementTester):
 </texts>
 '''
 
-    submit_data = {
-        'texts:list__text1_text2:0:text1:_value': 'Tag 1',
-        'texts:list__text1_text2:1:text2:_value': 'Tag 2',
-        'texts:list__text1_text2:2:text1:_value': 'Tag 3',
-    }
-
     def test_add(self):
         dtd_dict = dtd_parser.dtd_to_dict_v2(self.dtd_str)
         classes = dtd_parser._create_classes(dtd_dict)
@@ -522,8 +458,6 @@ class TestElementChoiceListEmpty(ElementTester):
 <texts/>
 '''
 
-    submit_data = {}
-
 
 class TestElementChoiceListNotRequired(ElementTester):
     dtd_str = u'''
@@ -539,12 +473,6 @@ class TestElementChoiceListNotRequired(ElementTester):
 </texts>
 '''
 
-    submit_data = {
-        'texts:list__text1_text2:0:text1:_value': 'Tag 1',
-        'texts:list__text1_text2:1:text2:_value': 'Tag 2',
-        'texts:list__text1_text2:2:text1:_value': 'Tag 3',
-    }
-
 
 class TestElementChoiceListEmptyNotRequired(ElementTester):
     dtd_str = u'''
@@ -555,8 +483,6 @@ class TestElementChoiceListEmptyNotRequired(ElementTester):
     xml = b'''<?xml version='1.0' encoding='UTF-8'?>
 <texts/>
 '''
-
-    submit_data = {}
 
 
 class TestListElementOfList(ElementTester):
@@ -577,12 +503,6 @@ class TestListElementOfList(ElementTester):
 </texts>
 '''
 
-    submit_data = {
-        'texts:list__text1:0:text1:list__text2:0:text2:_value': 'text2-1',
-        'texts:list__text1:0:text1:list__text2:1:text2:_value': 'text2-2',
-        'texts:list__text1:1:text1:list__text2:0:text2:_value': 'text2-3',
-    }
-
 
 class TestElementWithAttributes(ElementTester):
     dtd_str = u'''
@@ -602,16 +522,6 @@ class TestElementWithAttributes(ElementTester):
   <text1>My text 2</text1>
 </texts>
 '''
-
-    submit_data = {
-        'texts:_attrs:idtexts': 'id_texts',
-        'texts:_attrs:name': 'my texts',
-        'texts:text:_value': 'Hello world',
-        'texts:text:_attrs:idtext': 'id_text',
-        'texts:list__text1:0:text1:_value': 'My text 1',
-        'texts:list__text1:0:text1:_attrs:idtext1': 'id_text1_1',
-        'texts:list__text1:1:text1:_value': 'My text 2',
-    }
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
@@ -647,42 +557,6 @@ class TestElementWithAttributes(ElementTester):
 class TestElementComments(ElementTester):
     dtd_str = MOVIE_DTD
     xml = MOVIE_XML_TITANIC_COMMENTS
-
-    submit_data = {
-        'Movie:_comment': ' Movie comment ',
-        'Movie:name:_value': 'Titanic',
-        'Movie:name:_comment': ' name comment ',
-        'Movie:year:_value': '1997',
-        'Movie:year:_comment': ' year comment ',
-        'Movie:directors:_comment': ' directors comment ',
-        'Movie:directors:list__director:0:director:_comment': ' director comment ',
-        'Movie:directors:list__director:0:director:name:_value': 'Cameron',
-        'Movie:directors:list__director:0:director:name:_comment': ' director name comment ',
-        'Movie:directors:list__director:0:director:firstname:_value': 'James',
-        'Movie:directors:list__director:0:director:firstname:_comment': ' director firstname comment ',
-        'Movie:actors:_comment': ' actors comment ',
-        'Movie:actors:list__actor:0:actor:_comment': ' actor 1 comment ',
-        'Movie:actors:list__actor:0:actor:name:_value': 'DiCaprio',
-        'Movie:actors:list__actor:0:actor:name:_comment': ' actor 1 name comment ',
-        'Movie:actors:list__actor:0:actor:firstname:_value': 'Leonardo',
-        'Movie:actors:list__actor:0:actor:firstname:_comment': ' actor 1 firstname comment ',
-        'Movie:actors:list__actor:1:actor:_comment': ' actor 2 comment ',
-        'Movie:actors:list__actor:1:actor:name:_value': 'Winslet',
-        'Movie:actors:list__actor:1:actor:name:_comment': ' actor 2 name comment ',
-        'Movie:actors:list__actor:1:actor:firstname:_value': 'Kate',
-        'Movie:actors:list__actor:1:actor:firstname:_comment': ' actor 2 firstname comment ',
-        'Movie:actors:list__actor:2:actor:_comment': ' actor 3 comment ',
-        'Movie:actors:list__actor:2:actor:name:_value': 'Zane',
-        'Movie:actors:list__actor:2:actor:name:_comment': ' actor 3 name comment ',
-        'Movie:actors:list__actor:2:actor:firstname:_value': 'Billy',
-        'Movie:actors:list__actor:2:actor:firstname:_comment': ' actor 3 firstname comment ',
-        'Movie:resume:_comment': ' resume comment ',
-        'Movie:resume:_value': '\n     Resume of the movie\n  ',
-        'Movie:list__critique:0:critique:_comment': ' critique 1 comment ',
-        'Movie:list__critique:0:critique:_value': 'critique1',
-        'Movie:list__critique:1:critique:_comment': ' critique 2 comment ',
-        'Movie:list__critique:1:critique:_value': 'critique2',
-    }
 
     def test_load_from_xml(self):
         root = etree.fromstring(self.xml)
