@@ -5,3 +5,4 @@ from .factory import (
 )
 
 from .elements import EOL
+from . import cache
