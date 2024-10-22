@@ -39,7 +39,7 @@ setup(
         "lxml",
         "WebOb",
         "requests",
-        "dogpile.cache<=0.9.2",
+        "dogpile.cache",
     ],
     tests_require=[
         "pytest",
