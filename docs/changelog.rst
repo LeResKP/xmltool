@@ -1,6 +1,14 @@
 Changelog
 =========
 
+1.1.0:
+   * Drop python 2 support
+   * Remove HTML generation
+   * Remove JS/CSS stuff
+
+1.0.0:
+   * python 3 support
+
 0.5.2:
    * Close correctly temporary file
 
