@@ -45,7 +45,7 @@ The XML doesn't have the date defined:
     DocumentInvalid:
     >>> obj = xmltool.load(filename, validate=False)
     >>> # The date tag is automatically added when generating the XML
-    >>> print obj
+    >>> print(obj)
     <movies>
       <movie>
         <title>Titanic</title>

@@ -17,7 +17,7 @@ We will create a new XML file from scratch with 2 movies.
     >>> characters = movie_fmj.add('characters')
     >>> c1 = characters.add('character', 'Matthew Modine')
     >>> c2 = characters.add('character', 'Vincent D\'Onofrio')
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Full Metal Jacket</title>
@@ -35,7 +35,7 @@ We will create a new XML file from scratch with 2 movies.
     >>> characters = movie_tit.add('characters')
     >>> c1 = characters.add('character', 'Leonardo DiCaprio')
     >>> c2 = characters.add('character', 'Kate Winslet')
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Full Metal Jacket</title>
@@ -69,7 +69,7 @@ We will add a new movie after "Full Metal Jacket" so we have to pass ``index=1``
     >>> import xmltool
     >>> movies = xmltool.load('examples/tutorial1.xml')
     >>> movie = movies.add('movie', index=1)
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Full Metal Jacket</title>
@@ -109,7 +109,7 @@ We will delete the movie "Full Metal Jacket" which is the first of the list.
     >>> import xmltool
     >>> movies = xmltool.load('examples/tutorial1.xml')
     >>> movies['movie'][0].delete()
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Titanic</title>
@@ -137,7 +137,7 @@ Add and delete choice element.
     >>> movies = xmltool.load('examples/tutorial1.xml')
     >>> movie = movies['movie'][0]
     >>> c1 = movie.add('good', 'Good movie')
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Titanic</title>
@@ -150,14 +150,14 @@ Add and delete choice element.
       </movie>
     </movies>
     <BLANKLINE>
-    >>> print movie['good'].text
+    >>> print(movie['good'].text)
     Good movie
     >>> movie.add('bad')
     Traceback (most recent call last):
     Exception: good is defined so you can't add bad
     >>> movie['good'].delete()
     >>> bad = movie.add('bad')
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Titanic</title>
@@ -185,7 +185,7 @@ We will add a good-comment and a bad-comment
     >>> movie = movies['movie'][0]
     >>> c1 = movie.add('good-comment', 'My comment 1')
     >>> c2 = movie.add('bad-comment', 'My comment 2')
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Titanic</title>
@@ -210,9 +210,9 @@ Since {good,bad}-comment is a choice list it's a bit different to access, a prop
     >>> import xmltool
     >>> movies = xmltool.load('examples/tutorial1.xml')
     >>> comments = movies['movie'][0]['list__good-comment_bad-comment']
-    >>> print comments[0].text
+    >>> print(comments[0].text)
     My comment 1
-    >>> print comments[1].text
+    >>> print(comments[1].text)
     My comment 2
 
 

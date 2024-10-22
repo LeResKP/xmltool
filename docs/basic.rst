@@ -30,7 +30,7 @@ To create a XML we just need to call the method ``create`` like in the following
     >>> import xmltool
     >>> dtd_url = 'examples/movies.dtd'
     >>> movies = xmltool.create('movies', dtd_url=dtd_url)
-    >>> print movies
+    >>> print(movies)
     <movies/>
     <BLANKLINE>
     >>> movies.write('examples/movies.xml')
@@ -52,7 +52,7 @@ For this example we load the file previously created:
     >>> import xmltool
     >>> filename = 'examples/movies.xml'
     >>> movies = xmltool.load(filename)
-    >>> print movies
+    >>> print(movies)
     <movies/>
     <BLANKLINE>
 
@@ -68,15 +68,15 @@ Now we will see that updating an XML is very easy:
     >>> import xmltool
     >>> filename = 'examples/movies.xml'
     >>> movies = xmltool.load(filename)
-    >>> print movies
+    >>> print(movies)
     <movies/>
     <BLANKLINE>
     >>> movie = movies.add('movie')
     >>> title = movie.add('title', 'Full Metal Jacket')
-    >>> print title
+    >>> print(title)
     <title>Full Metal Jacket</title>
     <BLANKLINE>
-    >>> print movies
+    >>> print(movies)
     <movies>
       <movie>
         <title>Full Metal Jacket</title>
@@ -105,7 +105,7 @@ To access a property of the XML object you have to use the list and dictionnary 
     >>> # As you can see in the dtd, movies has only one child movie
     >>> # which is a repeated element.
     >>> # Here is the syntax to get the first movie
-    >>> print movies['movie'][0]
+    >>> print(movies['movie'][0])
     <movie>
       <title>Full Metal Jacket</title>
       <realisator></realisator>
@@ -115,7 +115,7 @@ To access a property of the XML object you have to use the list and dictionnary 
     </movie>
     <BLANKLINE>
     >>> # You have the text property to access to the value of a tag
-    >>> print movies['movie'][0]['title'].text
+    >>> print(movies['movie'][0]['title'].text)
     Full Metal Jacket
 
 
@@ -127,9 +127,9 @@ To check if a XML property exists you can use if ... in ... or .get():
     >>> filename = 'examples/movies.xml'
     >>> movies = xmltool.load(filename)
     >>> movie1 = movies['movie'][0]
-    >>> print 'date' in movie1
+    >>> print('date' in movie1)
     False
-    >>> print movie1.get('date')
+    >>> print(movie1.get('date'))
     None
 
 There is also a method to get or add element
@@ -155,7 +155,7 @@ We can also access to the attributes
     >>> movies = xmltool.load(filename)
     >>> movie1 = movies['movie'][0]
     >>> movie1.add_attribute('idmovie', 'myid')
-    >>> print movie1
+    >>> print(movie1)
     <movie idmovie="myid">
       <title>Full Metal Jacket</title>
       <realisator></realisator>
@@ -164,7 +164,7 @@ We can also access to the attributes
       </characters>
     </movie>
     <BLANKLINE>
-    >>> print movie1.attributes['idmovie']
+    >>> print(movie1.attributes['idmovie'])
     myid
 
 
@@ -184,7 +184,7 @@ To find all elements from a tagname use ``findall``
     ...     title = movie.add('title', 'Title %i' % i)
     >>> titles = movies.findall('title')
     >>> titles_str = [t.text for t in titles]
-    >>> print titles_str
+    >>> print(titles_str)
     ['Full Metal Jacket', 'Title 0', 'Title 1']
 
 
@@ -197,5 +197,5 @@ You can also go through all the elements by using ``walk``
     >>> movies = xmltool.load(filename)
     >>>
     >>> tagnames = [elt.tagname for elt in movies.walk()]
-    >>> print tagnames
+    >>> print(tagnames)
     ['movie', 'title', 'realisator', 'characters', 'character']
