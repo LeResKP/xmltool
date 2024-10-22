@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-version = "1.0.0"
+version = "1.1.0"
 
 setup(
     name="xmltool",
@@ -28,7 +28,7 @@ setup(
         "Topic :: Text Processing :: Markup :: HTML",
     ],
     keywords="",
-    author="Aur\xc3\xa9lien Matouillot",
+    author="Aurélien Matouillot",
     author_email="a.matouillot@gmail.com",
     url="http://xmltool.lereskp.fr/",
     license="MIT",
