@@ -2,9 +2,7 @@
 
 from xmltool.testbase import BaseTest
 from lxml import etree
-import os.path
-from xmltool import factory, dtd_parser, elements, dtd
-from xmltool.elements import escape_attr
+from xmltool import factory
 
 
 class TestFactory(BaseTest):
@@ -63,30 +61,3 @@ class TestFactory(BaseTest):
         obj = factory.load_string(xml_str,
                                   validate=False)
         self.assertEqual(obj.tagname, 'Exercise')
-
-    def test_getElementData(self):
-        data = {}
-        elt_id = 'texts:list__list:1:list:text'
-        res = factory.getElementData(elt_id, data)
-        self.assertEqual(res, {'text': {}})
-
-        data = {
-            'texts': {
-                'list__list': [
-                    {'list': {'text': {'_value': 'Hello'}}},
-                ]
-            }
-        }
-        res = factory.getElementData(elt_id, data)
-        self.assertEqual(res, {'text': {}})
-
-        data = {
-            'texts': {
-                'list__list': [
-                    {'list': {'text': {'_value': 'Hello'}}},
-                    {'list': {'text': {'_value': 'world'}}}
-                ]
-            }
-        }
-        res = factory.getElementData(elt_id, data)
-        self.assertEqual(res, {'text': {'_value': 'world'}})

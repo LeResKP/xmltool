@@ -5,23 +5,12 @@ import os
 import re
 from lxml import etree
 
-from . import utils
-from .utils import prefixes_to_str
-from . import render
-
 
 DEFAULT_ENCODING = 'UTF-8'
-TREE_PREFIX = 'tree_'
 
 # We expect just '\n' in the XML output
 EOL = '\n'
 eol_regex = re.compile(r'\r?\n|\r\n?')
-
-
-def escape_attr(s):
-    """Escape attributes ':' and '.' since it's not supported by jQuery
-    """
-    return s.replace(':', '\\:').replace('.', '\\.')
 
 
 def update_eol(text):

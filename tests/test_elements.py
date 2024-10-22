@@ -2,13 +2,11 @@
 
 from io import StringIO
 from mock import patch
-from unittest import TestCase
 from xmltool.testbase import BaseTest
-from lxml import etree, html as lxml_html
+from lxml import etree
 import os.path
-from xmltool import utils, dtd_parser, dtd
+from xmltool import dtd
 from xmltool.elements import (
-    Element,
     ContainerElement,
     ListElement,
     TextElement,
@@ -17,8 +15,6 @@ from xmltool.elements import (
     update_eol,
     InListMixin,
     InChoiceMixin,
-    EmptyElement,
-    escape_attr,
 )
 import xmltool.elements as elements
 from .test_dtd_parser import (

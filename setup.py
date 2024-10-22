@@ -37,7 +37,6 @@ setup(
     zip_safe=False,
     install_requires=[
         "lxml",
-        "WebOb",
         "requests",
         "dogpile.cache",
     ],

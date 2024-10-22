@@ -71,20 +71,3 @@ def load_string(xml_str, validate=True):
         # TODO: Get encoding from the dtd file (xml tag).
         xml_str = BytesIO(xml_str.encode('utf-8'))
     return load(xml_str, validate)
-
-
-def getElementData(elt_id, data):
-    """Get the dic from data to load last element of elt_id
-    """
-    data = utils.unflatten_params(data)
-    lis = elt_id.split(':')
-    tagname = lis[-1]
-    for v in lis:
-        try:
-            if isinstance(data, list):
-                v = int(v)
-            data = data[v]
-        except (KeyError, IndexError):
-            data = {}
-            break
-    return {tagname: data}

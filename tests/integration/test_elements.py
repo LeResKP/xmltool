@@ -3,20 +3,12 @@
 from io import StringIO
 from unittest import TestCase
 from xmltool.testbase import BaseTest
-import json
-from lxml import etree, html
+from lxml import etree
 from xmltool import dtd_parser, dtd
-from xmltool.elements import (
-    EmptyElement,
-    escape_attr,
-)
-from xmltool.utils import unflatten_params
 from ..test_dtd_parser import (
     MOVIE_DTD,
     MOVIE_XML_TITANIC_COMMENTS,
 )
-
-_marker = object()
 
 
 class ElementTester(BaseTest):
@@ -232,43 +224,6 @@ class TestListElementElementEmpty(ElementTester):
 '''
 
 
-choice_str_to_html = [
-    ('texts',
-     '<div class="panel panel-default texts" id="texts">'
-     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-     '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
-     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-     '<select class="btn-add">'
-     '<option>New text1/text2</option>'
-     '<option class="xt-option-text1" value="texts:text1">text1</option>'
-     '<option class="xt-option-text2" value="texts:text2">text2</option>'
-     '</select>'
-     '</div></div>'
-    ),
-    ('texts:text1',
-     '<div id="texts:text1" class="xt-container-text1">'
-     '<label>text1</label>'
-     '<span class="btn-external-editor" '
-     'ng-click="externalEditor(this)"></span>'
-     '<select class="btn-add hidden">'
-     '<option>New text1/text2</option>'
-     '<option class="xt-option-text1" value="texts:text1">text1</option>'
-     '<option class="xt-option-text2" value="texts:text2">text2</option>'
-     '</select>'
-     '<a class="btn-delete" data-target="#texts:text1" title="Delete"></a>'
-     '<a data-comment-name="texts:text1:_comment" class="btn-comment" '
-     'title="Add comment"></a>'
-     '<textarea class="form-control text1" name="texts:text1:_value" rows="1"></textarea>'
-     '</div>'
-    )
-]
-
-choice_js_selector = [
-        [],
-        [('inside', '#tree_texts')],
-    ]
-
-
 class TestElementChoice(ElementTester):
     dtd_str = u'''
         <!ELEMENT texts (text1|text2)>
@@ -350,64 +305,6 @@ class TestElementChoiceEmptyNotRequired(ElementTester):
 <texts/>
 '''
 
-
-choicelist_str_to_html = [
-    ('texts',
-     '<div class="panel panel-default texts" id="texts">'
-     '<div class="panel-heading"><span data-toggle="collapse" href="#collapse-texts">texts'
-     '<a data-comment-name="texts:_comment" class="btn-comment" title="Add comment"></a>'
-     '</span></div><div class="panel-body panel-collapse collapse in" id="collapse-texts">'
-     '<div class="list-container">'
-     '<select class="btn-add btn-list">'
-     '<option>New text1/text2</option>'
-     '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
-     '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
-     '</select>'
-     '</div>'
-     '</div></div>'
-    ),
-    ('texts:list__text1_text2:0:text1',
-     '<select class="btn-add btn-list">'
-     '<option>New text1/text2</option>'
-     '<option class="xt-option-text1" value="texts:list__text1_text2:0:text1">text1</option>'
-     '<option class="xt-option-text2" value="texts:list__text1_text2:0:text2">text2</option>'
-     '</select>'
-     '<div id="texts:list__text1_text2:0:text1" class="xt-container-text1">'
-     '<label>text1</label>'
-     '<span class="btn-external-editor" '
-     'ng-click="externalEditor(this)"></span>'
-     '<a class="btn-delete btn-list" '
-     'data-target="#texts:list__text1_text2:0:text1" title="Delete"></a>'
-     '<a data-comment-name="texts:list__text1_text2:0:text1:_comment" '
-     'class="btn-comment" title="Add comment"></a>'
-     '<textarea class="form-control text1" name="texts:list__text1_text2:0:text1:_value" '
-     'rows="1"></textarea>'
-     '</div>'
-    ),
-    ('texts:list__text1_text2:10:text1',
-     '<select class="btn-add btn-list">'
-     '<option>New text1/text2</option>'
-     '<option class="xt-option-text1" value="texts:list__text1_text2:10:text1">text1</option>'
-     '<option class="xt-option-text2" value="texts:list__text1_text2:10:text2">text2</option>'
-     '</select>'
-     '<div id="texts:list__text1_text2:10:text1" class="xt-container-text1">'
-     '<label>text1</label>'
-     '<span class="btn-external-editor" '
-     'ng-click="externalEditor(this)"></span>'
-     '<a class="btn-delete btn-list" '
-     'data-target="#texts:list__text1_text2:10:text1" title="Delete"></a>'
-     '<a data-comment-name="texts:list__text1_text2:10:text1:_comment" '
-     'class="btn-comment" title="Add comment"></a>'
-     '<textarea class="form-control text1" name="texts:list__text1_text2:10:text1:_value" '
-     'rows="1"></textarea>'
-     '</div>'
-    )
-]
-
-choice_list_js_selector = [
-        [],
-        [('inside', '#tree_texts')],
-    ]
 
 class TestElementChoiceList(ElementTester):
     dtd_str = u'''
