@@ -1,6 +1,9 @@
 Changelog
 =========
 
+1.1.1:
+   * Validate and compile the DTD only once when validating XML
+
 1.1.0:
    * Drop python 2 support
    * Remove HTML generation
