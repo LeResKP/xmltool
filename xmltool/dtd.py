@@ -4,6 +4,7 @@ from lxml import etree
 import os
 import requests
 import tempfile
+import threading
 
 
 from . import dtd_parser
@@ -12,6 +13,11 @@ from . import cache
 
 class ValidationError(Exception):
     pass
+
+
+# Compiled etree.DTD objects, keyed by the dtd content. It's per thread since
+# etree.DTD stores the error_log of the last validation on the object.
+_compiled_dtds = threading.local()
 
 
 class DTD(object):
@@ -139,9 +145,20 @@ class DTD(object):
         :return: True. Raise an exception if the XML is not valid
         :rtype: bool
         """
-        # Make sure the dtd is valid
-        self.validate()
-        # We should cache the etree.DTD in the object
-        dtd_obj = etree.DTD(StringIO(self.content))
-        dtd_obj.assertValid(xml_obj)
+        self._get_compiled_dtd().assertValid(xml_obj)
         return True
+
+    def _get_compiled_dtd(self):
+        """Get the compiled etree.DTD, the dtd is validated and compiled only
+        once per content"""
+        content = self.content
+        cache_dict = getattr(_compiled_dtds, "value", None)
+        if cache_dict is None:
+            cache_dict = _compiled_dtds.value = {}
+        dtd_obj = cache_dict.get(content)
+        if dtd_obj is None:
+            # Make sure the dtd is valid
+            self.validate()
+            dtd_obj = etree.DTD(StringIO(content))
+            cache_dict[content] = dtd_obj
+        return dtd_obj
